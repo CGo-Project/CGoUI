@@ -1,0 +1,14 @@
+CGoUI
+Copyright 2026 Central Go Team.
+
+This distribution includes third-party software. Their copyright and license
+notices are retained in the bundled output and in the corresponding package
+installations:
+
+- Lit, lit-html, lit-element and @lit/react are distributed under the
+  BSD-3-Clause license.
+- React and React DOM are distributed under the MIT license and are optional
+  peer dependencies for the React adapter.
+
+The complete third-party license texts are available in the installed
+dependency tree and are not replaced by this notice.

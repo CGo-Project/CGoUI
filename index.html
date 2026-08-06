@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <title>Central Go 前端视觉库</title>
+    <meta name="description" content="轻量级前端界面解决方案">
+    <meta name="author" content="Central Go">
+    <meta property="og:title" content="Central Go 前端视觉库">
+    <meta property="og:description" content="轻量级前端界面解决方案">
+    <meta property="og:image" content="./design.png">
+    <link rel="apple-touch-icon" href="./design2.png">
+    <meta name="apple-mobile-web-app-title" content="CGo前端视觉">
+    <link rel="icon" href="./design.png">
+    <title>Central Go 前端视觉库</title>
+
+    <!-- CGoUI 核心 Bundle 与文档路由最高优先级预加载 -->
+    <link rel="modulepreload" href="./dist/cgo-ui.js">
+    <link rel="modulepreload" href="./docs/docs.js?v=260804.000001">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.loli.net">
+    <link rel="preconnect" href="https://gstatic.loli.net" crossorigin>
+    <link
+        href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&family=Arimo:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- 设计变量 / 布局 / 元素 / 专项 CSS（基础页演示仍需要）-->
+    <link rel="stylesheet" href="./styles/cgo_clr.css">
+    <link rel="stylesheet" href="./styles/cgo_element.css">
+    <link rel="stylesheet" href="./styles/cgo_ui.css">
+    <link rel="stylesheet" href="./styles/cgo_components.css">
+
+    <style>
+        /* Web Components 元素未注册前的占位与防无样式闪烁 */
+        cgo-icon:not(:defined), cgo-side-nav:not(:defined), cgo-theme-toggle:not(:defined) {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            visibility: visible;
+            opacity: 0.6;
+        }
+
+        /* ===== 文档站布局 ===== */
+        body {
+            margin: 0;
+        }
+
+        .doc-shell {
+            display: flex;
+            height: calc(100dvh - 60px);
+            overflow: hidden;
+        }
+
+        /* 文档站侧边导航组件定制 */
+        cgo-side-nav {
+            flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            height: 100%;
+            --sidenav-width: 280px;
+            --sidenav-bg: var(--bg-color);
+            --sidenav-border: var(--border-color);
+            --sidenav-item-px: 16px;
+            --sidenav-item-gap: 2px;
+        }
+
+        .doc-main {
+            flex: 1;
+            min-width: 0;
+            padding: 36px clamp(20px, 5vw, 64px) 80px;
+            max-width: 960px;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+        }
+
+        .doc-h1 {
+            font-size: 30px;
+            font-weight: 800;
+            margin: 0 0 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .doc-h1 cgo-icon {
+            --cgo-icon-size: 28px;
+        }
+
+        .doc-tag {
+            font-family: var(--font-mono);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--primary-color);
+            background: var(--info-bg);
+            padding: 3px 10px;
+            border-radius: var(--radius-sm);
+        }
+
+        .doc-lead {
+            color: var(--text-light);
+            font-size: 15px;
+            margin: 0 0 28px;
+            line-height: 1.7;
+        }
+
+        .doc-h2 {
+            font-size: 18px;
+            font-weight: 700;
+            margin: 36px 0 14px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        /* 实例演示卡 */
+        .example {
+            margin-bottom: 24px;
+        }
+
+        .example-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .preview {
+            position: relative;
+            min-height: 80px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md) var(--radius-md) 0 0;
+            padding: 20px 24px;
+            background: var(--card-bg);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: center;
+        }
+
+        .code-wrap {
+            position: relative;
+        }
+
+        .code-wrap pre {
+            margin: 0;
+            padding: 16px 18px;
+            background: #00263b;
+            color: #fff;
+            border-radius: var(--radius-md);
+            overflow-x: auto;
+            font-family: var(--font-mono);
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .preview+.code-wrap pre {
+            border-top-left-radius: 0;
+            border-top-right-radius: 0;
+        }
+
+        [data-theme="dark"] .code-wrap pre {
+            color: #cecece;
+            background: #131313;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            height: 26px;
+            box-sizing: border-box;
+            background: rgba(255, 255, 255, 0.1);
+            color: #cfd8e3;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: var(--radius-xs);
+            padding: 0 10px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: all var(--transition-base);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            line-height: 1;
+        }
+
+        .copy-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+        }
+
+        /* API 表格 */
+        .api-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 8px;
+            font-size: 13px;
+            min-width: 0;
+        }
+
+        .api-table th,
+        .api-table td {
+            text-align: left;
+            padding: 9px 12px;
+            border-bottom: 1px solid var(--table-cell-border);
+            white-space: normal;
+        }
+
+        .api-table th {
+            background: var(--table-head-bg);
+            color: var(--table-head-text);
+            font-weight: 600;
+        }
+
+        .api-table td:first-child {
+            font-family: var(--font-mono);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .api-table .t-type {
+            font-family: var(--font-mono);
+            color: var(--text-light);
+            font-size: 12px;
+        }
+
+        .api-table .t-default {
+            font-family: var(--font-mono);
+            color: var(--success-color);
+            font-size: 12px;
+        }
+
+        .api-empty {
+            color: var(--text-light);
+            font-size: 13px;
+            font-style: italic;
+            margin: 4px 0 8px;
+        }
+
+        /* 基础页：色板 / token / 图标 */
+        .swatch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+        }
+
+        .swatch-grid.compact {
+            grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+        }
+
+        .swatch {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: var(--card-bg);
+            color: var(--text-main);
+            text-align: left;
+            cursor: pointer;
+            font: inherit;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+        }
+
+        .swatch:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-color);
+        }
+
+        .swatch-color {
+            height: 60px;
+            flex-shrink: 0;
+        }
+
+        .swatch-meta {
+            padding: 8px 10px;
+            font-size: 12px;
+            flex: 1;
+        }
+
+        .swatch-meta b {
+            display: block;
+            font-family: var(--font-mono);
+        }
+
+        .swatch-meta span {
+            color: var(--text-light);
+        }
+
+        .swatch-meta em {
+            display: block;
+            color: var(--text-light);
+            font-style: normal;
+            margin-top: 3px;
+            opacity: 0.85;
+        }
+
+        .color-group-title {
+            margin-top: 28px;
+        }
+
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+            gap: 10px;
+        }
+
+        .icon-cell {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 6px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all var(--transition-base);
+            text-align: center;
+        }
+
+        .icon-cell:hover {
+            border-color: var(--primary-color);
+            background: var(--info-bg);
+            transform: translateY(-2px);
+        }
+
+        .icon-cell span {
+            font-size: 11px;
+            color: var(--text-light);
+            font-family: var(--font-mono);
+            word-break: break-all;
+        }
+
+        .token-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+            flex-wrap: wrap;
+        }
+
+        .token-name {
+            font-family: var(--font-mono);
+            font-size: 13px;
+            width: 170px;
+            color: var(--primary-color);
+        }
+
+        .token-tile-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: flex-start;
+        }
+
+        .token-tile {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            border: 0;
+            background: transparent;
+            color: var(--text-light);
+            font: inherit;
+            font-size: 12px;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .token-square {
+            width: 76px;
+            height: 76px;
+            display: block;
+            background: var(--primary-color);
+        }
+
+        .token-square.shadow {
+            background: var(--card-bg);
+            border-radius: var(--radius-sm);
+        }
+
+        .avatar-color-board {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            width: 100%;
+            align-items: center;
+            padding: 8px;
+        }
+
+        .avatar-color-copy {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            border: 0;
+            color: #fff;
+            font-size: 20px;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: var(--shadow-md);
+            transition: transform var(--transition-base), box-shadow var(--transition-base);
+        }
+
+        .avatar-color-copy:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .avatar-color-copy:nth-child(7) {
+            color: #00263b;
+        }
+
+        @media (max-width: 768px) {
+            .doc-shell {
+                flex-direction: column;
+            }
+
+            cgo-side-nav {
+                position: sticky;
+                top: 0;
+                z-index: 100;
+                height: auto;
+            }
+
+            .doc-main {
+                padding: 16px 18px 60px;
+            }
+        }
+
+        /* ===== 文档站演示区辅助样式（原 legacy-helpers.css） ===== */
+        .preview-box {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 8px;
+        }
+
+        .metro-palette-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px dotted var(--border-color);
+        }
+
+        .palette-toggles {
+            display: flex;
+            gap: 6px;
+        }
+
+        .color-compare-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .compare-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow-xs);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .compare-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .compare-header {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .compare-split-bar {
+            display: flex;
+            height: 48px;
+        }
+
+        .compare-half {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        .compare-half.light-text {
+            color: #fff;
+        }
+
+        .compare-half.dark-text {
+            color: #00263b;
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
+        }
+
+        .compare-label-tag {
+            position: absolute;
+            top: 4px;
+            font-size: 8px;
+            font-weight: 800;
+            opacity: 0.7;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .compare-body {
+            padding: 12px 14px;
+            font-size: 12px;
+            color: var(--text-light);
+            line-height: 1.6;
+        }
+
+        .line-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            gap: 12px;
+        }
+
+        .line-swatch {
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            background: var(--card-bg);
+            text-align: left;
+            cursor: pointer;
+            font: inherit;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+        }
+
+        .line-swatch:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-color);
+        }
+
+        .line-swatch-color {
+            height: 50px;
+            flex-shrink: 0;
+        }
+
+        .line-swatch-meta {
+            padding: 8px 10px;
+            font-size: 12px;
+        }
+
+        .line-swatch-meta b {
+            display: block;
+            font-weight: 600;
+        }
+
+        .line-swatch-meta span {
+            font-family: var(--font-mono);
+            font-size: 11px;
+            color: var(--text-light);
+        }
+
+        .filter-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .filter-tag {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            cursor: pointer;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-light);
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .filter-tag:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .filter-tag.active {
+            background: var(--primary-color);
+            color: #fff;
+            border-color: var(--primary-color);
+        }
+
+        .color-hex {
+            font-size: 10px;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-top: 8px;
+            font-family: var(--font-mono);
+        }
+    </style>
+</head>
+
+<header class="tool-header">
+    <div class="header-left">
+        <button class="btn btn-info" onclick="history.back()" title="返回上一页">
+            <cgo-icon name="back"></cgo-icon>
+            <span>返回</span>
+        </button>
+        <a href="../index.html" class="btn btn-primary" title="返回主页">
+            <cgo-icon name="home"></cgo-icon>
+            <span>主页</span>
+        </a>
+    </div>
+
+    <div class="header-center">
+        <img src="./design.png" alt="Logo" class="header-logo">
+        <span class="app-title">前端视觉<span style="font-weight:400;color:var(--text-light);font-size:13px;">
+                组件库</span></span>
+    </div>
+
+    <div class="header-right">
+        <cgo-theme-toggle></cgo-theme-toggle>
+    </div>
+</header>
+
+<div class="doc-shell">
+    <cgo-side-nav id="doc-nav"></cgo-side-nav>
+    <main id="doc-main" class="doc-main"></main>
+</div>
+
+<!-- CGoUI Web Components 统一 bundle -->
+<script type="module" src="./dist/cgo-ui.js"></script>
+
+<!-- 文档站数据与路由 -->
+<script type="module" src="./docs/docs.js?v=260804.000001"></script>
+</body>
+
+</html>

@@ -1,0 +1,87 @@
+{
+  "name": "@centralgo/cgo-ui",
+  "version": "2.1.0",
+  "description": "Central Go 的 Lit Web Components 与 React 适配器。",
+  "type": "module",
+  "author": "Central Go Team",
+  "contributors": [
+    "James NaL",
+    "Zhengping Si"
+  ],
+  "license": "Apache-2.0",
+  "sideEffects": true,
+  "main": "./dist/cgo-ui.js",
+  "module": "./dist/cgo-ui.js",
+  "types": "./src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./dist/cgo-ui.js",
+      "default": "./dist/cgo-ui.js"
+    },
+    "./react": {
+      "types": "./src/react.d.ts",
+      "import": "./dist/cgo-ui-react.js",
+      "default": "./dist/cgo-ui-react.js"
+    },
+    "./register": "./dist/cgo-ui.js",
+    "./theme": "./dist/theme.js",
+    "./styles/cgo_clr.css": "./styles/cgo_clr.css",
+    "./styles/cgo_element.css": "./styles/cgo_element.css",
+    "./styles/cgo_ui.css": "./styles/cgo_ui.css",
+    "./styles/cgo_components.css": "./styles/cgo_components.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "src",
+    "styles",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "THIRD_PARTY_NOTICES.md",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18.18"
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "dev": "node scripts/build.mjs --watch",
+    "docs": "vite --open /index.html",
+    "clean": "node scripts/clean.mjs",
+    "check": "node scripts/check-package.mjs",
+    "test": "node scripts/smoke-test.mjs",
+    "test:pack": "npm run build && npm pack --dry-run",
+    "prepublishOnly": "npm run clean && npm run build && npm run check && npm test",
+    "publish:public": "sh scripts/publish-npm.sh",
+    "release:check": "npm run prepublishOnly"
+  },
+  "peerDependencies": {
+    "lit": "^3.0.0",
+    "@lit/react": "^1.0.0",
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "peerDependenciesMeta": {
+    "lit": {
+      "optional": false
+    },
+    "react": {
+      "optional": true
+    },
+    "react-dom": {
+      "optional": true
+    },
+    "@lit/react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@lit/react": "^1.0.8",
+    "lit": "^3.3.3",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "vite": "^6.0.0"
+  }
+}

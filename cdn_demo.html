@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CGoUI CDN 极简接入 Demo</title>
+    <link rel="icon" href="./design.png">
+    <link rel="apple-touch-icon" href="./design2.png">
+    
+    <!-- 仅使用基础的宿主页排版样式，完全没有引入任何 CGoUI 的外部 CSS 样式表 -->
+    <style>
+        :root {
+            /* 宿主页面可选用 CGoUI 注入的变量进行配合，也可自定 */
+            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            font-family: var(--font-sans);
+            background-color: var(--bg-color, #f8f9fa);
+            color: var(--text-main, #00263b);
+            padding: 40px 20px;
+            margin: 0;
+            transition: background-color 0.3s, color 0.3s;
+            display: flex;
+            justify-content: center;
+        }
+        .demo-card {
+            width: 100%;
+            max-width: 680px;
+            background: var(--card-bg, #ffffff);
+            border: 1px solid var(--border-color, #dee2e6);
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 10px 30px var(--glass-shadow, rgba(0,0,0,0.05));
+        }
+        h1 {
+            font-size: 24px;
+            margin: 0 0 10px 0;
+            border-bottom: 2px solid var(--primary-color, #00263b);
+            padding-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        p {
+            color: var(--text-light, #666666);
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 25px 0 12px 0;
+            color: var(--primary-color, #00263b);
+            border-left: 4px solid var(--primary-color, #00263b);
+            padding-left: 8px;
+        }
+        .demo-row {
+            background: var(--bg-color, #f8f9fa);
+            border: 1px dashed var(--border-color, #dee2e6);
+            border-radius: 8px;
+            padding: 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        pre {
+            background: var(--bg-color, #f8f9fa);
+            border: 1px solid var(--border-color, #dee2e6);
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            overflow-x: auto;
+            color: var(--text-main, #333);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="demo-card">
+        <div class="header-bar" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-color, #00263b); padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <cgo-button variant="info" icon="back" size="sm" onclick="location.href='./index.html'">返回文档</cgo-button>
+                <h1 style="font-size: 24px; margin: 0; border: none; padding: 0;">CGoUI CDN 极简接入</h1>
+            </div>
+            <!-- 主题切换组件 -->
+            <cgo-theme-toggle></cgo-theme-toggle>
+        </div>
+        
+        <p>这是一个完全使用 <strong>npm/jsDelivr CDN</strong> 动态加载的测试页面。除了这行远程 JS 以外，没有在页面的 <code>&lt;head&gt;</code> 中手动关联引入任何样式表文件：</p>
+        
+        <pre>&lt;script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.1.0/dist/cgo-ui.js"&gt;&lt;/script&gt;</pre>
+
+        <div class="section-title">1. 按钮组件 (&lt;cgo-button&gt;)</div>
+        <div class="demo-row">
+            <cgo-button variant="primary" icon="save">主要保存</cgo-button>
+            <cgo-button variant="danger" icon="delete">危险删除</cgo-button>
+            <cgo-button variant="info" pill icon="edit">胶囊编辑</cgo-button>
+            <cgo-button variant="ghost" size="sm">幽灵小按钮</cgo-button>
+        </div>
+
+        <div class="section-title">2. 地铁线路胶囊 (&lt;cgo-line-badge&gt;)</div>
+        <div class="demo-row">
+            <cgo-line-badge line="1">1号线</cgo-line-badge>
+            <cgo-line-badge line="2">2号线</cgo-line-badge>
+            <cgo-line-badge line="13">13号线</cgo-line-badge>
+            <cgo-line-badge line="dae">大兴机场线</cgo-line-badge>
+            <cgo-line-badge line="昌平线">昌平线</cgo-line-badge>
+        </div>
+
+        <div class="section-title">3. 徽标 (&lt;cgo-badge&gt;) 与 头像 (&lt;cgo-avatar&gt;)</div>
+        <div class="demo-row">
+            <cgo-badge variant="success">已完成</cgo-badge>
+            <cgo-badge variant="danger">有风险</cgo-badge>
+            <cgo-badge variant="info">审核中</cgo-badge>
+            <cgo-badge variant="brand-vitool">ViTool系统</cgo-badge>
+            <cgo-avatar size="34" name="Ryan Si" color="#006098"></cgo-avatar>
+            <cgo-avatar size="34" name="Central Go" color="#dc3545"></cgo-avatar>
+        </div>
+
+        <div class="section-title">4. 选项卡 (&lt;cgo-tabs&gt;)</div>
+        <div class="demo-row" style="display: block;">
+            <cgo-tabs>
+                <cgo-tab label="通用设置" active>
+                    <p style="margin: 15px 0 0 0; font-size: 14px; color: var(--text-light);">这里是通用设置的配置面板内容，可以用来调整程序的基本常规设置。</p>
+                </cgo-tab>
+                <cgo-tab label="安全选项">
+                    <p style="margin: 15px 0 0 0; font-size: 14px; color: var(--text-light);">这里是安全选项相关的参数调节面板，提供双重认证和令牌审计逻辑。</p>
+                </cgo-tab>
+                <cgo-tab label="高级偏好">
+                    <p style="margin: 15px 0 0 0; font-size: 14px; color: var(--text-light);">这里是高级偏好参数的细节微调，非专业开发人员请勿改动。</p>
+                </cgo-tab>
+            </cgo-tabs>
+        </div>
+
+        <div class="section-title">5. AI 聊天气泡 (&lt;cgo-chat-bubble&gt;)</div>
+        <div class="demo-row" style="display: flex; flex-direction: column; align-items: stretch; gap: 10px;">
+            <cgo-chat-bubble role="user">你好，这个组件库在 CDN 上怎么直接使用？</cgo-chat-bubble>
+            <cgo-chat-bubble role="bot">你好！您只需要在 HTML 页面中通过 script 标签引入单文件 JS 即可。所有样式和自定义组件都会自动注册并优雅渲染！</cgo-chat-bubble>
+        </div>
+
+        <div class="section-title">6. 输入框组件 (&lt;cgo-input&gt;)</div>
+        <div class="demo-row">
+            <cgo-input label="用户名" placeholder="请输入您的用户名" style="flex: 1; min-width: 200px;"></cgo-input>
+            <cgo-input label="安全密码" type="password" placeholder="请输入密码" style="flex: 1; min-width: 200px;"></cgo-input>
+        </div>
+
+        <div class="section-title">7. 纯前端验证码 (&lt;cgo-captcha&gt;)</div>
+        <div class="demo-row">
+            <cgo-captcha></cgo-captcha>
+        </div>
+
+        <div class="section-title">8. 加载指示器 (&lt;cgo-spinner&gt;)与弹窗 (&lt;cgo-modal&gt;)</div>
+        <div class="demo-row">
+            <cgo-spinner size="sm"></cgo-spinner>
+            <cgo-spinner></cgo-spinner>
+            <cgo-spinner size="lg"></cgo-spinner>
+            <div style="flex: 1; display: flex; justify-content: flex-end;">
+                <cgo-button variant="info" onclick="document.getElementById('demo-modal').open = true">打开测试弹窗</cgo-button>
+            </div>
+            
+            <cgo-modal id="demo-modal" title="系统验证提示">
+                <p style="margin: 0 0 15px 0; font-size: 14px; line-height: 1.5; color: var(--text-light);">这是一个基于 Lit Web Component 的弹窗对话框。完全支持宿主页控制，具有优雅的淡入淡出动画与遮罩层效果。</p>
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <cgo-button variant="info" size="sm" onclick="document.getElementById('demo-modal').open = false">取消</cgo-button>
+                    <cgo-button variant="primary" size="sm" onclick="alert('已确认！'); document.getElementById('demo-modal').open = false">确定</cgo-button>
+                </div>
+            </cgo-modal>
+        </div>
+
+        <div class="section-title">9. 偏好设置项 (&lt;cgo-preference-item&gt;)</div>
+        <div style="margin-top: 10px;">
+            <cgo-preference-item label="自动检测更新" desc="每次打开应用时，自动检测是否有最新的版本。">
+                <cgo-button variant="info" size="sm">立即检查</cgo-button>
+            </cgo-preference-item>
+        </div>
+    </div>
+
+    <!-- 唯一引用的外部资源：CDN 分发脚本，将自动初始化明暗主题并注入 CSS 变量系统 -->
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.1.0/dist/cgo-ui.js"></script>
+</body>
+</html>

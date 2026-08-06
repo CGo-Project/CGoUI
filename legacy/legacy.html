@@ -1,0 +1,2324 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <title>Central Go 前端视觉库</title>
+    <meta name="description" content="专为工具套件打造的轻量级前端界面解决方案">
+    <meta name="author" content="Central Go">
+    <meta property="og:title" content="Central Go 前端视觉库">
+    <meta property="og:description" content="专为工具套件打造的轻量级前端界面解决方案">
+    <meta property="og:image" content="https://centralgo.site/icon.png">
+    <link rel="apple-touch-icon" href="https://centralgo.site/icon2.png">
+    <meta name="apple-mobile-web-app-title" content="CGo前端视觉">
+    <link rel="icon" href="../icon.png">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.loli.net">
+    <link rel="preconnect" href="https://gstatic.loli.net" crossorigin>
+    <link
+        href="https://fonts.loli.net/css2?family=Noto+Sans+SC:wght@400;500;700&family=Arimo:wght@400;500;700&display=swap"
+        rel="stylesheet">
+
+    <!-- CGo UI Library -->
+    <link rel="stylesheet" href="./cgo_clr.css?v=260626.164000">
+    <link rel="stylesheet" href="./cgo_element.css?v=260626.164000">
+    <link rel="stylesheet" href="./cgo_ui.css?v=260626.164000">
+    <link rel="stylesheet" href="./cgo_components.css?v=260626.164000">
+
+    <style>
+        /* ── 演示页私有样式 ── */
+        .tool-header {
+            z-index: 1005 !important;
+        }
+
+        body {
+            height: 100dvh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 导航侧边 (演示页专用) */
+        .demo-layout {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+            height: calc(100dvh - var(--header-height));
+            overflow: hidden;
+        }
+
+        .demo-nav {
+            width: 200px;
+            flex-shrink: 0;
+            border-right: 1px solid var(--border-color);
+            background: var(--card-bg);
+            padding: 20px 12px;
+            height: 100%;
+            overflow-y: auto;
+            scrollbar-width: none;
+        }
+
+
+        .demo-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .demo-nav-section {
+            margin-bottom: 24px;
+        }
+
+        .demo-nav-title {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--text-light);
+            padding: 0 8px;
+            margin-bottom: 6px;
+        }
+
+        .demo-nav-link {
+            display: block;
+            padding: 7px 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            color: var(--text-light);
+            text-decoration: none;
+            transition: all 0.18s;
+            cursor: pointer;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            font-family: var(--font-sans);
+        }
+
+        .demo-nav-link:hover {
+            background: var(--btn-info-bg);
+            color: var(--text-main);
+        }
+
+        .demo-nav-link.active {
+            background: var(--primary-color);
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* 主内容 */
+        .demo-content {
+            flex: 1;
+            padding: 40px 48px;
+            max-width: 960px;
+            overflow-y: auto;
+            height: 100%;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ── 地铁线路色双色色板展示 ── */
+        .metro-palette-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px dotted var(--border-color);
+        }
+
+        .palette-toggles {
+            display: flex;
+            gap: 6px;
+        }
+
+        /* ── 对比卡片网格与卡片 ── */
+        .color-compare-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+
+        .compare-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: var(--shadow-xs);
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .compare-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .compare-header {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .compare-split-bar {
+            display: flex;
+            height: 48px;
+            position: relative;
+        }
+
+        .compare-half {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-size: 11px;
+            font-weight: 700;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+            position: relative;
+        }
+
+        .compare-half.light-text {
+            color: #ffffff;
+        }
+
+        .compare-half.dark-text {
+            color: #00263b;
+            text-shadow: 0 1px 1px rgba(255, 255, 255, 0.6);
+        }
+
+        .compare-label-tag {
+            position: absolute;
+            top: 4px;
+            font-size: 8px;
+            font-weight: 800;
+            opacity: 0.7;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .compare-half span.color-hex {
+            font-size: 10px;
+            font-weight: 500;
+            opacity: 0.9;
+            margin-top: 8px;
+            font-family: var(--font-mono);
+        }
+
+        .compare-body {
+            padding: 12px 14px;
+            font-size: 12px;
+            color: var(--text-light);
+            line-height: 1.6;
+            flex: 1;
+        }
+
+
+        /* Section 分隔 */
+        .demo-section {
+            margin-bottom: 64px;
+            scroll-margin-top: calc(var(--header-height) + 20px);
+        }
+
+        .demo-section-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: var(--text-main);
+            margin-bottom: 6px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .demo-section-desc {
+            font-size: 13px;
+            color: var(--text-light);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        /* 组件展示行 */
+        .demo-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        /* 色块展示 */
+        .swatch-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .swatch {
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        .swatch-color {
+            height: 60px;
+        }
+
+        .swatch-label {
+            padding: 6px 8px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--text-light);
+            background: var(--card-bg);
+            line-height: 1.4;
+        }
+
+        .swatch-label span {
+            display: block;
+            font-size: 9px;
+            font-weight: 400;
+            opacity: 0.7;
+            margin-top: 1px;
+        }
+
+        /* 代码块 */
+        .code-block {
+            background: var(--help-code-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 14px 16px;
+            font-family: var(--font-mono);
+            font-size: 12px;
+            color: var(--text-main);
+            margin: 12px 0 0;
+            overflow-x: auto;
+            line-height: 1.7;
+        }
+
+        .code-block .kw {
+            color: var(--primary-color);
+        }
+
+        .code-block .str {
+            color: var(--success-color);
+        }
+
+        .code-block .cmt {
+            color: var(--text-light);
+            font-style: italic;
+        }
+
+        /* 预览盒子 */
+        .preview-box {
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 24px;
+            margin-bottom: 8px;
+        }
+
+        .preview-box.dark-bg {
+            background: #1a1a1a;
+        }
+
+        .preview-box.grid-bg {
+            background-image: radial-gradient(var(--border-color) 1px, transparent 1px);
+            background-size: 16px 16px;
+        }
+
+        /* 线路色展示 */
+        .line-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .line-chip {
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        /* 间距展示 */
+        .token-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .token-table th {
+            text-align: left;
+            padding: 8px 12px;
+            background: var(--table-head-bg);
+            color: var(--table-head-text);
+            font-weight: 600;
+        }
+
+        .token-table td {
+            text-align: left;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--table-cell-border);
+            font-family: var(--font-mono);
+            font-size: 12px;
+        }
+
+        .token-table td:first-child {
+            color: var(--primary-color);
+        }
+
+        .token-table td:last-child {
+            color: var(--text-light);
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .demo-nav {
+                display: none;
+            }
+
+            .demo-content {
+                padding: 20px 16px;
+            }
+
+            .swatch-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ╔════════════════════ HEADER ════════════════════╗ -->
+    <header class="tool-header">
+        <div class="header-left">
+            <a href="../index.html" class="btn btn-primary" title="返回首页">
+                <i class="cgo-icon" data-icon="home"></i>
+                <span>首页</span>
+            </a>
+        </div>
+
+        <div class="header-center">
+            <img src="../icon.png" alt="Logo" class="header-logo">
+            <span class="app-title">Central Go 前端视觉库</span>
+        </div>
+
+        <div class="header-right">
+            <button id="theme-toggle-btn" class="btn btn-info" title="切换明暗模式（长按恢复系统）">
+                <svg class="btn-icon" viewBox="0 0 24 24">
+                    <path
+                        d="M12 3c-4.97 0-9 4.03-9 9s4.03 9 9 9 9-4.03 9-9c0-.46-.04-.92-.1-1.36-.98 1.37-2.58 2.26-4.4 2.26-2.98 0-5.4-2.42-5.4-5.4 0-1.81.89-3.42 2.26-4.4-.44-.06-.9-.1-1.36-.1z" />
+                </svg>
+                <span>主题</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- ╔════════════════════ LAYOUT ════════════════════╗ -->
+    <div class="demo-layout">
+
+        <!-- 侧边导航 -->
+        <nav class="demo-nav">
+            <div class="demo-nav-section">
+                <div class="demo-nav-title">基础</div>
+                <a class="demo-nav-link active" href="#colors">配色系统</a>
+                <a class="demo-nav-link" href="#typography">字体排版</a>
+                <a class="demo-nav-link" href="#tokens">设计变量</a>
+            </div>
+            <div class="demo-nav-section">
+                <div class="demo-nav-title">元素</div>
+                <a class="demo-nav-link" href="#buttons">按钮</a>
+                <a class="demo-nav-link" href="#forms">表单</a>
+                <a class="demo-nav-link" href="#badges">徽标标签</a>
+                <a class="demo-nav-link" href="#tabs">选项卡</a>
+            </div>
+            <div class="demo-nav-section">
+                <div class="demo-nav-title">容器</div>
+                <a class="demo-nav-link" href="#cards">卡片</a>
+                <a class="demo-nav-link" href="#tables">表格</a>
+                <a class="demo-nav-link" href="#avatar">头像</a>
+                <a class="demo-nav-link" href="#media-viewer">媒体查看器</a>
+            </div>
+            <div class="demo-nav-section">
+                <div class="demo-nav-title">交互</div>
+                <a class="demo-nav-link" href="#icons">图标组件库</a>
+                <a class="demo-nav-link" href="#brand-icons">品牌标识图标</a>
+                <a class="demo-nav-link" href="#dialogs">弹窗</a>
+                <a class="demo-nav-link" href="#floating">悬浮窗</a>
+                <a class="demo-nav-link" href="#dropdown">下拉菜单</a>
+                <a class="demo-nav-link" href="#toast">Toast</a>
+                <a class="demo-nav-link" href="#chat">聊天气泡</a>
+            </div>
+            <div class="demo-nav-section">
+                <div class="demo-nav-title">专项</div>
+                <a class="demo-nav-link" href="#admin-components">管理台组件</a>
+                <a class="demo-nav-link" href="#metro">地铁线路色</a>
+                <a class="demo-nav-link" href="#userlevel">用户组别</a>
+                <a class="demo-nav-link" href="#usage">接入指南</a>
+            </div>
+        </nav>
+
+        <!-- 主内容 -->
+        <main class="demo-content">
+
+            <!-- ══ 页面标题 ══ -->
+            <div style="margin-bottom:48px;">
+                <h1 style="font-size:32px;font-weight:800;margin-bottom:8px;">CGo UI Library</h1>
+                <h2
+                    style="font-size: var(--text-2xl); font-weight: 700; color: var(--primary-color); margin-bottom: 12px;">
+                    Central Go 前端视觉库</h2>
+                <p style="color:var(--text-light);font-size:15px;max-width:600px;line-height:1.7;">
+                    Central Go「前端视觉库」系统，可供旗下所有工具引用。
+                    包含配色、排版、按钮、布局、地铁线路色等全套规范，
+                    引入 4 个 CSS 文件即可获得一致的视觉风格。
+                </p>
+            </div>
+
+            <!-- ══════════════════════════════════════════
+                 §1  配色系统
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="colors">
+                <h2 class="demo-section-title">🎨 配色系统</h2>
+                <p class="demo-section-desc">所有颜色通过 CSS 变量定义，自动响应亮色/暗色主题切换。</p>
+
+                <h3 style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--text-light);">品牌色 & 中性色</h3>
+                <div class="swatch-grid">
+                    <div class="swatch">
+                        <div class="swatch-color" style="background:var(--primary-color)"></div>
+                        <div class="swatch-label">Primary<span>--primary-color</span></div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background:var(--primary-hover)"></div>
+                        <div class="swatch-label">Primary Hover<span>--primary-hover</span></div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background:var(--bg-color)"></div>
+                        <div class="swatch-label">Background<span>--bg-color</span></div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color"
+                            style="background:var(--card-bg);border:1px solid var(--border-color)"></div>
+                        <div class="swatch-label">Card BG<span>--card-bg</span></div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background:var(--text-main)"></div>
+                        <div class="swatch-label">Text Main<span>--text-main</span></div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background:var(--text-light)"></div>
+                        <div class="swatch-label">Text Light<span>--text-light</span></div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background:var(--border-color)"></div>
+                        <div class="swatch-label">Border<span>--border-color</span></div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background:var(--btn-info-bg)"></div>
+                        <div class="swatch-label">Btn Info BG<span>--btn-info-bg</span></div>
+                    </div>
+                </div>
+
+                <h3 style="font-size:14px;font-weight:700;margin:20px 0 10px;color:var(--text-light);">语义色</h3>
+                <div class="swatch-grid">
+                    <div class="swatch">
+                        <div class="swatch-color" style="background:var(--success-color)"></div>
+                        <div class="swatch-label">Success<span>--success-color</span></div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background:var(--warning-color)"></div>
+                        <div class="swatch-label">Warning<span>--warning-color</span></div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background:var(--danger-color)"></div>
+                        <div class="swatch-label">Danger<span>--danger-color</span></div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background:var(--info-color)"></div>
+                        <div class="swatch-label">Info<span>--info-color</span></div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background:var(--diff-bg)"></div>
+                        <div class="swatch-label">Diff BG<span>--diff-bg</span></div>
+                    </div>
+                    <div class="swatch">
+                        <div class="swatch-color" style="background:var(--same-bg)"></div>
+                        <div class="swatch-label">Same BG<span>--same-bg</span></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §2  字体排版
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="typography">
+                <h2 class="demo-section-title">🔤 字体排版</h2>
+                <p class="demo-section-desc">主字体 <code>Noto Sans SC</code>，英文字体 <code>Arimo</code>，等宽字体用于代码块。</p>
+
+                <div class="preview-box">
+                    <div style="font-size:28px;font-weight:800;margin-bottom:4px;">标题 H1 · 28px Bold</div>
+                    <div style="font-size:22px;font-weight:700;margin-bottom:4px;">标题 H2 · 22px Bold</div>
+                    <div style="font-size:18px;font-weight:600;margin-bottom:4px;">标题 H3 · 18px SemiBold</div>
+                    <div style="font-size:15px;margin-bottom:4px;">正文 Body · 15px Regular — 北京地铁线路图工具套件，供 CGo 工作室使用
+                    </div>
+                    <div style="font-size:13px;color:var(--text-light);">辅助文字 Caption · 13px — Secondary text used for
+                        descriptions and hints</div>
+                    <div style="font-size:11px;color:var(--text-light);margin-top:4px;">极小文字 · 11px — badge, label, meta
+                        info</div>
+                    <div
+                        style="font-family:var(--font-mono);font-size:12px;margin-top:12px;background:var(--help-code-bg);padding:8px 12px;border-radius:6px;">
+                        等宽字体 · JetBrains Mono — const version = "1.0.0";
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §3  设计变量
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="tokens">
+                <h2 class="demo-section-title">📐 设计变量</h2>
+                <p class="demo-section-desc">圆角、阴影、过渡速度的标准化变量，在元素间保持一致。</p>
+
+                <h3 style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--text-light);">圆角 (Border
+                    Radius)</h3>
+                <div class="demo-row" style="align-items:flex-end;">
+                    <div style="text-align:center;">
+                        <div
+                            style="width:60px;height:60px;background:var(--primary-color);border-radius:var(--radius-xs);margin-bottom:6px;">
+                        </div>
+                        <div style="font-size:11px;color:var(--text-light);">xs · 4px</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div
+                            style="width:60px;height:60px;background:var(--primary-color);border-radius:var(--radius-sm);margin-bottom:6px;">
+                        </div>
+                        <div style="font-size:11px;color:var(--text-light);">sm · 6px</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div
+                            style="width:60px;height:60px;background:var(--primary-color);border-radius:var(--radius-md);margin-bottom:6px;">
+                        </div>
+                        <div style="font-size:11px;color:var(--text-light);">md · 8px</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div
+                            style="width:60px;height:60px;background:var(--primary-color);border-radius:var(--radius-lg);margin-bottom:6px;">
+                        </div>
+                        <div style="font-size:11px;color:var(--text-light);">lg · 12px</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div
+                            style="width:60px;height:60px;background:var(--primary-color);border-radius:var(--radius-xl);margin-bottom:6px;">
+                        </div>
+                        <div style="font-size:11px;color:var(--text-light);">xl · 20px</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div
+                            style="width:60px;height:60px;background:var(--primary-color);border-radius:var(--radius-full);margin-bottom:6px;">
+                        </div>
+                        <div style="font-size:11px;color:var(--text-light);">full</div>
+                    </div>
+                </div>
+
+                <h3 style="font-size:14px;font-weight:700;margin:20px 0 10px;color:var(--text-light);">阴影 (Shadow)</h3>
+                <div class="demo-row" style="align-items:flex-end;">
+                    <div style="text-align:center;">
+                        <div
+                            style="width:80px;height:60px;background:var(--card-bg);border-radius:8px;box-shadow:var(--shadow-xs);margin-bottom:6px;">
+                        </div>
+                        <div style="font-size:11px;color:var(--text-light);">xs</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div
+                            style="width:80px;height:60px;background:var(--card-bg);border-radius:8px;box-shadow:var(--shadow-sm);margin-bottom:6px;">
+                        </div>
+                        <div style="font-size:11px;color:var(--text-light);">sm</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div
+                            style="width:80px;height:60px;background:var(--card-bg);border-radius:8px;box-shadow:var(--shadow-md);margin-bottom:6px;">
+                        </div>
+                        <div style="font-size:11px;color:var(--text-light);">md</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div
+                            style="width:80px;height:60px;background:var(--card-bg);border-radius:8px;box-shadow:var(--shadow-lg);margin-bottom:6px;">
+                        </div>
+                        <div style="font-size:11px;color:var(--text-light);">lg</div>
+                    </div>
+                    <div style="text-align:center;">
+                        <div
+                            style="width:80px;height:60px;background:var(--card-bg);border-radius:8px;box-shadow:var(--shadow-xl);margin-bottom:6px;">
+                        </div>
+                        <div style="font-size:11px;color:var(--text-light);">xl</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §4  按钮
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="buttons">
+                <h2 class="demo-section-title">🔘 按钮系统</h2>
+                <p class="demo-section-desc">支持多种语义类型、3 档尺寸（sm/默认/lg/xl）、胶囊形 ctrl-btn，所有按钮支持图标+文字组合。</p>
+
+                <h3 style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--text-light);">语义类型</h3>
+                <div class="preview-box">
+                    <div class="demo-row">
+                        <button class="btn btn-primary">主色按钮</button>
+                        <button class="btn btn-info">次级按钮</button>
+                        <button class="btn btn-dark">深色按钮</button>
+                        <button class="btn btn-danger">危险按钮</button>
+                        <button class="btn btn-success">成功按钮</button>
+                        <button class="btn btn-ghost">幽灵按钮</button>
+                    </div>
+                </div>
+
+                <h3 style="font-size:14px;font-weight:700;margin:16px 0 10px;color:var(--text-light);">带图标</h3>
+                <div class="preview-box">
+                    <div class="demo-row">
+                        <button class="btn btn-primary">
+                            <svg class="btn-icon" viewBox="0 0 24 24">
+                                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z" />
+                            </svg>
+                            返回
+                        </button>
+                        <a href="#" class="btn btn-dark">
+                            <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 20">
+                                <circle cx="6" cy="4" r="2" />
+                                <circle cx="12" cy="4" r="2" />
+                                <circle cx="18" cy="4" r="2" />
+                                <circle cx="6" cy="10" r="2" />
+                                <circle cx="12" cy="10" r="2" />
+                                <circle cx="18" cy="10" r="2" />
+                                <circle cx="6" cy="16" r="2" />
+                                <circle cx="12" cy="16" r="2" />
+                                <circle cx="18" cy="16" r="2" />
+                            </svg>
+                            仪表盘
+                        </a>
+                        <button class="btn btn-info">
+                            <svg class="btn-icon" viewBox="0 0 24 24">
+                                <path
+                                    d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z" />
+                            </svg>
+                            帮助
+                        </button>
+                        <button class="btn btn-danger">
+                            <svg class="btn-icon" viewBox="0 0 24 24">
+                                <path
+                                    d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
+                            </svg>
+                            删除
+                        </button>
+                    </div>
+                </div>
+
+                <h3 style="font-size:14px;font-weight:700;margin:16px 0 10px;color:var(--text-light);">尺寸</h3>
+                <div class="preview-box">
+                    <div class="demo-row" style="align-items:center;">
+                        <button class="btn btn-primary btn-sm">小按钮 sm</button>
+                        <button class="btn btn-primary">默认按钮</button>
+                        <button class="btn btn-primary btn-lg">大按钮 lg</button>
+                        <button class="btn btn-primary btn-xl">超大 xl</button>
+                    </div>
+                </div>
+
+                <h3 style="font-size:14px;font-weight:700;margin:16px 0 10px;color:var(--text-light);">胶囊 ctrl-btn（筛选 /
+                    控制栏）</h3>
+                <div class="preview-box">
+                    <div class="demo-row">
+                        <button class="ctrl-btn active">全部</button>
+                        <button class="ctrl-btn">近期</button>
+                        <button class="ctrl-btn">已完成</button>
+                        <button class="ctrl-btn primary">+ 新建</button>
+                    </div>
+                </div>
+
+                <h3 style="font-size:14px;font-weight:700;margin:16px 0 10px;color:var(--text-light);">仅图标按钮</h3>
+                <div class="preview-box">
+                    <div class="demo-row">
+                        <button class="btn btn-primary btn-icon-only" title="新建">
+                            <i class="cgo-icon" data-icon="add"></i>
+                        </button>
+                        <button class="btn btn-info btn-icon-only" title="设置">
+                            <i class="cgo-icon" data-icon="settings"></i>
+                        </button>
+                        <button class="btn btn-dark btn-icon-only" title="分享">
+                            <i class="cgo-icon" data-icon="upload"></i>
+                        </button>
+                        <button class="btn btn-danger btn-icon-only" title="删除">
+                            <i class="cgo-icon" data-icon="delete"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §5  表单
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="forms">
+                <h2 class="demo-section-title">📝 表单与输入</h2>
+                <p class="demo-section-desc">输入框默认隐藏 placeholder（聚焦时显示），防止 iOS 自动缩放。</p>
+
+                <div class="preview-box">
+                    <div class="form-group">
+                        <label>用户名</label>
+                        <input type="text" class="form-control" placeholder="请输入用户名">
+                    </div>
+                    <div class="form-group">
+                        <label>邮箱地址</label>
+                        <div class="input-row">
+                            <input type="email" class="form-control" placeholder="example@mail.com">
+                            <button class="btn btn-primary">验证</button>
+                        </div>
+                        <div class="form-hint">请输入有效的邮箱地址</div>
+                    </div>
+                    <div class="form-group">
+                        <label>备注（成功示例）</label>
+                        <input type="text" class="form-control" value="已保存的内容">
+                        <div class="form-hint success">✓ 保存成功</div>
+                    </div>
+                    <div class="form-group">
+                        <label>禁用状态</label>
+                        <input type="text" class="form-control" value="不可编辑" disabled>
+                    </div>
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label>辅助说明与提示信息</label>
+                        <input type="text" class="form-control" placeholder="演示信息提示样式...">
+                        <div class="form-hint-info">ℹ 提示：CGoUI v1.1.0 已全面接入全局提示机制</div>
+                    </div>
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label for="demo-captcha-input">人机验证 (计算题)</label>
+                        <div class="input-row captcha-row">
+                            <input type="text" id="demo-captcha-input" class="form-control" autocomplete="off"
+                                placeholder="请输入计算结果">
+                            <button id="demo-captcha-zoom-btn" type="button" class="btn btn-info btn-icon-only"
+                                title="放大验证码"
+                                style="margin-left: 6px; flex-shrink: 0; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; padding: 0;">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                    <line x1="11" y1="8" x2="11" y2="14"></line>
+                                    <line x1="8" y1="11" x2="14" y2="11"></line>
+                                </svg>
+                            </button>
+                            <div id="demo-captcha-container"
+                                style="cursor: pointer; height: 38px; width: 100px; display: flex; align-items: center; justify-content: center; margin-left: 6px; flex-shrink: 0; border-radius: 6px; overflow: hidden; transform-origin: right center; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.2s ease;"
+                                title="点击刷新"></div>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-bottom:0; margin-top: 15px;">
+                        <button class="btn btn-dark" id="demo-captcha-verify-btn">校验验证码</button>
+                    </div>
+                    <div class="form-actions" style="margin-top: 20px;">
+                        <button class="btn btn-ghost">取消操作</button>
+                        <button class="btn btn-primary">提交审核</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §6  徽标 / 标签
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="badges">
+                <h2 class="demo-section-title">🏷️ 徽标与标签</h2>
+
+                <h3 style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--text-light);">Badge 徽标</h3>
+                <div class="preview-box">
+                    <div class="demo-row">
+                        <span class="badge badge-primary">首要</span>
+                        <span class="badge badge-success">成功</span>
+                        <span class="badge badge-danger">危险</span>
+                        <span class="badge badge-warning">警告</span>
+                        <span class="badge badge-info">信息</span>
+                        <span class="badge badge-muted">次要</span>
+                    </div>
+                </div>
+
+                <h3 style="font-size:14px;font-weight:700;margin:16px 0 10px;color:var(--text-light);">Smart Badge</h3>
+                <div class="preview-box">
+                    <div class="demo-row"
+                        style="font-size:15px;font-weight:600;flex-wrap:wrap;gap:12px;display:flex;align-items:center;">
+                        <span>导向标志 <span class="smart-badge"
+                                style="background: var(--brand-gradient-vitool);">设计器</span></span><br>
+                        <span>墙面标志 <span class="smart-badge"
+                                style="background: var(--brand-gradient-wall);">设计器</span></span><br>
+                        <span>站名站牌 <span class="smart-badge"
+                                style="background: var(--brand-gradient-stasign);">设计器</span></span><br>
+                        <span>线路通长 <span class="smart-badge"
+                                style="background: var(--brand-gradient-staline);">设计器</span></span><br>
+                        <span>导向工程 <span class="smart-badge"
+                                style="background: var(--brand-gradient-project);">管理器</span></span>
+                    </div>
+                </div>
+
+                <h3 style="font-size:14px;font-weight:700;margin:16px 0 10px;color:var(--text-light);">品牌自适应 (Brand
+                    Adaptive)</h3>
+                <div class="preview-box">
+                    <p style="font-size:13px;color:var(--text-light);margin-bottom:12px;">通过在 <code>&lt;html&gt;</code>
+                        元素上设置 <code>data-app="[appname]"</code>，带 <code>-appname</code> 后缀的变量（如
+                        <code>var(--brand-gradient-appname)</code> 和
+                        <code>var(--brand-border-appname)</code>）会自动切换为对应子系统的品牌色。
+                    </p>
+                    <div class="demo-row" style="margin-bottom:16px;">
+                        <span>自适应徽标：
+                            <span class="smart-badge"
+                                style="background: var(--brand-gradient-appname); border: 1px solid var(--brand-border-appname); padding: 3px 8px;">当前子系统</span>
+                        </span>
+                    </div>
+                    <div class="demo-row" id="brand-adaptive-toggles">
+                        <button class="btn btn-sm btn-info active" data-app-name="vitool">ViTool (紫色)</button>
+                        <button class="btn btn-sm btn-info" data-app-name="wall">Wall (粉色)</button>
+                        <button class="btn btn-sm btn-info" data-app-name="stasign">Stasign (蓝色)</button>
+                        <button class="btn btn-sm btn-info" data-app-name="staline">Staline (浅蓝)</button>
+                        <button class="btn btn-sm btn-info" data-app-name="project">Project (绿色)</button>
+                    </div>
+                </div>
+
+                <h3 style="font-size:14px;font-weight:700;margin:16px 0 10px;color:var(--text-light);">筛选器标签</h3>
+                <div class="preview-box">
+                    <div class="filter-tags" style="justify-content:flex-start;">
+                        <div class="filter-tag active" data-line="all">全部</div>
+                        <div class="filter-tag">近 30 天</div>
+                        <div class="filter-tag">近 90 天</div>
+                        <div class="filter-tag">草稿</div>
+                        <div class="filter-tag">已发布</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §7  选项卡
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="tabs">
+                <h2 class="demo-section-title">📑 选项卡</h2>
+
+                <div class="tabs-wrapper">
+                    <div class="modern-tabs">
+                        <div class="tab-item active">概览</div>
+                        <div class="tab-item">设计规范</div>
+                        <div class="tab-item">组件</div>
+                        <div class="tab-item">接入指南</div>
+                        <div class="tab-item">更新日志</div>
+                    </div>
+                </div>
+                <div class="tool-card" style="border-radius:0 0 12px 12px;margin-bottom:0;box-shadow:var(--shadow-sm);">
+                    <p style="color:var(--text-light);font-size:14px;">选项卡内容区域 — 使用 <code>.tabs-wrapper</code> +
+                        <code>.modern-tabs</code> + <code>.tab-item.active</code>
+                    </p>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §8  卡片
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="cards">
+                <h2 class="demo-section-title">🃏 卡片</h2>
+
+                <div class="tool-card">
+                    <h3 style="margin-bottom:8px;">标准卡片 <code>.tool-card</code></h3>
+                    <p style="color:var(--text-light);font-size:14px;">带圆角 12px、轻阴影，悬停时阴影加深。用于内容分块展示。</p>
+                </div>
+
+                <div class="glass-card" style="margin-bottom:16px;">
+                    <h3 style="margin-bottom:8px;">玻璃态卡片 <code>.glass-card</code></h3>
+                    <p style="color:var(--text-light);font-size:14px;">带 backdrop-filter blur，适合 cgoauth 风格页面的毛玻璃效果。</p>
+                </div>
+
+                <div class="info-card" style="margin-top:0;">
+                    <h3>渐变信息卡 <code>.info-card</code></h3>
+                    <p>用于页面底部说明区域，展示版权、备案或功能介绍。</p>
+                    <button class="btn"
+                        style="background:rgba(255,255,255,0.2);color:#fff;border:1px solid rgba(255,255,255,0.3);">了解更多</button>
+                </div>
+
+                <div class="tool-card danger-card" style="margin-top: 16px;">
+                    <h3 class="text-danger" style="margin-bottom:8px; font-weight: 700;">危险操作区域
+                        <code>.danger-card</code>
+                    </h3>
+                    <div class="danger-row">
+                        <div class="danger-info">
+                            <h4 style="margin-top:0; margin-bottom:4px; font-size:14px; font-weight:600;">删除此数据库实例</h4>
+                            <p style="font-size:12px; opacity:0.85; margin:0;">该操作是永久性的，且不可撤销。所有已保存的历史数据都将被彻底清除！</p>
+                        </div>
+                        <div class="pref-actions">
+                            <button class="btn btn-danger btn-sm">永久删除</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §9  表格
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="tables">
+                <h2 class="demo-section-title">📊 表格</h2>
+                <p class="demo-section-desc">
+                    支持行悬停高亮、差异列高亮（<code>.diff</code>/<code>.same</code>）、选中列高亮（<code>.selected</code>）。</p>
+
+                <div class="table-container">
+                    <table class="modern-table">
+                        <thead>
+                            <tr>
+                                <th>线路</th>
+                                <th>旧站名</th>
+                                <th>新站名</th>
+                                <th>变更时间</th>
+                                <th>状态</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>2号线</td>
+                                <td>北京站</td>
+                                <td class="same">北京站</td>
+                                <td>—</td>
+                                <td><span class="badge badge-success">未变更</span></td>
+                            </tr>
+                            <tr>
+                                <td>4号线大兴线</td>
+                                <td>新宫</td>
+                                <td class="diff">义和庄</td>
+                                <td>2026-03</td>
+                                <td><span class="badge badge-danger">已变更</span></td>
+                            </tr>
+                            <tr>
+                                <td>10号线</td>
+                                <td>芍药居</td>
+                                <td class="same">芍药居</td>
+                                <td>—</td>
+                                <td><span class="badge badge-success">未变更</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §10  头像
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="avatar">
+                <h2 class="demo-section-title">👤 头像系统</h2>
+                <p class="demo-section-desc">预制 30 种头像颜色，支持 SVG 图标头像选择与颜色自定义。</p>
+
+                <div class="preview-box">
+                    <div class="color-grid">
+                        <div class="color-opt active" style="background:var(--avatar-color-0);" title="#ef4444"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-1);" title="#f87171"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-2);" title="#f97316"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-3);" title="#fb923c"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-4);" title="#f59e0b"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-5);" title="#eab308"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-6);" title="#fef08a"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-7);" title="#84cc16"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-8);" title="#a3e635"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-9);" title="#22c55e"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-10);" title="#10b981"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-11);" title="#059669"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-12);" title="#064e3b"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-13);" title="#0d9488"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-14);" title="#14b8a6"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-15);" title="#22d3ee"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-16);" title="#38bdf8"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-17);" title="#2563eb"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-18);" title="#1d4ed8"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-19);" title="#1e3a8a"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-20);" title="#4f46e5"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-21);" title="#6366f1"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-22);" title="#8b5cf6"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-23);" title="#c084fc"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-24);" title="#d946ef"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-25);" title="#ec4899"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-26);" title="#f472b6"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-27);" title="#fda4af"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-28);" title="#64748b"></div>
+                        <div class="color-opt" style="background:var(--avatar-color-29);" title="#334155"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §11  媒体查看器
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="media-viewer">
+                <h2 class="demo-section-title">🖼️ 媒体查看器</h2>
+                <p class="demo-section-desc">支持带点阵背景的图片展示区与底部标准化操作栏组合。</p>
+
+                <div class="tool-card image-viewer-card" style="margin-bottom: 16px; max-width: 640px;">
+                    <div class="image-display-area" style="min-height: 200px; padding: 20px;">
+                        <div style="text-align: center; color: var(--text-light); font-size: 13px;">
+                            <i class="cgo-icon icon-2xl" data-icon="upload"
+                                style="display:block; margin: 0 auto 12px; opacity: 0.5;"></i>
+                            <span>图片/媒体预览区域 (自适应背景网格点)</span>
+                        </div>
+                    </div>
+                    <div class="viewer-actions" style="justify-content: center; gap: 10px;">
+                        <button class="btn btn-info btn-sm">
+                            <i class="cgo-icon" data-icon="star"></i>
+                            <span>收藏</span>
+                        </button>
+                        <button class="btn btn-dark btn-sm">
+                            <i class="cgo-icon" data-icon="upload"></i>
+                            <span>下载图片</span>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §12  图标组件库 (cgo_icons.js)
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="icons">
+                <h2 class="demo-section-title">🔷 SVG 图标组件库</h2>
+                <p class="demo-section-desc">引入 <code>cgo_icons.js</code> 后，提供 3 种使用方式。共收录 <strong
+                        id="icon-count">—</strong> 个图标。</p>
+
+                <!-- 使用方式说明 -->
+                <h3 style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--text-light);">方式 1 — data
+                    属性自动渲染（推荐）</h3>
+                <div class="preview-box">
+                    <div id="all-icons-container" class="demo-row"
+                        style="align-items:center;gap:16px;flex-wrap:wrap;justify-content:flex-start;">
+                        <!-- 由 JS 动态渲染所有图标 -->
+                    </div>
+                </div>
+
+                <h3 style="font-size:14px;font-weight:700;margin:16px 0 10px;color:var(--text-light);">尺寸与颜色变体</h3>
+                <div class="preview-box">
+                    <div class="demo-row" style="align-items:center;">
+                        <i class="cgo-icon icon-xs" data-icon="star"></i>
+                        <i class="cgo-icon icon-sm" data-icon="star"></i>
+                        <i class="cgo-icon icon-md" data-icon="star"></i>
+                        <i class="cgo-icon icon-lg" data-icon="star"></i>
+                        <i class="cgo-icon icon-xl" data-icon="star"></i>
+                        <i class="cgo-icon icon-2xl" data-icon="star"></i>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §12b  品牌标识图标
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="brand-icons">
+                <h2 class="demo-section-title">🏷️ 品牌标识图标</h2>
+                <p class="demo-section-desc">
+                    专为品牌工具设计的双色图标。<code>#171c61</code> 为固定深蓝色，<code>#dadf00</code> 为可变品牌色（通过
+                    <code>currentColor</code> 继承，支持主题色切换）。使用方式与普通图标一致。
+                </p>
+
+                <h3 style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--text-light);">品牌图标预览（全部继承
+                    currentColor）</h3>
+                <div class="preview-box">
+                    <div class="demo-row" style="align-items:center;gap:24px;flex-wrap:wrap;">
+                        <div style="text-align:center;">
+                            <i class="cgo-icon icon-2xl" data-icon="bjsubway" data-icon-size="32"
+                                style="color:var(--primary-color);"></i>
+                            <div style="font-size:11px;color:var(--text-light);margin-top:6px;">bjsubway</div>
+                            <div style="font-size:9px;color:var(--text-light);opacity:0.7;">北京地铁</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <i class="cgo-icon icon-2xl" data-icon="palette" data-icon-size="32"
+                                style="color:var(--primary-color);"></i>
+                            <div style="font-size:11px;color:var(--text-light);margin-top:6px;">palette</div>
+                            <div style="font-size:9px;color:var(--text-light);opacity:0.7;">配色</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <i class="cgo-icon icon-2xl" data-icon="design" data-icon-size="32"
+                                style="color:var(--primary-color);"></i>
+                            <div style="font-size:11px;color:var(--text-light);margin-top:6px;">design</div>
+                            <div style="font-size:9px;color:var(--text-light);opacity:0.7;">设计器</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <i class="cgo-icon icon-2xl" data-icon="eye" data-icon-size="32"
+                                style="color:var(--primary-color);"></i>
+                            <div style="font-size:11px;color:var(--text-light);margin-top:6px;">eye</div>
+                            <div style="font-size:9px;color:var(--text-light);opacity:0.7;">可见性</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <i class="cgo-icon icon-2xl" data-icon="loading" data-icon-size="32"
+                                style="color:var(--primary-color);"></i>
+                            <div style="font-size:11px;color:var(--text-light);margin-top:6px;">loading</div>
+                            <div style="font-size:9px;color:var(--text-light);opacity:0.7;">加载/速度</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <i class="cgo-icon icon-2xl" data-icon="tabs" data-icon-size="32"
+                                style="color:var(--primary-color);"></i>
+                            <div style="font-size:11px;color:var(--text-light);margin-top:6px;">tabs</div>
+                            <div style="font-size:9px;color:var(--text-light);opacity:0.7;">标签页</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <i class="cgo-icon icon-2xl" data-icon="touch" data-icon-size="32"
+                                style="color:var(--primary-color);"></i>
+                            <div style="font-size:11px;color:var(--text-light);margin-top:6px;">touch</div>
+                            <div style="font-size:9px;color:var(--text-light);opacity:0.7;">触摸/手势</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <i class="cgo-icon icon-2xl" data-icon="window" data-icon-size="32"
+                                style="color:var(--primary-color);"></i>
+                            <div style="font-size:11px;color:var(--text-light);margin-top:6px;">window</div>
+                            <div style="font-size:9px;color:var(--text-light);opacity:0.7;">窗口</div>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="font-size:14px;font-weight:700;margin:20px 0 10px;color:var(--text-light);">品牌色切换演示</h3>
+                <p style="color:var(--text-light); font-size:12px; margin-bottom:12px;">
+                    以下演示 3 个含可变品牌色的图标（design / eye / window），切换按钮可预览不同品牌主题下的效果：
+                </p>
+                <div class="preview-box">
+                    <div class="demo-row" id="brand-icon-demo-row"
+                        style="align-items:center;gap:24px;flex-wrap:wrap;margin-bottom:16px;">
+                        <div style="text-align:center;">
+                            <i id="brand-demo-design" class="cgo-icon icon-2xl" data-icon="design" data-icon-size="32"
+                                style="color:#dadf00;"></i>
+                            <div style="font-size:10px;color:var(--text-light);margin-top:4px;">design</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <i id="brand-demo-eye" class="cgo-icon icon-2xl" data-icon="eye" data-icon-size="32"
+                                style="color:#dadf00;"></i>
+                            <div style="font-size:10px;color:var(--text-light);margin-top:4px;">eye</div>
+                        </div>
+                        <div style="text-align:center;">
+                            <i id="brand-demo-window" class="cgo-icon icon-2xl" data-icon="window" data-icon-size="32"
+                                style="color:#dadf00;"></i>
+                            <div style="font-size:10px;color:var(--text-light);margin-top:4px;">window</div>
+                        </div>
+                    </div>
+                    <div class="demo-row" id="brand-color-toggles" style="gap:6px;">
+                        <button class="btn btn-sm btn-info active" data-brand-color="#dadf00">默认 (#dadf00)</button>
+                        <button class="btn btn-sm btn-info" data-brand-color="#d93932">S1红</button>
+                        <button class="btn btn-sm btn-info" data-brand-color="#4080b7">S2蓝</button>
+                        <button class="btn btn-sm btn-info" data-brand-color="#e98d95">S5粉</button>
+                        <button class="btn btn-sm btn-info" data-brand-color="#919a47">S6绿</button>
+                        <button class="btn btn-sm btn-info" data-brand-color="var(--primary-color)">主题色</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §13  弹窗 / 对话框
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="dialogs">
+                <h2 class="demo-section-title">🪟 弹窗 / 对话框</h2>
+                <p class="demo-section-desc">使用 <code>.help-overlay</code> / <code>.modal-overlay</code> 与
+                    <code>.text-dialog</code> 组合，带入场动画与遮罩。在移动端下，普通对话框会自动转为靠底抽屉，而帮助弹窗保持居中。
+                </p>
+
+                <div class="preview-box">
+                    <div class="demo-row">
+                        <button class="btn btn-primary"
+                            onclick="document.getElementById('demo-dialog').style.display='flex'; document.getElementById('demo-overlay').style.display='block';">打开帮助弹窗</button>
+                        <button class="btn btn-dark"
+                            onclick="document.getElementById('demo-normal-dialog').style.display='flex'; document.getElementById('demo-overlay-normal').style.display='block';">打开普通弹窗</button>
+                    </div>
+                </div>
+
+                <!-- 示例弹窗 -->
+                <div id="demo-overlay" class="help-overlay" style="display:none;"
+                    onclick="document.getElementById('demo-dialog').style.display='none'; this.style.display='none';">
+                </div>
+                <div id="demo-dialog" class="text-dialog help-dialog" style="display:none;">
+                    <button class="dialog-close-btn"
+                        onclick="document.getElementById('demo-dialog').style.display='none'; document.getElementById('demo-overlay').style.display='none';">×</button>
+                    <div class="help-container">
+                        <div class="help-header">
+                            <div style="font-size:40px;">🎨</div>
+                            <div class="help-title-group">
+                                <h3>CGo UI Library <span class="smart-badge"
+                                        style="background:var(--primary-color);">v1.0</span></h3>
+                                <p>Central Go 前端视觉库 · 2026年6月26日更新</p>
+                            </div>
+                        </div>
+                        <!-- 统一的界面外观设置组件 -->
+                        <div id="theme-setting-container" style="margin: 15px 0;"></div>
+
+                        <div class="help-grid">
+                            <div class="help-card">
+                                <div class="help-card-icon">🎨</div>
+                                <h4>配色系统</h4>
+                                <ul>
+                                    <li>完整亮/暗主题切换</li>
+                                    <li>28条地铁线路色</li>
+                                    <li>15种头像预制配色</li>
+                                </ul>
+                            </div>
+                            <div class="help-card">
+                                <div class="help-card-icon">🧩</div>
+                                <h4>组件库</h4>
+                                <ul>
+                                    <li>按钮、表单、表格</li>
+                                    <li>弹窗、Toast、下拉菜单</li>
+                                    <li>地图控件、聊天气泡</li>
+                                </ul>
+                            </div>
+                        </div>
+
+
+                        <div class="help-data-info">
+                            <strong>接入方法：</strong>引入 4 个 CSS 文件 + 3 个 JS 核心文件，无需任何构建工具。
+                        </div>
+
+                        <!-- 统一的帮助弹窗底部版权与双备案信息 -->
+                        <div class="help-footer">
+                            <div class="help-footer-content">
+                                <span>Copyright © 2026 Central Go</span>
+                                <a href="https://beian.miit.gov.cn/" target="_blank">京ICP备2023014659号</a>
+                                <div class="help-beian-group">
+                                    <img src="../beian.png" alt="备案" class="help-beian-icon">
+                                    <a href="https://beian.mps.gov.cn/#/query/webSearch?code=11010802042299"
+                                        target="_blank">京公网安备11010802042299号</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="dialog-buttons">
+                        <button class="help-action-btn secondary"
+                            onclick="document.getElementById('demo-dialog').style.display='none'; document.getElementById('demo-overlay').style.display='none';">关闭</button>
+                        <button class="help-action-btn primary">了解更多</button>
+                    </div>
+                </div>
+
+                <!-- 示例普通弹窗 -->
+                <div id="demo-overlay-normal" class="modal-overlay" style="display:none;"
+                    onclick="document.getElementById('demo-normal-dialog').style.display='none'; this.style.display='none';">
+                </div>
+                <div id="demo-normal-dialog" class="text-dialog" style="display:none;">
+                    <button class="dialog-close-btn"
+                        onclick="document.getElementById('demo-normal-dialog').style.display='none'; document.getElementById('demo-overlay-normal').style.display='none';">×</button>
+                    <div style="padding: 24px 25px 20px 25px;">
+                        <h3 style="margin-top: 0; margin-bottom: 12px;">普通功能对话框</h3>
+                        <p style="color: var(--text-light); font-size: 14px; margin-bottom: 20px; line-height: 1.6;">
+                            这是一个普通的配置或数据编辑对话框。在移动端（宽度 &lt;=
+                            600px）下，它将自动切换为底置的抽屉式拉出浮层，符合移动端原生的操作体验；而帮助类弹窗（<code>.help-dialog</code>）则依然保持在中央。
+                        </p>
+                        <div class="form-group">
+                            <label>配置项名称</label>
+                            <input type="text" class="form-control" placeholder="请输入限制选项...">
+                        </div>
+                    </div>
+                    <div class="dialog-buttons">
+                        <button class="help-action-btn secondary"
+                            onclick="document.getElementById('demo-normal-dialog').style.display='none'; document.getElementById('demo-overlay-normal').style.display='none';">取消</button>
+                        <button class="help-action-btn primary"
+                            onclick="document.getElementById('demo-normal-dialog').style.display='none'; document.getElementById('demo-overlay-normal').style.display='none'; showToast('已保存配置', 'success')">确认保存</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §14  悬浮小窗
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="floating">
+                <h2 class="demo-section-title">🖥️ 悬浮小窗</h2>
+                <p class="demo-section-desc">用于参数调整或辅助工具面板，支持移动端自适应排版与控制按钮。</p>
+
+                <div class="preview-box grid-bg"
+                    style="min-height: 280px; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; align-items: start; justify-items: center; padding: 20px;">
+                    <!-- 标准状态浮窗 -->
+                    <div class="floating-window is-visible"
+                        style="position: relative; z-index: 1; display: flex; flex-direction: column; top: auto; left: auto; width: 100%; max-width: 320px; resize: none;">
+                        <div class="floating-header">
+                            <div class="floating-title">
+                                <span class="floating-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        style="width:14px; height:14px;">
+                                        <circle cx="12" cy="12" r="3"></circle>
+                                        <path
+                                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z">
+                                        </path>
+                                    </svg>
+                                </span>
+                                <span>浮动控制面板 (标准)</span>
+                            </div>
+                            <div class="floating-controls">
+                                <button class="floating-minimize-btn" title="最小化">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    </svg>
+                                </button>
+                                <button class="floating-close-btn" title="关闭">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="floating-content">
+                            <div class="floating-content-inner">
+                                <p style="font-size:13px; color:var(--text-light); margin:0 0 12px; line-height:1.5;">
+                                    升级后，浮窗背景使用不透明的 <code>var(--panel-bg)</code>，并辅以立体投影及 1px 细描边。
+                                </p>
+                                <div class="form-group" style="margin-bottom:0;">
+                                    <label style="font-size:11px; margin-bottom:4px;">透明度</label>
+                                    <input type="text" class="form-control" value="85%"
+                                        style="height:30px; font-size:12px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 磁吸状态浮窗 -->
+                    <div class="floating-window is-visible floating-snapped"
+                        style="position: relative; z-index: 1; display: flex; flex-direction: column; top: auto; left: auto; width: 100%; max-width: 320px; resize: none;">
+                        <div class="floating-header">
+                            <div class="floating-title">
+                                <span class="floating-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        style="width:14px; height:14px;">
+                                        <path d="M5 12h14M12 5l7 7-7 7" />
+                                    </svg>
+                                </span>
+                                <span>浮动面板 (已磁吸对齐)</span>
+                            </div>
+                            <div class="floating-controls">
+                                <button class="floating-minimize-btn" title="最小化">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    </svg>
+                                </button>
+                                <button class="floating-close-btn" title="关闭">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="floating-content">
+                            <div class="floating-content-inner">
+                                <p style="font-size:13px; color:var(--text-light); margin:0 0 12px; line-height:1.5;">
+                                    当浮动窗口靠近或吸附于视图边界时（例如携带 <code>.floating-snapped</code>），将显示磁吸高亮框与外发光。
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 最小化效果与标签演示 -->
+                    <div
+                        style="width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 12px; align-self: center;">
+                        <span style="font-size: 12px; color: var(--text-light); font-weight: 600;">最小化后的状态栏标签：</span>
+                        <div class="minimized-item">
+                            <span class="min-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                    style="width:14px; height:14px;">
+                                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                                    <line x1="9" y1="9" x2="15" y2="9"></line>
+                                    <line x1="9" y1="13" x2="15" y2="13"></line>
+                                    <line x1="9" y1="17" x2="13" y2="17"></line>
+                                </svg>
+                            </span>
+                            <span class="full-title">图层管理器 (已最小化)</span>
+                            <span class="short-title">图层</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §15  下拉菜单
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="dropdown">
+                <h2 class="demo-section-title">📋 下拉菜单</h2>
+                <p class="demo-section-desc">使用 <code>.dropdown</code> 包装，通过 JS 切换 <code>.is-open</code> 来显示
+                    <code>.dropdown-content</code>。
+                </p>
+
+                <div class="preview-box" style="min-height:180px;">
+                    <div class="demo-row">
+                        <div class="dropdown is-open">
+                            <button class="btn btn-primary dropbtn">
+                                <svg class="btn-icon" viewBox="0 0 24 24">
+                                    <path
+                                        d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zm2 16H8v-2h8v2zm0-4H8v-2h8v2zm-3-5V3.5L18.5 9H13z" />
+                                </svg>
+                                文件
+                                <svg class="dropdown-arrow-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="3">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </button>
+                            <div class="dropdown-content"
+                                style="display:block;position:relative;top:4px;animation:none;">
+                                <a href="javascript:void(0)">
+                                    <svg class="btn-icon" viewBox="0 0 24 24">
+                                        <path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5v-2z" fill="currentColor" />
+                                    </svg>
+                                    导入配置文件
+                                </a>
+                                <a href="javascript:void(0)">
+                                    <svg class="btn-icon" viewBox="0 0 24 24">
+                                        <path
+                                            d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"
+                                            fill="currentColor" />
+                                    </svg>
+                                    导出 PNG
+                                </a>
+                                <div class="dropdown-divider"></div>
+                                <a href="javascript:void(0)">
+                                    <svg class="btn-icon" viewBox="0 0 24 24">
+                                        <path
+                                            d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"
+                                            fill="currentColor" />
+                                    </svg>
+                                    导出 SVG
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="dropdown is-open">
+                            <button class="btn btn-info dropbtn">更多选项</button>
+                            <div class="dropdown-content"
+                                style="display:block;position:relative;top:4px;animation:none;left:auto;right:0;">
+                                <a href="javascript:void(0)">设置</a>
+                                <a href="javascript:void(0)">帮助</a>
+                                <div class="dropdown-divider"></div>
+                                <a href="javascript:void(0)" style="color:var(--danger-color);">退出登录</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §16  Toast
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="toast">
+                <h2 class="demo-section-title">💬 短消息提示</h2>
+                <p class="demo-section-desc">固定在页面底部居中，3 秒后自动消失，支持成功/危险/警告/普通 4 种类型。</p>
+                <div class="preview-box">
+                    <div class="demo-row">
+                        <button class="btn btn-success" onclick="showToast('✓ 操作成功保存', 'success')">成功 Toast</button>
+                        <button class="btn btn-danger" onclick="showToast('✗ 网络请求失败', 'danger')">错误 Toast</button>
+                        <button class="btn btn-info" onclick="showToast('ℹ 已复制到剪贴板')">普通 Toast</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §17  聊天气泡
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="chat">
+                <h2 class="demo-section-title">💬 聊天气泡</h2>
+                <p class="demo-section-desc">对话模式专用气泡组件，根据发信人类型（自身/旅客/客服）自动向左/向右对齐并赋予主题特征色。</p>
+
+                <div class="preview-box" style="max-width: 520px;">
+                    <div style="display: flex; flex-direction: column; gap: 16px;">
+                        <div class="chat-bubble is-other">
+                            <div class="bubble-body">你好！请问地铁线路图数据什么时候更新？</div>
+                            <div class="bubble-meta">旅客 · 19:15</div>
+                        </div>
+                        <div class="chat-bubble is-self">
+                            <div class="bubble-body">你好，系统一般在官方发布新线开通或更名通知后 24 小时内进行同步。</div>
+                            <div class="bubble-meta">管理员 · 19:16</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §18  管理台组件
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="admin-components">
+                <h2 class="demo-section-title">⚙️ 管理后台特有组件</h2>
+                <p class="demo-section-desc">专为管理系统设计的权限单选下拉、多选过滤器以及偏好设置项。</p>
+
+                <h3 style="font-size:14px;font-weight:700;margin-bottom:10px;color:var(--text-light);">自定义权限选择器 (Admin
+                    Select)</h3>
+                <div class="preview-box">
+                    <div class="demo-row" style="gap: 16px;">
+                        <div class="admin-select" data-value="inherit" style="max-width: 140px;">
+                            <button class="admin-select-button">
+                                <span class="admin-select-current-dot"></span>
+                                <span class="admin-select-current-label">继承权限</span>
+                                <span class="admin-select-arrow"></span>
+                            </button>
+                        </div>
+                        <div class="admin-select" data-value="enabled" style="max-width: 140px;">
+                            <button class="admin-select-button">
+                                <span class="admin-select-current-dot"></span>
+                                <span class="admin-select-current-label">允许访问</span>
+                                <span class="admin-select-arrow"></span>
+                            </button>
+                        </div>
+                        <div class="admin-select" data-value="disabled" style="max-width: 140px;">
+                            <button class="admin-select-button">
+                                <span class="admin-select-current-dot"></span>
+                                <span class="admin-select-current-label">拒绝访问</span>
+                                <span class="admin-select-arrow"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="font-size:14px;font-weight:700;margin:16px 0 10px;color:var(--text-light);">权限下拉展开效果</h3>
+                <div class="preview-box" style="min-height: 180px;">
+                    <div class="admin-select is-open" data-value="enabled" style="max-width: 150px;">
+                        <button class="admin-select-button">
+                            <span class="admin-select-current-dot"></span>
+                            <span class="admin-select-current-label">允许访问</span>
+                            <span class="admin-select-arrow"></span>
+                        </button>
+                        <div class="admin-select-menu" style="display: grid;">
+                            <button class="admin-select-option" data-value="inherit">
+                                <span class="admin-select-option-dot"></span>
+                                <span>继承 (Inherit)</span>
+                            </button>
+                            <button class="admin-select-option is-selected" data-value="enabled">
+                                <span class="admin-select-option-dot"></span>
+                                <span>允许 (Allow)</span>
+                            </button>
+                            <button class="admin-select-option" data-value="disabled">
+                                <span class="admin-select-option-dot"></span>
+                                <span>拒绝 (Deny)</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="font-size:14px;font-weight:700;margin:16px 0 10px;color:var(--text-light);">偏好设置项
+                    (Preferences Item)</h3>
+                <div class="preview-box">
+                    <div class="preferences-list" style="max-width: 600px;">
+                        <div class="pref-item">
+                            <div class="pref-left-group">
+                                <div class="pref-tool-icon" style="background: var(--btn-info-bg); border-radius: 4px;">
+                                    ⚙️</div>
+                                <div class="pref-tool-name">项目1</div>
+                            </div>
+                            <div class="pref-middle-group">
+                                <div class="pref-project-title">项目1选项</div>
+                                <div class="pref-status-text">选项详细信息</div>
+                            </div>
+                            <div class="pref-actions">
+                                <button class="btn btn-sm btn-ghost">配置</button>
+                            </div>
+                        </div>
+                        <div class="pref-item">
+                            <div class="pref-left-group">
+                                <div class="pref-tool-icon" style="background: var(--btn-info-bg); border-radius: 4px;">
+                                    🎨</div>
+                                <div class="pref-tool-name">项目2</div>
+                            </div>
+                            <div class="pref-middle-group">
+                                <div class="pref-project-title">项目2选项</div>
+                                <div class="pref-status-text">选项详细信息</div>
+                            </div>
+                            <div class="pref-actions">
+                                <button class="btn btn-sm btn-ghost">配置</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §19  地铁线路色
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="metro">
+                <h2 class="demo-section-title">🚇 北京地铁线路色</h2>
+                <div id="metro-palette-box" data-color-palette="screen">
+                    <div class="metro-palette-header">
+                        <p
+                            style="color:var(--text-light); font-size:13px; margin:0; line-height:1.6; max-width: 600px;">
+                            演示支持<strong>标准官方标志色</strong>与针对网页电子发光屏适配优化的<strong>优化色</strong>。通过 CSS 变量
+                            <code>--line-color-X</code> 自动全局映射。
+                        </p>
+                        <div class="palette-toggles">
+                            <button id="palette-btn-screen" class="btn btn-sm btn-primary active"
+                                style="margin-left: 0; padding: 4px 10px; font-size: 11px;">优化色</button>
+                            <button id="palette-btn-official" class="btn btn-sm btn-info"
+                                style="margin-left: 0; padding: 4px 10px; font-size: 11px;">官方色</button>
+                        </div>
+                    </div>
+
+                    <div class="line-grid" style="margin-bottom: 28px;">
+                        <div class="line-chip"
+                            style="background:var(--line-color-1);color:var(--line-color-text-light);">1号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-2);color:var(--line-color-text-light);">2号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-3);color:var(--line-color-text-light);">3号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-4);color:var(--line-color-text-light);">4号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-5);color:var(--line-color-text-light);">5号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-6);color:var(--line-color-text-light);">6号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-7);color:var(--line-color-text-dark);">7号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-8);color:var(--line-color-text-light);">8号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-9);color:var(--line-color-text-dark);">9号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-10);color:var(--line-color-text-light);">10号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-11);color:var(--line-color-text-light);">11号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-12);color:var(--line-color-text-light);">12号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-13);color:var(--line-color-text-dark);">13号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-14);color:var(--line-color-text-dark);">14号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-15);color:var(--line-color-text-light);">15号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-16);color:var(--line-color-text-light);">16号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-17);color:var(--line-color-text-light);">17号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-18);color:var(--line-color-text-light);">18号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-19);color:var(--line-color-text-dark);">19号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-22);color:var(--line-color-text-dark);">22号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-28);color:var(--line-color-text-light);">28号线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-24);color:var(--line-color-text-light);">亦庄线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-t1);color:var(--line-color-text-light);">亦庄T1</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-25);color:var(--line-color-text-light);">房山线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-25w);color:var(--line-color-text-light);">燕房线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-26);color:var(--line-color-text-light);">S1线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-27);color:var(--line-color-text-dark);">昌平线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-xj);color:var(--line-color-text-light);">西郊线</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-cae);color:var(--line-color-text-dark);">首都机场</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-dae);color:var(--line-color-text-light);">大兴机场</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-sub-s1);color:var(--line-color-text-light);">市郊S1</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-sub-s2);color:var(--line-color-text-light);">市郊S2</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-sub-s5);color:var(--line-color-text-light);">市郊S5</div>
+                        <div class="line-chip"
+                            style="background:var(--line-color-sub-s6);color:var(--line-color-text-light);">市郊S6</div>
+                    </div>
+                </div>
+
+                <!-- 差异颜色对比卡片区 -->
+                <h3 style="font-size:14px;font-weight:700;margin:24px 0 12px;color:var(--text-main);">官方色与优化色对比
+                </h3>
+                <p style="color:var(--text-light); font-size:13px; margin:0 0 16px; line-height:1.6;">
+                    罗列出在发光屏幕下经过色差校正与对比度增强优化的 11 个典型线路系统，以解决亮/暗模式易读性、眩光及合并重叠等问题：
+                </p>
+                <div class="color-compare-grid" style="margin-bottom: 32px;">
+                    <!-- 8号线 -->
+                    <div class="compare-card">
+                        <div class="compare-header">
+                            <span>8号线 (绿)</span>
+                            <span class="badge badge-primary">绿色彩度</span>
+                        </div>
+                        <div class="compare-split-bar">
+                            <div class="compare-half light-text" style="background:#009b6b;">
+                                <span class="compare-label-tag">官方色</span>
+                                <span class="color-hex">#009B6B</span>
+                            </div>
+                            <div class="compare-half light-text" style="background:#009b63;">
+                                <span class="compare-label-tag">屏幕色</span>
+                                <span class="color-hex">#009B63</span>
+                            </div>
+                        </div>
+                        <div class="compare-body">
+                            微调绿色的黄色成分，在发光屏或暗黑模式下表现出更好的对比度，同时增大与4号线（青绿）、10号线（天蓝）的颜色区分度，防止发生偏色混淆。
+                        </div>
+                    </div>
+
+                    <!-- 9号线 -->
+                    <div class="compare-card">
+                        <div class="compare-header">
+                            <span>9号线 (黄绿)</span>
+                            <span class="badge badge-primary">亮度提纯</span>
+                        </div>
+                        <div class="compare-split-bar">
+                            <div class="compare-half dark-text" style="background:#8fc31f;">
+                                <span class="compare-label-tag">官方色</span>
+                                <span class="color-hex">#8FC31F</span>
+                            </div>
+                            <div class="compare-half dark-text" style="background:#abcd03;">
+                                <span class="compare-label-tag">屏幕色</span>
+                                <span class="color-hex">#ABCD03</span>
+                            </div>
+                        </div>
+                        <div class="compare-body">
+                            官方色偏黄绿、灰暗。优化色显著提高了明度与饱和度，在白底或深色模式下均清晰可见，同时增强了与16号线（草绿）在邻近色域下的视觉区分度。
+                        </div>
+                    </div>
+
+                    <!-- 10号线 -->
+                    <div class="compare-card">
+                        <div class="compare-header">
+                            <span>10号线 (天蓝)</span>
+                            <span class="badge badge-primary">青蓝色调</span>
+                        </div>
+                        <div class="compare-split-bar">
+                            <div class="compare-half light-text" style="background:#009bc0;">
+                                <span class="compare-label-tag">官方色</span>
+                                <span class="color-hex">#009BC0</span>
+                            </div>
+                            <div class="compare-half light-text" style="background:#00a3c9;">
+                                <span class="compare-label-tag">屏幕色</span>
+                                <span class="color-hex">#00A3C9</span>
+                            </div>
+                        </div>
+                        <div class="compare-body">
+                            微调天蓝色调并提高青色纯度，消除深色背景下的暗沉感。同时在电子地图上拉开与相似天蓝/青绿色系（如8号线、17号线）的色彩区分度，使核心环线更醒目。
+                        </div>
+                    </div>
+
+                    <!-- 13号线 -->
+                    <div class="compare-card">
+                        <div class="compare-header">
+                            <span>13号线 (黄)</span>
+                            <span class="badge badge-primary">白底防眩</span>
+                        </div>
+                        <div class="compare-split-bar">
+                            <div class="compare-half dark-text" style="background:#f9e700;">
+                                <span class="compare-label-tag">官方色</span>
+                                <span class="color-hex">#F9E700</span>
+                            </div>
+                            <div class="compare-half dark-text" style="background:#f8de00;">
+                                <span class="compare-label-tag">屏幕色</span>
+                                <span class="color-hex">#F8DE00</span>
+                            </div>
+                        </div>
+                        <div class="compare-body">
+                            官方柠檬黄明度极高，在白色背景上几乎不可见，引起强烈的眩光。屏幕色微调降低了明度、略微偏深，显著提升了对比度。
+                        </div>
+                    </div>
+
+                    <!-- 14号线 -->
+                    <div class="compare-card">
+                        <div class="compare-header">
+                            <span>14号线 (淡粉)</span>
+                            <span class="badge badge-primary">粉色净化</span>
+                        </div>
+                        <div class="compare-split-bar">
+                            <div class="compare-half dark-text" style="background:#d5a7a1;">
+                                <span class="compare-label-tag">官方色</span>
+                                <span class="color-hex">#D5A7A1</span>
+                            </div>
+                            <div class="compare-half dark-text" style="background:#d5a7a9;">
+                                <span class="compare-label-tag">屏幕色</span>
+                                <span class="color-hex">#D5A7A9</span>
+                            </div>
+                        </div>
+                        <div class="compare-body">
+                            官方粉色偏灰，在发光屏上容易显得暗淡。优化色将色相略微向冷色（洋红）微调，呈现更饱满的粉色，显著增加了与同系19号线、昌平线颜色的区分度。
+                        </div>
+                    </div>
+
+                    <!-- 16号线 -->
+                    <div class="compare-card">
+                        <div class="compare-header">
+                            <span>16号线 (草绿)</span>
+                            <span class="badge badge-primary">草绿提纯</span>
+                        </div>
+                        <div class="compare-split-bar">
+                            <div class="compare-half light-text" style="background:#76a32d;">
+                                <span class="compare-label-tag">官方色</span>
+                                <span class="color-hex">#76A32D</span>
+                            </div>
+                            <div class="compare-half light-text" style="background:#6e992a;">
+                                <span class="compare-label-tag">屏幕色</span>
+                                <span class="color-hex">#6E992A</span>
+                            </div>
+                        </div>
+                        <div class="compare-body">
+                            微调明度与绿色彩度，在多线重叠的枢纽站，增强与相邻黄绿色系 9号线 的颜色区分度，确保线路走向在视觉上的独立与清晰。
+                        </div>
+                    </div>
+
+                    <!-- 17号线 -->
+                    <div class="compare-card">
+                        <div class="compare-header">
+                            <span>17号线 (青)</span>
+                            <span class="badge badge-primary">蓝绿发光</span>
+                        </div>
+                        <div class="compare-split-bar">
+                            <div class="compare-half light-text" style="background:#00a9a9;">
+                                <span class="compare-label-tag">官方色</span>
+                                <span class="color-hex">#00A9A9</span>
+                            </div>
+                            <div class="compare-half light-text" style="background:#00adb2;">
+                                <span class="compare-label-tag">屏幕色</span>
+                                <span class="color-hex">#00ADB2</span>
+                            </div>
+                        </div>
+                        <div class="compare-body">
+                            微调蓝绿色的波长偏向，提高在发光屏幕上的青色质感，增大与4号线（青绿）、10号线（天蓝）颜色的区分度，确保同框时清晰可辨.
+                        </div>
+                    </div>
+
+                    <!-- 19号线 -->
+                    <div class="compare-card">
+                        <div class="compare-header">
+                            <span>19号线 (粉紫)</span>
+                            <span class="badge badge-primary">粉紫强化</span>
+                        </div>
+                        <div class="compare-split-bar">
+                            <div class="compare-half dark-text" style="background:#d6abc1;">
+                                <span class="compare-label-tag">官方色</span>
+                                <span class="color-hex">#D6ABC1</span>
+                            </div>
+                            <div class="compare-half dark-text" style="background:#d5abce;">
+                                <span class="compare-label-tag">屏幕色</span>
+                                <span class="color-hex">#D5ABCE</span>
+                            </div>
+                        </div>
+                        <div class="compare-body">
+                            官方灰粉在白底上极易“隐形”。优化色调高了饱和度与亮度，既保障了文字易读性，又强化了与相似粉色系（14号线、昌平线）颜色的区分度。
+                        </div>
+                    </div>
+
+                    <!-- 西郊线 / 亦庄T1 -->
+                    <div class="compare-card">
+                        <div class="compare-header">
+                            <span>西郊线 / 亦庄T1 (红)</span>
+                            <span class="badge badge-primary">电车深红</span>
+                        </div>
+                        <div class="compare-split-bar">
+                            <div class="compare-half light-text" style="background:#e6081b;">
+                                <span class="compare-label-tag">官方色</span>
+                                <span class="color-hex">#E6081B</span>
+                            </div>
+                            <div class="compare-half light-text" style="background:#d80618;">
+                                <span class="compare-label-tag">屏幕色</span>
+                                <span class="color-hex">#D80618</span>
+                            </div>
+                        </div>
+                        <div class="compare-body">
+                            官方红与1号线大红过于接近。屏幕色略微降低亮度并融入砖红质感，在视觉上增加了与1号线（大红）、3号线（洋红）颜色的区分度，突出了有轨电车系统的特征。
+                        </div>
+                    </div>
+
+                    <!-- 昌平线 -->
+                    <div class="compare-card">
+                        <div class="compare-header">
+                            <span>昌平线 (粉)</span>
+                            <span class="badge badge-primary">粉红提亮</span>
+                        </div>
+                        <div class="compare-split-bar">
+                            <div class="compare-half dark-text" style="background:#de82b2;">
+                                <span class="compare-label-tag">官方色</span>
+                                <span class="color-hex">#DE82B2</span>
+                            </div>
+                            <div class="compare-half dark-text" style="background:#ee87b4;">
+                                <span class="compare-label-tag">屏幕色</span>
+                                <span class="color-hex">#EE87B4</span>
+                            </div>
+                        </div>
+                        <div class="compare-body">
+                            官方粉红明度偏暗。优化色将其提纯提亮，使其在多主题切换时更具通透性，并显著增加了与14号线、19号线颜色的区分度，避免发生偏紫偏差。
+                        </div>
+                    </div>
+
+                    <!-- 市郊铁路系统 -->
+                    <div class="compare-card" style="grid-column: span 1;">
+                        <div class="compare-header">
+                            <span>市郊铁路系统 (多线)</span>
+                            <span class="badge badge-primary">自定颜色</span>
+                        </div>
+                        <div class="compare-split-bar">
+                            <div class="compare-half light-text" style="background:#717071;">
+                                <span class="compare-label-tag">官方色</span>
+                                <span class="color-hex">#717071</span>
+                            </div>
+                            <div class="compare-half light-text"
+                                style="background:linear-gradient(90deg, #d93932 25%, #4080b7 25%, #4080b7 50%, #e98d95 50%, #e98d95 75%, #919a47 75%);">
+                                <span class="compare-label-tag">自定颜色</span>
+                                <span style="font-size: 8px; margin-top: 10px; font-weight: 500;">S1/S2/S5/S6 彩色化</span>
+                            </div>
+                        </div>
+                        <div class="compare-body">
+                            官方指定市郊铁路统一使用深灰色，多线并行重叠时无法辨认。屏幕色大胆为 S1(红)/S2(蓝)/S5(粉)/S6(绿) 赋色，实现完美视觉分割。
+                        </div>
+                    </div>
+                </div>
+
+
+                <h3 style="font-size:14px;font-weight:700;margin:20px 0 10px;color:var(--text-light);">筛选标签演示</h3>
+                <div class="filter-tags" style="justify-content:flex-start;">
+                    <div class="filter-tag active" data-line="all">全部</div>
+                    <div class="filter-tag" data-line="2号线">2号线</div>
+                    <div class="filter-tag" data-line="4号线大兴线">4号线大兴线</div>
+                    <div class="filter-tag" data-line="10号线">10号线</div>
+                    <div class="filter-tag" data-line="大兴机场线">大兴机场线</div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §20  用户组别卡
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="userlevel">
+                <h2 class="demo-section-title">🎖️ 用户组别</h2>
+                <p class="demo-section-desc">4 种等级渐变，磨砂玻璃胶囊标签，可叠加多等级。</p>
+
+                <div class="current-level-card" style="margin-bottom:12px;">
+                    <div class="current-level-content">
+                        <div class="level-badge-container">
+                            <span class="user-group-tag">常旅客</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="current-level-card level-card-test" style="margin-bottom:12px;">
+                    <div class="current-level-content">
+                        <div class="level-badge-container">
+                            <span class="user-group-tag">先锋旅客</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="current-level-card level-card-prime" style="margin-bottom:12px;">
+                    <div class="current-level-content">
+                        <div class="level-badge-container">
+                            <span class="user-group-tag">启元旅客</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="current-level-card level-card-admin">
+                    <div class="current-level-content">
+                        <div class="level-badge-container">
+                            <span class="user-group-tag">管理员</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════
+                 §21  接入指南
+            ══════════════════════════════════════════ -->
+            <section class="demo-section" id="usage">
+                <h2 class="demo-section-title">🚀 快速接入</h2>
+                <p class="demo-section-desc">引入 4 个 CSS 文件（按顺序）+ 3 个 JS 核心文件，即可获得完整的 CGo UI 交互与视觉体验。</p>
+
+                <div class="code-block">
+                    <span class="cmt">&lt;!-- 1. 颜色系统（必须最先） --&gt;</span>
+                    <span class="kw">&lt;link</span> rel="stylesheet" href="<span
+                        class="str">../CGoUI/cgo_clr.css</span>"<span class="kw">&gt;</span>
+                    <span class="cmt">&lt;!-- 2. 元素样式 --&gt;</span>
+                    <span class="kw">&lt;link</span> rel="stylesheet" href="<span
+                        class="str">../CGoUI/cgo_element.css</span>"<span class="kw">&gt;</span>
+                    <span class="cmt">&lt;!-- 3. 布局与响应式 --&gt;</span>
+                    <span class="kw">&lt;link</span> rel="stylesheet" href="<span
+                        class="str">../CGoUI/cgo_ui.css</span>"<span class="kw">&gt;</span>
+                    <span class="cmt">&lt;!-- 4. 专项组件 --&gt;</span>
+                    <span class="kw">&lt;link</span> rel="stylesheet" href="<span
+                        class="str">../CGoUI/cgo_components.css</span>"<span class="kw">&gt;</span>
+
+                    <span class="cmt">&lt;!-- 5. 工具私有样式（可选） --&gt;</span>
+                    <span class="kw">&lt;link</span> rel="stylesheet" href="<span class="str">./style.css</span>"<span
+                        class="kw">&gt;</span>
+
+                    <span class="cmt">&lt;!-- 6. 交互与主题核心 JS（必须在 body 末尾，顺序固定） --&gt;</span>
+                    <span class="kw">&lt;script</span> src="<span class="str">../CGoUI/cgo_icons.js</span>"<span
+                        class="kw">&gt;&lt;/script&gt;</span>
+                    <span class="kw">&lt;script</span> src="<span class="str">../CGoUI/cgo_ctrl.js</span>"<span
+                        class="kw">&gt;&lt;/script&gt;</span>
+                    <span class="kw">&lt;script</span> src="<span class="str">../CGoUI/cgo_theme.js</span>"<span
+                        class="kw">&gt;&lt;/script&gt;</span>
+                </div>
+
+                <div class="disclaimer" style="margin-top:16px;">
+                    ⚠ 请勿修改 4 个核心 CSS 文件的内容，如需覆写请在工具私有 CSS 中追加规则。
+                </div>
+
+                <div class="tool-card">
+                    <h3 style="margin-bottom:12px;">HTML 模板</h3>
+                    <div class="code-block">
+                        <span class="kw">&lt;body&gt;</span>
+                        <span class="cmt">&lt;!-- 顶栏 --&gt;</span>
+                        <span class="kw">&lt;header</span> class="<span class="str">tool-header</span>"<span
+                            class="kw">&gt;</span>
+                        <span class="kw">&lt;div</span> class="<span class="str">header-left</span>"<span
+                            class="kw">&gt;</span>
+                        <span class="kw">&lt;button</span> class="<span class="str">btn btn-info</span>"
+                        onclick="history.back()"<span class="kw">&gt;</span>返回<span class="kw">&lt;/button&gt;</span>
+                        <span class="kw">&lt;/div&gt;</span>
+                        <span class="kw">&lt;div</span> class="<span class="str">header-center</span>"<span
+                            class="kw">&gt;</span>
+                        <span class="kw">&lt;span</span> class="<span class="str">app-title</span>"<span
+                            class="kw">&gt;</span>工具名称<span class="kw">&lt;/span&gt;</span>
+                        <span class="kw">&lt;/div&gt;</span>
+                        <span class="kw">&lt;div</span> class="<span class="str">header-right</span>"<span
+                            class="kw">&gt;</span>
+                        <span class="kmt">&lt;!-- 主题切换按钮 --&gt;</span>
+                        <span class="kw">&lt;button</span> id="<span class="str">theme-toggle-btn</span>" class="<span
+                            class="str">btn btn-info</span>"<span class="kw">&gt;</span>...<span
+                            class="kw">&lt;/button&gt;</span>
+                        <span class="kw">&lt;/div&gt;</span>
+                        <span class="kw">&lt;/header&gt;</span>
+                        <span class="cmt">&lt;!-- 内容区 --&gt;</span>
+                        <span class="kw">&lt;div</span> class="<span class="str">tool-container</span>"<span
+                            class="kw">&gt;</span> ... <span class="kw">&lt;/div&gt;</span>
+                        <span class="cmt">&lt;!-- 底栏 --&gt;</span>
+                        <span class="kw">&lt;footer</span> class="<span class="str">tool-footer</span>"<span
+                            class="kw">&gt;</span> ... <span class="kw">&lt;/footer&gt;</span>
+                        <span class="cmt">&lt;!-- CGoUI 交互与主题核心 JS --&gt;</span>
+                        <span class="kw">&lt;script</span> src="<span class="str">../CGoUI/cgo_icons.js</span>"<span
+                            class="kw">&gt;&lt;/script&gt;</span>
+                        <span class="kw">&lt;script</span> src="<span class="str">../CGoUI/cgo_ctrl.js</span>"<span
+                            class="kw">&gt;&lt;/script&gt;</span>
+                        <span class="kw">&lt;script</span> src="<span class="str">../CGoUI/cgo_theme.js</span>"<span
+                            class="kw">&gt;&lt;/script&gt;</span>
+                        <span class="kw">&lt;/body&gt;</span>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- CGoUI 交互与主题核心 JS -->
+    <script src="./cgo_icons.js?v=260626.164000"></script>
+    <script src="./cgo_ctrl.js?v=260626.164000"></script>
+    <script src="./cgo_theme.js?v=260626.164000"></script>
+
+    <script>
+        /* ── Toast 包装代理 ── */
+        function showToast(msg, type = 'info') {
+            if (type === 'danger') type = 'error';
+            CGO.showToast(msg, type);
+        }
+
+        /* ── 初始化弹窗中的界面外观设置组件 ── */
+        document.addEventListener('DOMContentLoaded', function () {
+            var themeSettingContainer = document.getElementById('theme-setting-container');
+            if (themeSettingContainer && window.CGO && CGO.getThemeSettingHTML) {
+                themeSettingContainer.innerHTML = CGO.getThemeSettingHTML();
+                var selectEl = themeSettingContainer.querySelector('#js-theme-select');
+                if (selectEl) {
+                    CGO.bindThemeSelect(selectEl);
+                }
+            }
+        });
+
+        /* ── 计算题验证码交互演示 ── */
+        var currentCaptchaAnswer = '';
+        function loadDemoCaptcha() {
+            if (window.CGO && CGO.generateCaptcha) {
+                var cap = CGO.generateCaptcha();
+                var container = document.getElementById('demo-captcha-container');
+                if (container) {
+                    container.innerHTML = cap.svg;
+                    currentCaptchaAnswer = cap.answer;
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // 首次加载验证码
+            loadDemoCaptcha();
+
+            // 绑定放大镜交互（调用统一库 API）
+            var captchaZoomHandler = null;
+            if (window.CGO && CGO.bindCaptchaZoom) {
+                captchaZoomHandler = CGO.bindCaptchaZoom('#demo-captcha-zoom-btn', '#demo-captcha-container');
+            }
+
+            // 点击验证码框刷新
+            var container = document.getElementById('demo-captcha-container');
+            if (container) {
+                container.addEventListener('click', function () {
+                    loadDemoCaptcha();
+                    if (captchaZoomHandler) {
+                        captchaZoomHandler.reset();
+                    } else {
+                        container.classList.remove('auth-captcha-zoomed');
+                    }
+                });
+            }
+
+            // 校验按钮
+            var verifyBtn = document.getElementById('demo-captcha-verify-btn');
+            if (verifyBtn) {
+                verifyBtn.addEventListener('click', function () {
+                    var inputVal = document.getElementById('demo-captcha-input').value.trim();
+                    if (!inputVal) {
+                        showToast('请输入计算结果', 'warning');
+                        return;
+                    }
+                    if (inputVal === currentCaptchaAnswer) {
+                        showToast('验证通过！', 'success');
+                    } else {
+                        showToast('计算结果错误，请重试', 'danger');
+                        loadDemoCaptcha(); // 自动刷新
+                        var inputEl = document.getElementById('demo-captcha-input');
+                        if (inputEl) inputEl.value = '';
+                    }
+                });
+            }
+        });
+
+        /* ── 图标统计 & 按钮演示 & 动态生成所有图标 ── */
+        if (window.CGO && CGO.iconList) {
+            document.getElementById('icon-count').textContent = CGO.iconList().length;
+
+            // 动态生成并展示所有图标
+            var iconsContainer = document.getElementById('all-icons-container');
+            if (iconsContainer) {
+                var allIcons = CGO.iconList();
+                allIcons.forEach(function (iconName) {
+                    var iconHtml = '<div style="text-align:center;width:80px;margin-bottom:12px;flex-shrink:0;">' +
+                        '<i class="cgo-icon icon-lg" data-icon="' + iconName + '" data-icon-size="24"></i>' +
+                        '<div style="font-size:11px;color:var(--text-light);margin-top:6px;word-break:break-all;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + iconName + '">' + iconName + '</div>' +
+                        '</div>';
+                    iconsContainer.insertAdjacentHTML('beforeend', iconHtml);
+                });
+                // 再次渲染，因为加入了新渲染的 data-icon 元素
+                CGO.renderIcons(iconsContainer);
+            }
+
+            var demo = document.getElementById('js-icon-demo');
+            if (demo) {
+                var btnDefs = [
+                    ['返回', 'back', 'btn btn-info'],
+                    ['新增', 'add', 'btn btn-primary'],
+                    ['保存', 'save', 'btn btn-success'],
+                    ['删除', 'delete', 'btn btn-danger'],
+                    ['导出', 'upload', 'btn btn-dark'],
+                    ['设置', 'settings', 'btn btn-info'],
+                ];
+                btnDefs.forEach(function (b) {
+                    demo.insertAdjacentHTML('beforeend', CGO.iconBtn(b[0], b[1], b[2]));
+                });
+            }
+        }
+
+        /* ── 头像颜色选项点击交互 ── */
+        document.querySelectorAll('#avatar .color-opt').forEach(function (opt) {
+            opt.addEventListener('click', function () {
+                document.querySelectorAll('#avatar .color-opt').forEach(function (el) {
+                    el.classList.remove('active');
+                });
+                opt.classList.add('active');
+                showToast('已选择头像颜色：' + opt.getAttribute('title'));
+            });
+        });
+
+        /* ── 导航高亮 ── */
+        const sections = document.querySelectorAll('.demo-section');
+        const navLinks = document.querySelectorAll('.demo-nav-link');
+
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(e => {
+                if (e.isIntersecting) {
+                    navLinks.forEach(l => l.classList.remove('active'));
+                    const link = document.querySelector(`.demo-nav-link[href="#${e.target.id}"]`);
+                    if (link) link.classList.add('active');
+                }
+            });
+        }, { rootMargin: '-30% 0px -60% 0px' });
+
+        sections.forEach(s => observer.observe(s));
+
+        /* ── 筛选标签交互演示 ── */
+        document.querySelectorAll('.filter-tag').forEach(tag => {
+            tag.addEventListener('click', () => {
+                const group = tag.closest('.filter-tags');
+                if (group) {
+                    group.querySelectorAll('.filter-tag').forEach(t => t.classList.remove('active'));
+                }
+                tag.classList.add('active');
+            });
+        });
+
+        /* ── Tab 切换演示 ── */
+        document.querySelectorAll('.tab-item').forEach(tab => {
+            tab.addEventListener('click', () => {
+                tab.closest('.modern-tabs').querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+            });
+        });
+
+        /* ── 品牌自适应切换交互 ── */
+        document.querySelectorAll('#brand-adaptive-toggles .btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const appName = btn.getAttribute('data-app-name');
+                if (appName) {
+                    document.documentElement.setAttribute('data-app', appName);
+                    document.querySelectorAll('#brand-adaptive-toggles .btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    showToast('已切换至系统主题：' + btn.textContent, 'success');
+                }
+            });
+        });
+
+        /* ── 标志色色板版本切换（优化色 vs 官方色） ── */
+        const paletteBox = document.getElementById('metro-palette-box');
+        const btnScreen = document.getElementById('palette-btn-screen');
+        const btnOfficial = document.getElementById('palette-btn-official');
+
+        if (paletteBox && btnScreen && btnOfficial) {
+            btnScreen.addEventListener('click', () => {
+                paletteBox.setAttribute('data-color-palette', 'screen');
+                btnScreen.classList.add('btn-primary', 'active');
+                btnScreen.classList.remove('btn-info');
+                btnOfficial.classList.remove('btn-primary', 'active');
+                btnOfficial.classList.add('btn-info');
+                showToast('已切换至：优化色板', 'success');
+            });
+
+            btnOfficial.addEventListener('click', () => {
+                paletteBox.setAttribute('data-color-palette', 'official');
+                btnOfficial.classList.add('btn-primary', 'active');
+                btnOfficial.classList.remove('btn-info');
+                btnScreen.classList.remove('btn-primary', 'active');
+                btnScreen.classList.add('btn-info');
+                showToast('已切换至：标准官方色板', 'success');
+            });
+        }
+
+        /* ── 品牌色切换交互 ── */
+        document.querySelectorAll('#brand-color-toggles .btn').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var color = btn.getAttribute('data-brand-color');
+                if (color) {
+                    // 更新切换按钮激活状态
+                    document.querySelectorAll('#brand-color-toggles .btn').forEach(function (b) {
+                        b.classList.remove('active');
+                    });
+                    btn.classList.add('active');
+
+                    // 更新 demo 图标颜色
+                    var icons = ['design', 'eye', 'window'];
+                    icons.forEach(function (name) {
+                        var el = document.getElementById('brand-demo-' + name);
+                        if (el) {
+                            el.style.color = color;
+                            // 触发重新渲染以应用新颜色
+                            el.dataset.iconRendered = '';
+                            if (window.CGO && CGO.renderIcons) {
+                                CGO.renderIcons(el.parentElement);
+                            }
+                        }
+                    });
+
+                    showToast('品牌色已切换至：' + btn.textContent.trim(), 'success');
+                }
+            });
+        });
+    </script>
+
+</body>
+
+</html>

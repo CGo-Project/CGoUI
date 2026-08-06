@@ -1,0 +1,12 @@
+.git/
+.github/
+docs/
+legacy/
+examples/
+scripts/
+test/
+*.html
+*.log
+node_modules/
+.npm-cache/
+vite.config.js
