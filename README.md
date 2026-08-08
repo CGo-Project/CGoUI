@@ -8,9 +8,11 @@ CGoUI 是一套基于 Lit 的 Web Components 组件库，同时提供可选的 R
 发布后的 `@centralgo/cgo-ui` 版本消费组件；主项目自己的备案号、应用路由、
 品牌图片和业务兼容逻辑属于宿主应用，不属于通用组件库。
 
-文档示例统一以 `2.1.0` 为版本。若该版本尚未上传公共 NPM，先在本仓库执行
-`npm run release:check` 和 `npm pack`，再用生成的 tarball 做本地验收；发布完成后
-即可按下述 NPM 或 jsDelivr 地址安装/引用。
+文档示例统一以 `2.1.0` 为版本。若该版本尚未上传公共 NPM，贡献者应先在本
+仓库执行 `npm run release:check` 和 `npm pack`，使用生成的 tarball 做本地验收；
+**普通贡献者无需、也不应直接向 NPM 发布包**。正式 NPM 发布只在 Pull Request
+完成审核、CI 通过并合并到受保护的 `main` 后，由拥有 `@centralgo/cgo-ui`
+发布权限的维护者执行。
 
 ## 安装
 
@@ -85,10 +87,12 @@ legacy/          仅用于迁移参考的旧版脚本，不参与发布
 scripts/         构建、检查、烟囱测试和清理脚本
 ```
 
-## 开发、测试和发布
+## 开发与贡献
+
+推荐从最新 `main` 创建独立分支，并使用锁文件进行可重复安装：
 
 ```sh
-npm install
+npm ci
 npm run build
 npm test
 npm run check
@@ -96,17 +100,43 @@ npm run test:pack
 npm run docs
 ```
 
-发布前使用：
+普通贡献者的流程到 Pull Request 为止：
+
+1. 从最新 `main` 创建功能或修复分支，不直接把日常开发提交推到 `main`。
+2. 完成修改后至少运行 `npm run release:check`；涉及依赖变更时同步提交正确的 `package-lock.json`。
+3. 将分支推送到 GitHub 并创建 Pull Request，说明改动、验证方式以及是否影响组件 API、主题或打包产物。
+4. 等待 CI 通过并由维护者完成 Review；只有满足仓库合并规则的 PR 才进入 `main`。
+5. PR 合并后，贡献者流程结束。除非维护者明确安排发布工作，否则不要创建发布 Tag、GitHub Release，也不要执行 `npm publish` 或 `npm run publish:public`。
+
+## NPM 发布（仅维护者）
+
+`@centralgo/cgo-ui` 的 NPM 写权限应只分配给实际负责发版的维护者。仓库中的
+`publish:public` 只是防止误操作的发布辅助脚本，**它不会、也不应该给普通
+贡献者任何 NPM 发布权限**；真正的授权由 npmjs.com 上的包权限、2FA 或 Trusted
+Publishing 配置控制。
+
+维护者应在 PR 已审核并合并、`main` CI 全绿后，从干净的 `main` 状态执行：
 
 ```sh
+npm ci
 npm run release:check
-npm run publish:public
+npm pack --dry-run
+
+# 仅拥有 NPM 发布权限的维护者执行
+NPM_PUBLISH_CONFIRM=YES npm run publish:public
 ```
 
-`publish:public` 会先执行完整的发布前检查，并要求显式设置
+`publish:public` 会再次执行完整发布前检查，并要求显式设置
 `NPM_PUBLISH_CONFIRM=YES`；它不会自动修改版本号、提交 Git 或推送远端。发布前请先
-更新 `CHANGELOG.md`、确认 `npm whoami` 和双因素认证状态，并检查
+更新 `CHANGELOG.md`、确认版本号、`npm whoami` 与双因素认证状态，并检查
 `npm pack --dry-run` 的文件清单。
+
+### 推荐的仓库与发布治理
+
+- 将 `main` 设置为受保护分支，要求 Pull Request、至少一名维护者批准、CI 状态检查通过和未解决讨论清零后才能合并；关闭普通协作者直接 Push 与 Force Push。
+- NPM 包只保留少量维护者的写权限并启用 2FA。不要把长期有效的 NPM 发布 Token 提交到仓库、PR、示例配置或普通开发环境中。
+- 如果后续希望把发版自动化，优先使用 NPM Trusted Publishing + GitHub Actions OIDC：由受保护的 Tag / Release 或受保护 Environment 触发发布，仍由维护者决定何时发版，而不是让每个贡献者获得 Registry 凭证。
+- 如需“CI 先产出、维护者最后确认”这一模式，可以进一步采用 NPM staged publishing；CI 只提交待发布包，维护者检查后再用 2FA 批准上线。
 
 ## 许可证
 

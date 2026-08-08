@@ -1,8 +1,8 @@
 # CGO UI 网页改造 AI 提示词 (CGO UI Refactoring AI Prompt)
 
-本文件存放用于指导 AI（如 Claude、GPT、DeepSeek 等）将任意已有网页构建产物改装为符合 **CGO UI 标准规范** 的完整 Prompt 系统提示词。已融合真实升级实战中积累的明暗模式防闪烁、移动端响应式、品牌色保护、去硬编码、字体渐进加载及 Shadow DOM 样式穿透经验。
+本文件存放用于指导 AI（如 Claude、GPT、DeepSeek 等）将任意已有网页构建产物改装为符合 **CGO UI 标准规范** 的完整 Prompt 系统提示词。已融合真实升级实战中积累的明暗模式防闪烁、移动端响应式、原站主题色识别与 Custom Theme 映射、品牌色保护、去硬编码、字体渐进加载及 Shadow DOM 样式穿透经验。
 
-> **维护提示**：本文中的图标白名单、组件清单、事件名与 CSS 变量均与 `src/icons/icons.js`、`src/components/*`、`styles/cgo_clr.css`、`styles/cgo_element.css` 逐项核对生成。修改组件库后请同步更新本文件，否则 AI 会按过期契约生成不可运行的代码。
+> **维护提示**：本文中的图标白名单、组件清单、事件名、主题 API 与 CSS 变量均与 `src/icons/icons.js`、`src/components/*`、`src/theme.js`、`styles/cgo_clr.css`、`styles/cgo_element.css` 逐项核对生成。修改组件库或 Custom Theme API 后请同步更新本文件，否则 AI 会按过期契约生成不可运行的代码。
 
 ---
 
@@ -17,11 +17,13 @@
 
 > **🎯 视觉继承原则（最高优先级之一）**：默认目标是“**业务与内容保持一致，视觉与布局主动现代化**”，而不是把旧网站做成换了颜色和按钮的高仿版本。除非用户明确要求“像素级复刻 / 尽可能保持原站视觉”，否则 **CGO UI 的视觉体系、排版逻辑与响应式布局优先于原站旧样式**。保留原站的内容、功能、数据、品牌识别与必要素材，但不要把陈旧的固定宽度、居中窄栏、表格式布局、机械单列堆叠、过密留白和旧式导航结构当成必须继承的视觉资产。
 
+> **🎨 原站主题色继承原则（最高优先级之一）**：视觉改造前必须先从原网页的**可验证证据**中识别一个“主主题色 / 品牌主色”，优先检查已有 CSS 变量、设计 Token、`<meta name="theme-color">`、主要按钮、链接、激活态、品牌区和可读取的 SVG `fill` / `stroke`。识别后应使用 CGoUI Custom Theme API `CGO.theme.setThemeColor(baseColor, overrides)` 作为统一入口，让 CGoUI 自动生成亮色、暗色及文字衍生色，而不是继续保留 CGO UI 默认深蓝或在业务 CSS 中零散改色。**严禁**把 success / warning / danger 语义色、地铁线路色、图表系列色、单个活动 Banner 或图片中的偶然颜色误判为全站主题色；没有可靠证据时不得猜色。
+
 > **⛔ 零幻觉铁律（最高优先级）**：本文档第七步的**图标白名单**、第六步的**组件与事件清单**、第四步的 **CSS 变量表**是三份封闭清单。凡不在清单内的图标名、组件标签、事件名、CSS 变量，**一律禁止输出**。宁可降级为 Emoji 或原生 HTML，也绝不允许“看起来应该存在”的名字。
 
 ---
 
-## 🛠️ 第一步：确定页面模板类型、视觉策略与布局架构
+## 🛠️ 第一步：确定页面模板类型、视觉策略、主题色与布局架构
 
 在开始改装代码前，首先分析已有网页的功能属性，并自行判断适合以下三种模板中的哪一种。除非用户明确要求确认模板，或页面信息不足以判断，否则不要因为模板选择中断任务等待确认。
 
@@ -41,6 +43,31 @@
 3. **AI 自定布局 (Custom CGO UI Layout)**：
    - **适用场景**：结构特殊、无法简单归类的复杂 Web 应用。
    - **设计原则**：自由组装布局，但必须全面遵循 CGO UI 的 Design Tokens、CSS 变量与 Web Components 组件规范。
+
+### 原站主题色检测（必须先于视觉改色）
+
+在加载 CGO UI 默认配色并开始视觉改造之前，必须先判断原网站是否存在明确的主主题色。把最终选择记录为 `DETECTED_THEME_COLOR`，并记录证据来源；不能先套默认深蓝再忘记把品牌主色迁移回来。
+
+证据优先级从高到低：
+
+1. **用户明确指定的品牌色 / 主题色**：优先级最高，直接作为基色候选。
+2. **已有 CSS 变量和设计 Token**：优先查找 `--primary*`、`--brand*`、`--accent*`、`--theme*` 等变量及其实际引用范围。
+3. **`<meta name="theme-color">`**：若与主要交互颜色一致，可作为强证据。
+4. **反复出现的语义选择器**：例如 `.btn-primary`、主链接、激活导航 / Tab、Focus Ring、主要 CTA、品牌 Header / Hero 区等使用的共同颜色。
+5. **可读取的 SVG 品牌素材**：Logo 或品牌图形中的固定 `fill` / `stroke` 可作为辅助证据，但要判断它是否真的是界面主色。
+6. **截图 / 位图 / Logo 图片取色**：仅当当前模型或工具确实具备多模态视觉 / 像素分析能力时才可作为辅助证据。纯文本模型（包括无视觉能力的 DeepSeek 工作流）不得声称自己从 PNG/JPG/截图中准确取到了颜色。
+
+必须排除以下干扰项：
+
+- `--success-color`、`--warning-color`、`--danger-color` 等状态语义色；
+- 北京地铁线路色或任何具有业务独立语义的线路 / 品类颜色；
+- 图表、热力图、数据系列中的分类色；
+- 单个 Banner、广告、新闻配图、头像或活动页偶然出现的高饱和色；
+- 大面积黑 / 白 / 灰中性色，除非原网站本身明确采用黑白作为品牌主视觉。
+
+如果存在多个候选色：选择**最能代表主交互与品牌识别、且重复出现在主要 UI 状态中的一个颜色**作为 `DETECTED_THEME_COLOR`。其他品牌辅助色保留为独立私有变量，不要全部塞进 CGoUI Primary。
+
+如果代码中没有可靠证据且当前模型又无法查看图像：**保持 CGoUI 默认主题色，并明确标注“原站主题色待人工 / 多模态确认”**，绝不能为了完成任务凭空猜一个 Hex。
 
 ### 老旧网页的强制重排判定
 
@@ -64,7 +91,7 @@
 
 ---
 
-## 🏗️ 第二步：CGO UI 构建产物部署、资源引入与字体加载规范
+## 🏗️ 第二步：CGO UI 构建产物部署、资源引入、Custom Theme 与字体加载规范
 
 ### 1. 构建产物放置规则
 
@@ -80,7 +107,7 @@ your-project/
 │   │   ├── cgo_ui.css
 │   │   └── cgo_components.css
 │   ├── cgo-ui.js       ← 来自 dist/cgo-ui.js（已打包，含 lit 运行时；纯副作用注册入口）
-│   └── theme.js        ← 来自 dist/theme.js（可选；需自定义主题存储键时引入）
+│   └── theme.js        ← 来自 dist/theme.js（可选；需自定义主题存储键或 ES Module 主题 API 时引入）
 └── ... (其他项目文件)
 ```
 
@@ -116,7 +143,62 @@ your-project/
 
 > **⚠️ ES Module 需要 HTTP 协议**：`type="module"` 受 CORS 限制，用 `file://` 直接双击打开会全部加载失败。验证时必须起本地静态服务器（如 `python3 -m http.server`）。
 
-### 3. CGO UI 默认字体（必须统一）与渐进加载策略
+### 3. 将检测到的主题色接入 CGoUI Custom Theme（必须执行）
+
+`dist/cgo-ui.js` 初始化后会安装 `window.CGO.theme`。当第一步已经得到可靠的 `DETECTED_THEME_COLOR` 时，必须将它交给 Custom Theme API，而不是继续使用默认深蓝或只给单个按钮写一个背景色。
+
+推荐在初始化模块中一次性导入并应用：
+
+```html
+<script type="module">
+  import './cgoui/cgo-ui.js';
+
+  // 示例值仅用于展示写法；实际值必须来自第一步的原站主题色检测结果
+  const DETECTED_THEME_COLOR = '#866bc4';
+  window.CGO.theme.setThemeColor(DETECTED_THEME_COLOR);
+</script>
+```
+
+> 若采用上面的内联 Module 来 `import './cgoui/cgo-ui.js'`，就不要再重复保留 `<script type="module" src="cgoui/cgo-ui.js"></script>`，避免重复入口和初始化逻辑分散。
+
+CGoUI 会从基色自动生成 8 个衍生字段：
+
+- `primary`
+- `primaryHover`
+- `darkPrimary`
+- `darkPrimaryHover`
+- `textMain`
+- `darkTextMain`
+- `textLight`
+- `darkTextLight`
+
+默认应先接受自动生成的完整 Palette。只有在真实品牌规范、可读性或亮 / 暗模式对比度明显不合适时，才允许通过 `overrides` 对上述字段做最小微调：
+
+```javascript
+window.CGO.theme.setThemeColor('#866bc4', {
+  primaryHover: '#7658bd',
+  darkPrimary: '#a48ee0',
+  darkPrimaryHover: '#b5a1e8'
+});
+```
+
+也可以先检查算法结果：
+
+```javascript
+const palette = window.CGO.theme.generateThemePalette(DETECTED_THEME_COLOR);
+console.log(palette);
+window.CGO.theme.setThemeColor(DETECTED_THEME_COLOR);
+```
+
+必须遵守：
+
+- **主主题色统一从 Custom Theme 进入**，不要在 `.btn-primary`、Tab、链接、Focus Ring 等规则里重复硬编码同一个品牌 Hex。
+- 辅助品牌色、业务分类色、线路色和 success / warning / danger 语义色保持独立，不应被强行塞进 Primary Palette。
+- `setThemeColor()` 会负责覆盖 CGO UI 的主要亮 / 暗颜色变量，优先依赖它生成的暗色主色，而不是凭感觉手写一套不相关的暗色品牌色。
+- 如果原项目本身提供“用户可自定义主题色”能力，不要每次加载都强行覆盖用户已经持久化的选择；应把检测到的原站色作为初始默认值或在无用户选择时设置。
+- 如果第一步没有足够证据得到可靠主题色，就保留 CGoUI 默认色，并在交付说明中明确待确认，**禁止制造一个不存在的 `DETECTED_THEME_COLOR`**。
+
+### 4. CGO UI 默认字体（必须统一）与渐进加载策略
 
 CGO UI 在 `styles/cgo_element.css` 中的默认正文字体是 `var(--font-sans)`，其实际字体栈为：
 
@@ -138,7 +220,7 @@ CGO UI 在 `styles/cgo_element.css` 中的默认正文字体是 `var(--font-sans
 
 > **一句话原则**：先把网页主体完整画出来，再让 Noto Sans SC 在可用时平滑接管；字体加载永远不能成为首屏渲染的前置条件。
 
-### 4. 基础规范检查
+### 5. 基础规范检查
 
 - **`<html lang>`**：保留或补充 `lang="zh-CN"` 属性。
 - **`<meta charset>`**：若原页面是 `gb2312` / `gbk` 等旧编码，**必须转码为 UTF-8 并改写 charset**，否则中文全部乱码。
@@ -216,11 +298,11 @@ setStorageKey('mytool_app-theme');
 
 ---
 
-## 🎨 第四步：品牌色、设计变量与私有样式层叠保护
+## 🎨 第四步：主题色迁移、设计变量与私有样式层叠保护
 
 ### 1. 优先使用 CSS 变量，严禁硬编码颜色
 
-CGO UI 在 `styles/cgo_clr.css` 中为亮/暗两套主题成对声明了全部设计变量。**改造后的私有 CSS 只允许引用变量，不允许写死十六进制色值**（品牌色防护除外，见下）。常用变量：
+CGO UI 在 `styles/cgo_clr.css` 中为亮/暗两套主题成对声明了全部设计变量。**改造后的私有 CSS 只允许引用变量，不允许写死十六进制色值**（主题基色、经过确认的辅助品牌色和真实业务颜色的集中声明除外）。常用变量：
 
 | 变量 | 亮色值 | 暗色值 | 用途 |
 | :--- | :--- | :--- | :--- |
@@ -242,17 +324,38 @@ CGO UI 在 `styles/cgo_clr.css` 中为亮/暗两套主题成对声明了全部�
 > [data-theme='dark'] { --bg-color: #111827; --card-bg: #1f2937; }
 > ```
 
-### 2. 识别并保护原网页品牌色
+### 2. 先检测原网页主题色，再通过 CGoUI Custom Theme 统一覆盖
 
-引入四件套后，`--primary-color` 会被重设为 CGO UI 深蓝（`#00263b`）。若原网页有自定义品牌色，必须在私有 CSS 中**用更高特异性选择器重新声明**进行保护：
+引入四件套后，CGoUI 默认 `--primary-color` 是深蓝。只要第一步已经确认原网站存在可靠的品牌 / 主题主色，就**必须把这个颜色迁移到 CGoUI Primary Palette**，而不是仅用 CSS 给 `.btn-primary` 或某几个旧选择器“补回颜色”。
+
+推荐流程：
+
+```javascript
+const originalThemeColor = '#866bc4'; // 必须替换成从原站证据中检测出的真实基色
+const generatedPalette = CGO.theme.generateThemePalette(originalThemeColor);
+console.log(generatedPalette);
+CGO.theme.setThemeColor(originalThemeColor);
+```
+
+如果算法生成的某一档与品牌规范或对比度要求不符，只微调需要调整的字段：
+
+```javascript
+CGO.theme.setThemeColor(originalThemeColor, {
+  darkPrimary: '#a48ee0'
+});
+```
+
+这样 CGoUI 的主按钮、激活态以及依赖 `--primary-color` / `--primary-hover` / `--text-main` / `--text-light` 的界面会同时获得一致的亮暗主题映射。
+
+辅助品牌色仍应单独声明，不要把多个品牌色都改造成 Primary：
 
 ```css
-/* ===== 品牌色防护（在私有 CSS 最底部追加）===== */
-:root { --brand: #866bc4; }
-[data-theme='dark'] :root, [data-theme='dark'] { --brand: #a48ee0; }  /* 暗色下提亮防眩光 */
-.btn-primary, .btn-primary:hover { background-color: var(--brand); color: #fff; }
-.toolbar-tab.active { background-color: var(--brand) !important; color: #fff !important; }
+:root {
+  --site-brand-secondary: #d9a441;
+}
 ```
+
+若没有可靠主题色证据，就继续使用 CGoUI 默认 Primary，并在输出中说明为什么没有覆盖；**不允许猜色**。
 
 ### 3. 轨道交通线路色系统（本库内置，改造轨交类站点时必须使用）
 
@@ -453,7 +556,11 @@ cgo-dropdown::part(menu) {
 | 移除 `data-mode` 等多维状态属性 | 破坏多配色 / 多模式系统 |
 | 删除原有 JS 业务逻辑、事件绑定、`id`/`data-*` 属性 | 破坏原有功能 |
 | 修改 CGO UI 组件库源码 | 应通过 CSS 变量和 `::part()` 穿透定制 |
-| 在业务 CSS 中硬编码主题色十六进制值 | 破坏明暗双主题；应重声明 CSS 变量 |
+| 在已识别可靠原站主色后仍保留 CGO UI 默认 Primary | 会丢失原站品牌识别；应使用 `CGO.theme.setThemeColor()` 迁移 |
+| 把 success / warning / danger、线路色、图表色或图片偶然色当成全站主题色 | 这些颜色具有独立语义或不构成可靠品牌证据 |
+| 用 `.btn-primary { background:#... }` 等零散规则代替 Custom Theme | 只覆盖局部元素，亮暗主题和衍生颜色会失去一致性 |
+| 纯文本模型声称从无法查看的 PNG/JPG/截图中准确取出了主题色 | 无多模态 / 像素能力时只能从 HTML/CSS/SVG 等可读源码判断 |
+| 在业务 CSS 中到处硬编码主题色十六进制值 | 破坏明暗双主题；主色应走 Custom Theme，其他颜色应集中声明为变量 |
 | 默认照搬原站固定居中窄栏、旧式单列或 table 布局 | CGO UI 改造目标是保留业务而非保留落后版式 |
 | 只换颜色、圆角、阴影和组件外观而不重构明显老旧的信息架构 | 这属于“换皮”，不属于现代化重构 |
 | 页面 UI 继续大量使用旧站自定义 `font-family` | 会破坏 CGO UI 的统一字体系统；UI 应使用 `var(--font-sans)` |
@@ -465,10 +572,15 @@ cgo-dropdown::part(menu) {
 
 ## 📤 第九步：改造输出与验证要求
 
-1. **类型与重构判断**：先简短说明页面属于 Tool / Info / Custom 中哪一类，并指出是否触发“结构级重排”。不要为了等待确认而停止执行，除非用户明确要求先讨论方案。
+1. **类型、主题色与重构判断**：先简短说明页面属于 Tool / Info / Custom 中哪一类，是否触发“结构级重排”，并给出 `DETECTED_THEME_COLOR`、主要证据和置信度。若证据不足，要明确写“未可靠识别，保留 CGoUI 默认主题色”，不要猜测。不要为了等待确认而停止执行，除非用户明确要求先讨论方案。
 2. **完整改造代码**：输出改造后的**完整可直接运行 HTML 代码**。
-3. **重构亮点总结**：说明布局重排、组件替换、字体统一与渐进加载、防闪烁处理、CSS 变量去硬编码点以及 Emoji 降级说明。
+3. **重构亮点总结**：说明布局重排、原站主题色如何迁移至 CGoUI Custom Theme、是否使用自动衍生 / overrides、组件替换、字体统一与渐进加载、防闪烁处理、CSS 变量去硬编码点以及 Emoji 降级说明。
 4. **改造后验证清单**：输出以下检查项供人工验证：
+   - [ ] 原站主主题色来自明确输入或 HTML/CSS/SVG 等可验证证据，没有把语义色 / 线路色 / 图表色 / 偶然图片色误判为主题色
+   - [ ] 已识别可靠主题色时，调用 `CGO.theme.setThemeColor(DETECTED_THEME_COLOR)` 接管 CGoUI Primary，而不是继续使用默认深蓝
+   - [ ] 自动生成的亮 / 暗 Palette 可读性正常；仅在确有需要时使用合法的 `overrides` 字段微调
+   - [ ] 辅助品牌色、业务分类色、线路色和 success / warning / danger 仍保持独立语义
+   - [ ] 无可靠主题色证据时没有凭空造 Hex，并明确标记待人工 / 多模态确认
    - [ ] 亮色主题视觉正常，无样式错乱
    - [ ] 暗色主题视觉正常，切换无闪烁
    - [ ] 刷新后主题不丢失（防闪烁脚本的键与 `setStorageKey()` 一致）
@@ -480,7 +592,7 @@ cgo-dropdown::part(menu) {
    - [ ] 按钮尺寸系统统一（顶栏与辅助项 `sm`，卡片主体行动点 `md`）
    - [ ] 原有核心 JS 功能（表单提交、轮播、数据渲染等）正常运行
    - [ ] 移动端布局正常，触控区域 ≥ 44px，旧版 UA 跳转已移除
-   - [ ] 品牌色/线路色显示正确（未被 CGO UI 主色覆盖，且暗色下不刺眼）
+   - [ ] 原站主主题色已通过 Custom Theme 接管 CGoUI Primary；线路色 / 语义色显示正确且暗色下不刺眼
    - [ ] 页面 UI 字体统一继承 `var(--font-sans)`，默认首选 `Noto Sans SC`
    - [ ] 首屏无需等待字体即可正常阅读，未隐藏 `body`，未使用 `font-display: block`
    - [ ] 若存在真实 Web Font，则使用 `font-display: swap` 或等价非阻塞策略；若不存在，则未捏造字体 URL
@@ -490,8 +602,9 @@ cgo-dropdown::part(menu) {
 
 ### 模型能力边界与视觉验证
 
-- 若当前 AI / 工具具备浏览器截图或多模态视觉能力，应在可能的情况下对关键断点进行视觉验证，重点检查溢出、错位、明暗主题、字体切换和移动端折叠。
+- 若当前 AI / 工具具备浏览器截图或多模态视觉能力，应在可能的情况下对关键断点进行视觉验证，重点检查溢出、错位、明暗主题、主题色还原、字体切换和移动端折叠。
 - 若模型（例如纯文本模型）**不能查看截图或渲染结果**，不得声称“已经视觉验证”“与截图完全一致”。应改为进行 DOM/CSS 静态检查、断点规则检查、组件/事件契约检查，并明确哪些视觉项需要人工或浏览器环境复核。
+- 纯文本模型仍可以从 CSS 变量、样式规则、HTML Meta、内联 SVG 和文本化设计 Token 中检测主题色；但如果唯一证据存在于 PNG/JPG/截图像素中，就必须标记为“需视觉能力确认”，不得臆测。
 - 默认任务并不是追求与原网站“一模一样”。没有多模态能力也不影响进行结构级现代化重构；它只意味着不能假装完成了视觉比对。
 
 ---
@@ -514,10 +627,11 @@ cgo-dropdown::part(menu) {
   - **组合而非复制**：同一页面允许用不同布局模块组合出新的视觉节奏。页面内容顺序可在不破坏业务语义的前提下重新编排。
 - **重构不足判定**：如果新版在桌面截图上一眼仍然像“原网页套了 CGO UI 皮肤”，说明结构改造力度不足；除非用户明确要求保留原站视觉，否则继续重排。
 
-### 3. 亮色/暗色模式色彩铁律
-- **亮色主题**：清爽白底与干净的白底卡片。**严禁**混浊灰底图，或给列表项强加厚重的灰色背景块（保持文字与图标单行优雅高亮）。保留并保护原网站官方品牌主色。
-- **暗色主题**：真正的深色沉浸底色，卡片采用深灰底色，文字高亮纯净，品牌色需提亮为防眩光版本。
-- **实现方式**：通过**重声明 `:root` / `[data-theme='dark']` 下的 CSS 变量**达成，而非在业务规则中散落硬编码色值。
+### 3. 亮色/暗色模式与原站主题色铁律
+- **先识别后改色**：改造前先确定原站是否存在可靠的主主题色，并保留检测证据；不能先套 CGO UI 默认色然后遗忘品牌迁移。
+- **亮色主题**：清爽白底与干净的白底卡片。**严禁**混浊灰底图，或给列表项强加厚重的灰色背景块。主交互色通过 `CGO.theme.setThemeColor(DETECTED_THEME_COLOR)` 继承原站品牌主色。
+- **暗色主题**：真正的深色沉浸底色，卡片采用深灰底色，文字高亮纯净。优先使用 Custom Theme 自动生成的 `darkPrimary` / `darkPrimaryHover`，只有品牌规范或对比度确有问题时才通过 overrides 微调。
+- **实现方式**：主主题 Palette 使用 **CGoUI Custom Theme API**；背景、卡片、辅助品牌色和非主主题 Token 才通过集中重声明 `:root` / `[data-theme='dark']` CSS 变量处理。严禁在业务规则中散落主题 Hex。
 
 ### 4. 字体统一与首屏优先铁律
 - **UI 字体统一**：网页 UI 必须跟随 CGO UI 的 `var(--font-sans)`，默认首选 `Noto Sans SC`，不要延续旧站杂乱字体。
@@ -532,4 +646,4 @@ cgo-dropdown::part(menu) {
 
 ---
 
-遵照以上指南输出的改造产物，应当在**保留原有业务、内容与品牌识别的前提下，主动摆脱老旧网页的视觉和版式惯性**，形成真正现代、响应式、亮暗主题完整且符合 CGO UI 体系的页面，而不是原网站的简单换皮版。
+遵照以上指南输出的改造产物，应当在**保留原有业务、内容与品牌识别（包括可验证的原站主主题色）的前提下，主动摆脱老旧网页的视觉和版式惯性**，形成真正现代、响应式、亮暗主题完整且符合 CGO UI 体系的页面，而不是原网站的简单换皮版。
