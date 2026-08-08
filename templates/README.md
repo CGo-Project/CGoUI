@@ -8,10 +8,10 @@
 
 所有参考 Demo 模板存放于项目 `templates/` 目录下：
 
-- [templates/tool_template.html](file:///Users/liuzihan/Documents/GitHub/CGoUI/templates/tool_template.html)：**模板一：工具类页面**
-- [templates/info_template.html](file:///Users/liuzihan/Documents/GitHub/CGoUI/templates/info_template.html)：**模板二：介绍类页面**
-- [templates/PROMPT.md](file:///Users/liuzihan/Documents/GitHub/CGoUI/templates/PROMPT.md)：**AI 改装 Prompt：已有网页改装为 CGO UI 标准网页 Prompt 模板**
-- [templates/README.md](file:///Users/liuzihan/Documents/GitHub/CGoUI/templates/README.md)：**模板规范与 AI Prompt 骨架说明（本文件）**
+- [templates/tool_template.html](./tool_template.html)：**模板一：工具类页面**
+- [templates/info_template.html](./info_template.html)：**模板二：介绍类页面**
+- [templates/PROMPT.md](./PROMPT.md)：**AI 改装 Prompt：已有网页改装为 CGO UI 标准网页 Prompt 模板**
+- [templates/README.md](./README.md)：**模板规范与 AI Prompt 骨架说明（本文件）**
 
 ---
 
@@ -40,7 +40,7 @@ body (flex-direction: column; overflow: hidden;)
         <a href="../index.html" class="btn btn-primary"><cgo-icon name="home-dots"></cgo-icon><span>仪表盘</span></a>
     </div>
     <div class="header-center">
-        <cgo-icon name="tool" size="24" class="header-logo"></cgo-icon>
+        <cgo-icon name="design" size="24" class="header-logo"></cgo-icon>
         <span class="app-title">工具页面标题</span>
     </div>
     <div class="header-right">
@@ -162,13 +162,23 @@ body (min-height: 100vh; overflow-y: auto;)
 | **Web 组件: 图标** | `<cgo-icon name="..." size="...">` | 矢量图标组件 |
 | **Web 组件: 主题** | `<cgo-theme-toggle></cgo-theme-toggle>` | 亮暗主题一键切换器 |
 
+> **⚠️ 上表均为库内置类**（引入 `styles/` 四件套即生效）。而 `.header-tabs`、`.hero-split`、`.hero-media`、`.hero-content`、`.hero-actions`、`.content-section`、`.content-group`、`.content-image`、`.content-text` **不在组件库样式中**，它们只定义于 [info_template.html](./info_template.html) 的 `<style>` 块内。复用这些版式时，**必须把对应 CSS 一并复制到目标页面**，否则只会得到无样式的裸块。
+
+---
+
+## ⚠️ 三条最容易踩的坑
+
+1. **脚本入口必须是 `dist/cgo-ui.js`**。仓库 `src/` 下**没有** `cgo-ui.js`（源码入口是 `src/index.js`，且依赖裸模块 `lit`，浏览器无法直接加载）。
+2. **HTML 中没有 `oncgochange` / `oncgotabchange` 这类属性**——它们只存在于 React 包装层 `src/react.js`。原生页面必须用 `addEventListener('cgo-change' | 'cgo-tab-change' | 'cgo-close' | 'cgo-input' | 'cgo-nav-change', ...)`。
+3. **主题防闪烁脚本读取的 localStorage 键，必须与主题引擎实际使用的键一致**。引擎的 `autoStorageKey()` 会按页面文件名推导前缀（命中 `vitool`/`wall`/`stasign`/`staline`/`project`/`cgoauth`/`mc`/`enmap`/`guide`/`timetable` 时为 `<文件名>_app-theme`），需要自定义时请调用导出的 `setStorageKey()`，而不是手写 `localStorage.setItem()`。
+
 ---
 
 ## 🤖 AI 代码生成 & 网页重构 Prompt 指引
 
 当需要 AI 将已有的网页构建产物改装为符合 CGO UI 规范的标准网页，或创建新页面时：
 
-1. **已有网页改造系统提示词**：详见 [templates/PROMPT.md](file:///Users/liuzihan/Documents/GitHub/CGoUI/templates/PROMPT.md)，包含详细的四阶段改造指引与防幻觉图标白名单。
+1. **已有网页改造系统提示词**：详见 [templates/PROMPT.md](./PROMPT.md)，包含详细的四阶段改造指引与防幻觉图标白名单。
 2. **快速创建页面简短 Prompt**：
    > **AI 提示词示例：**
    > “请读取 CGoUI 项目中 `templates/README.md` 的规范，基于 [tool_template.html / info_template.html] 模板，为我搭建一个 [工具类/介绍类] 页面。要求使用 CGoUI 的 `tool-header` 三段式顶栏，包含 `<cgo-theme-toggle>` 和 `<cgo-button>` 组件，主体使用 `tool-container`。”

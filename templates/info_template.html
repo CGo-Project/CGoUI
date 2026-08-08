@@ -18,7 +18,7 @@
 
     <!--
       ===== 1. CGoUI 样式体系引入 =====
-      本地路径（放于项目根目录 cgoui/ 文件夹中）：
+      本地路径（放于项目根目录 cgoui/ 文件夹中，脚本取自 dist/ 打包产物）：
         cgoui/styles/cgo_clr.css
         cgoui/styles/cgo_element.css
         cgoui/styles/cgo_ui.css
@@ -33,7 +33,7 @@
 
     <!-- ===== 2. CGoUI 模块脚本（ES Module 引入）===== -->
     <!-- CDN 方式: <script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@latest/dist/cgo-ui.js"></script> -->
-    <script type="module" src="../src/cgo-ui.js"></script>
+    <script type="module" src="../dist/cgo-ui.js"></script>
 
     <style>
         /* Web Components 防闪烁 */
@@ -46,8 +46,9 @@
             opacity: 0.6;
         }
 
+        /* 注意：滚动模型由 <body class="scrollable"> 提供，勿在此处只写 min-height —— 
+           cgo_ui.css 的 body{height:100dvh;overflow:hidden} 不会被 min-height 覆盖。 */
         body {
-            min-height: 100vh;
             display: flex;
             flex-direction: column;
             margin: 0;
@@ -91,7 +92,8 @@
 
         /* 正文区域全局容器 */
         .tool-container {
-            flex: 1;
+            flex: none;
+            overflow: visible;
             width: 100%;
             max-width: 1100px;
             margin: 0 auto;
@@ -243,7 +245,8 @@
     </style>
 </head>
 
-<body>
+<!-- .scrollable：退出 cgo_ui.css 对 body 施加的 height:100dvh + overflow:hidden 工具页模型 -->
+<body class="scrollable">
 
     <!-- ==================== 顶部菜单栏 Header ==================== -->
     <header class="tool-header">
