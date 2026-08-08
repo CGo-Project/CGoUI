@@ -4,12 +4,12 @@ Use this checklist before changing the repository from private to public.
 
 ## Repository governance
 
-- [ ] `main` branch protection is enabled.
+- [ ] A branch ruleset targeting `main` is active.
 - [ ] Pull requests are required before merge.
-- [ ] At least one maintainer approval is required.
+- [ ] Required maintainer approvals are configured appropriately for the maintainer count.
 - [ ] The main CI status check is required.
-- [ ] Force-push is disabled on protected branches.
-- [ ] Direct pushes to `main` are restricted where appropriate.
+- [ ] Conversations must be resolved before merge.
+- [ ] Force-push and branch deletion are blocked for `main`.
 
 ## Security settings
 
@@ -29,9 +29,10 @@ Use this checklist before changing the repository from private to public.
 
 ## Source and artifact review
 
-- [x] Third-party Beijing Subway promotional/news images in `examples/bjsubway/assets` have been replaced by project-generated demo artwork.
-- [x] The generated example assets have a provenance notice.
-- [ ] Confirm the remaining `bjsubway` brand icon and any third-party names/marks are authorized for public redistribution, or replace/remove them before going public.
+- [x] The active transit example is fictional and generic, with no real operator name, logo, hotline, registration record, social account, or official-site link.
+- [x] The previous operator-specific demo assets have been replaced by project-generated artwork.
+- [x] The operator-specific `bjsubway` icon has been removed from the public icon registry.
+- [x] The generic demo artwork has a provenance notice.
 - [ ] Decide whether historical contributor email addresses may be public. Rewrite Git history before publication if required.
 - [ ] Review the repository for private URLs, credentials, private screenshots, or internal-only data.
 - [ ] Run `npm ci`.
@@ -41,6 +42,6 @@ Use this checklist before changing the repository from private to public.
 ## Manual publication steps
 
 - [ ] Change repository visibility from **Private** to **Public** in GitHub Settings.
-- [ ] Verify branch protection and security settings after the visibility change.
+- [ ] Verify the `main` ruleset and security settings after the visibility change.
 - [ ] Add repository topics / social preview / Discussions if desired.
 - [ ] After `main` is green, publish NPM only from a maintainer-controlled account/workflow.

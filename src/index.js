@@ -1,6 +1,7 @@
 /*!
- * @cgo/ui — ESM 入口（供打包工具 / React / Vue / Next 消费）
- * 导入即注册全部 <cgo-*> 自定义元素，并导出类与工具函数。
+ * @cgo/ui — ESM entry for bundlers / React / Vue / Next.
+ * Importing this module registers all <cgo-*> custom elements and exports the
+ * supported public component and utility APIs.
  */
 export { CgoIcon } from './components/icon.js';
 export { CgoButton } from './components/button.js';
@@ -31,6 +32,6 @@ export { CgoNoticeCard } from './components/notice-card.js';
 export { CgoNoticeCenter } from './components/notice-center.js';
 export { CgoNoticePopup, showNoticePopup } from './components/notice-popup.js';
 
-export { ICONS, buildSvg, iconNames } from './icons/icons.js';
+export { ICONS, buildSvg, iconNames } from './icons/public-icons.js';
 export * as theme from './theme.js';
-export { installGlobalShim } from './shim/cgo-global.js';
+export { installGlobalShim, configureGlobalShim } from './shim/public-global.js';

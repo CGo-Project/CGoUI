@@ -34,7 +34,9 @@
   },
   "files": [
     "dist",
-    "src",
+    "src/index.d.ts",
+    "src/react.d.ts",
+    "src/theme.d.ts",
     "styles",
     "README.md",
     "LICENSE",

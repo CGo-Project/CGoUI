@@ -1,9 +1,9 @@
 import { LitElement, html, css } from 'lit';
-import { ICONS, buildSvg } from '../icons/icons.js';
+import { ICONS, buildSvg } from '../icons/public-icons.js';
 
 /**
  * <cgo-icon name="back" size="20"></cgo-icon>
- * 自包含 SVG 图标组件，数据来自共享 ICONS 注册表。
+ * Self-contained SVG icon component backed by the public CGoUI icon registry.
  */
 export class CgoIcon extends LitElement {
     static properties = {
@@ -56,7 +56,6 @@ export class CgoIcon extends LitElement {
     render() {
         const entry = ICONS[this.name];
         if (!entry) return html``;
-        // 通过 buildSvg 渲染，保证逻辑统一
         const svgStr = buildSvg(this.name, {
             size: this.size || undefined,
             color: this.color || undefined,
@@ -65,9 +64,7 @@ export class CgoIcon extends LitElement {
         if (!svgStr) return html``;
         const tpl = document.createElement('template');
         tpl.innerHTML = svgStr;
-        return html`
-            ${tpl.content.cloneNode(true)}
-        `;
+        return html`${tpl.content.cloneNode(true)}`;
     }
 }
 

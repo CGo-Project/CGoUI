@@ -1,15 +1,10 @@
 /*!
- * @cgo/ui — 浏览器 <script type="module"> 入口
- * 产物为 dist/cgo-ui.js，可被原生 HTML 通过 NPM 包或版本化 CDN 引入。
- *
- * 作用：
- *   1. 注册全部 <cgo-*> 自定义元素（来自 index.js 的副作用导入）
- *   2. 安装 window.CGO / window.ToolTheme 兼容垫片
- *   3. 立即初始化主题引擎（防闪烁）
+ * @cgo/ui — browser <script type="module"> entry.
+ * The built dist/cgo-ui.js can be loaded from the NPM package or a versioned CDN.
  */
 import './index.js';
-// 这些模块在顶层注册 custom element。显式保留副作用，避免打包器依据
-// package.json 的 sideEffects 声明把只通过 re-export 引入的组件树摇掉。
+// Keep component registration side effects explicit so bundlers cannot shake
+// them away solely because they are also re-exported by index.js.
 import './components/icon.js';
 import './components/button.js';
 import './components/badge.js';
@@ -34,10 +29,8 @@ import './components/side-nav.js';
 import './components/toolbar-select.js';
 import './components/notice-card.js';
 import './components/notice-center.js';
-import { installGlobalShim } from './shim/cgo-global.js';
+import { installGlobalShim } from './shim/public-global.js';
 import { initTheme } from './theme.js';
 
-// 主题引擎尽早执行，避免明暗闪烁
 initTheme();
-// 安装全局 API 垫片，保证旧工具零改动可用
 installGlobalShim(window);

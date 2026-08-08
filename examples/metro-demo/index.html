@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <meta name="description" content="CGoUI generic metro interface demonstration using fictional transit content and project-generated artwork.">
+  <title>Metro Demo · CGoUI</title>
+  <link rel="stylesheet" href="../../styles/cgo_clr.css">
+  <link rel="stylesheet" href="../../styles/cgo_element.css">
+  <link rel="stylesheet" href="../../styles/cgo_ui.css">
+  <link rel="stylesheet" href="../../styles/cgo_components.css">
+  <style>
+    :root {
+      --demo-accent: #2563eb;
+      --demo-accent-soft: color-mix(in srgb, var(--demo-accent) 12%, transparent);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg-color);
+      color: var(--text-main);
+      font-family: var(--font-sans);
+    }
+
+    .demo-shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 24px 0 64px;
+    }
+
+    .demo-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand cgo-icon { color: var(--primary-color); }
+    .brand strong { display: block; font-size: 18px; }
+    .brand span { color: var(--text-light); font-size: 12px; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr);
+      gap: 20px;
+      margin-bottom: 20px;
+    }
+
+    .hero-media,
+    .panel {
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      background: var(--card-bg);
+      box-shadow: 0 8px 28px var(--glass-shadow);
+    }
+
+    .hero-media {
+      position: relative;
+      min-height: 330px;
+    }
+
+    .hero-media img {
+      width: 100%;
+      height: 100%;
+      min-height: 330px;
+      object-fit: cover;
+      display: block;
+    }
+
+    .hero-copy {
+      position: absolute;
+      inset: auto 18px 18px;
+      padding: 16px 18px;
+      border-radius: 12px;
+      color: #fff;
+      background: rgba(15, 23, 42, .72);
+      backdrop-filter: blur(10px);
+    }
+
+    .hero-copy h1 { margin: 0 0 6px; font-size: clamp(24px, 4vw, 38px); }
+    .hero-copy p { margin: 0; opacity: .86; line-height: 1.6; }
+
+    .panel { padding: 20px; }
+    .panel h2 { margin: 0 0 14px; font-size: 16px; }
+
+    .route-form { display: grid; gap: 12px; }
+    .route-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .service-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .service-card {
+      min-height: 116px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 18px;
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      background: var(--card-bg);
+    }
+
+    .service-card cgo-icon { color: var(--primary-color); }
+    .service-card strong { margin-top: 14px; }
+    .service-card span { color: var(--text-light); font-size: 12px; line-height: 1.5; }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.45fr) minmax(300px, 1fr);
+      gap: 20px;
+    }
+
+    .art-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .art-grid img { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 12px; }
+
+    .line-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    .notice {
+      margin-top: 24px;
+      padding: 12px 14px;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      background: var(--demo-accent-soft);
+      color: var(--text-light);
+      font-size: 12px;
+      line-height: 1.65;
+    }
+
+    @media (max-width: 860px) {
+      .hero, .content-grid { grid-template-columns: 1fr; }
+      .service-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
+    @media (max-width: 520px) {
+      .demo-shell { width: min(100% - 20px, 1180px); padding-top: 14px; }
+      .demo-header { align-items: flex-start; }
+      .service-grid, .art-grid, .route-actions { grid-template-columns: 1fr; }
+      .hero-media, .hero-media img { min-height: 280px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-shell">
+    <header class="demo-header">
+      <div class="brand">
+        <cgo-icon name="subrail" size="32"></cgo-icon>
+        <div><strong>Metro Demo</strong><span>CGoUI transit interface example</span></div>
+      </div>
+      <cgo-theme-toggle></cgo-theme-toggle>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-media">
+          <img src="assets/metro-platform.jpg" alt="Generic modern metro platform illustration">
+          <div class="hero-copy">
+            <h1>Move through the city</h1>
+            <p>一个完全虚构、无运营商品牌关联的城市轨道交通界面示例，用来展示 CGoUI 的布局、主题与组件能力。</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2><cgo-icon name="route" size="18"></cgo-icon> 路线查询</h2>
+          <div class="route-form">
+            <cgo-input label="起点" placeholder="例如：Central Park"></cgo-input>
+            <cgo-input label="终点" placeholder="例如：Harbor Square"></cgo-input>
+            <div class="route-actions">
+              <cgo-button variant="primary" icon="search">查询路线</cgo-button>
+              <cgo-button variant="info" icon="reverse">交换站点</cgo-button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="service-grid" aria-label="Transit services">
+        <article class="service-card"><cgo-icon name="map" size="26"></cgo-icon><strong>线路网络</strong><span>浏览虚构示例线路与换乘节点。</span></article>
+        <article class="service-card"><cgo-icon name="time" size="26"></cgo-icon><strong>运营时间</strong><span>展示首末班时刻信息组件。</span></article>
+        <article class="service-card"><cgo-icon name="location" size="26"></cgo-icon><strong>站点信息</strong><span>查看站点设施与周边信息布局。</span></article>
+        <article class="service-card"><cgo-icon name="touch" size="26"></cgo-icon><strong>无障碍</strong><span>展示无障碍服务入口与状态。</span></article>
+      </section>
+
+      <section class="content-grid">
+        <div class="panel">
+          <h2>Project-generated demo artwork</h2>
+          <div class="art-grid">
+            <img src="assets/metro-station.jpg" alt="Generic metro station exterior illustration">
+            <img src="assets/metro-dashboard.png" alt="Generic transit dashboard illustration">
+          </div>
+        </div>
+        <div class="panel">
+          <h2><cgo-icon name="palette" size="18"></cgo-icon> 示例线路</h2>
+          <div class="line-grid">
+            <cgo-line-badge line="1"></cgo-line-badge>
+            <cgo-line-badge line="2"></cgo-line-badge>
+            <cgo-line-badge line="4"></cgo-line-badge>
+            <cgo-line-badge line="7"></cgo-line-badge>
+            <cgo-line-badge line="10"></cgo-line-badge>
+            <cgo-line-badge line="15"></cgo-line-badge>
+          </div>
+          <p style="color:var(--text-light);font-size:13px;line-height:1.7;margin:16px 0 0;">
+            线路编号仅用于组件演示，不对应任何真实城市或运营商。
+          </p>
+        </div>
+      </section>
+
+      <p class="notice">
+        Fictional demo only. 本页面中的名称、站点、文案与插画均用于 CGoUI 开源演示，不代表、仿冒或暗示任何真实轨道交通运营商、政府机构或商业实体的官方产品与背书。
+      </p>
+    </main>
+  </div>
+
+  <script type="module">
+    import '../../src/register.js';
+    window.addEventListener('DOMContentLoaded', () => {
+      window.CGO?.theme?.setThemeColor?.('#2563eb');
+    });
+  </script>
+</body>
+</html>
