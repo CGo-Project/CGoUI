@@ -1,7 +1,26 @@
 {
   "name": "@centralgo/cgo-ui",
   "version": "2.1.0",
-  "description": "Central Go 的 Lit Web Components 与 React 适配器。",
+  "description": "Lightweight Lit-based Web Components design system with light/dark themes, responsive UI, custom theming, and an optional React adapter.",
+  "keywords": [
+    "web-components",
+    "lit",
+    "ui-components",
+    "design-system",
+    "react",
+    "dark-mode",
+    "theming",
+    "responsive-design",
+    "frontend"
+  ],
+  "homepage": "https://centralgo.site/cgoui/#/welcome",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ryan-si/CGoUI.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ryan-si/CGoUI/issues"
+  },
   "type": "module",
   "author": "Central Go Team",
   "contributors": [
