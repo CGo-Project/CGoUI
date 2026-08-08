@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>北京地铁</title>
+    <meta name="keywords" content="北京地铁官方网站,地铁线路图,地铁周边,贴心服务,乘车须知,地铁新闻,地铁文化,走进地铁,坐地铁游北京" />
+    <meta name="description"
+        content="北京地铁（Beijing Subway）是中华人民共和国北京市的城市轨道交通系统。规划于1953年，始建于1965年，运营于1969年，是中国第一个地铁系统。" />
+
+    <!-- ===== 0. 防闪烁主题脚本（Anti-Flicker，必须最先注入） =====
+         本页文件名为 index.html，主题引擎 autoStorageKey() 推导出的键即为 'app-theme'，
+         此处必须与之逐字一致，否则首屏会先按错误主题绘制再被改回。 -->
+    <script>
+        (function () {
+            var KEY = 'app-theme';
+            var t = localStorage.getItem(KEY);
+            document.documentElement.setAttribute(
+                'data-theme',
+                t || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+            );
+        })();
+    </script>
+
+    <!-- ===== 1. CGO UI 四件套 CSS（顺序不可打乱） ===== -->
+    <link rel="stylesheet" href="cgoui/styles/cgo_clr.css">
+    <link rel="stylesheet" href="cgoui/styles/cgo_element.css">
+    <link rel="stylesheet" href="cgoui/styles/cgo_ui.css">
+    <link rel="stylesheet" href="cgoui/styles/cgo_components.css">
+
+    <!-- ===== 2. CGO UI 模块脚本（dist 打包产物） ===== -->
+    <script type="module" src="cgoui/cgo-ui.js"></script>
+
+    <!-- ===== 3. 本页私有样式（必须在四件套之后加载） ===== -->
+    <style>
+        /* ---------- Web Components 注册前防 FOUC ---------- */
+        cgo-icon:not(:defined),
+        cgo-button:not(:defined),
+        cgo-theme-toggle:not(:defined),
+        cgo-line-badge:not(:defined),
+        cgo-input:not(:defined),
+        cgo-modal:not(:defined),
+        cgo-tabs:not(:defined) {
+            display: inline-flex;
+            visibility: visible;
+            opacity: .6;
+        }
+
+        cgo-modal:not(:defined) {
+            display: none;
+        }
+
+        /* ---------- 品牌色与主题令牌统一重声明（禁止业务规则里散写十六进制） ---------- */
+        :root {
+            --brand: #002d62;
+            /* 北京地铁标准蓝 */
+            --brand-soft: #e8eef7;
+            --primary-color: #002d62;
+            --bg-color: #ffffff;
+            --page-alt: #f5f7fa;
+            --ring: rgba(0, 45, 98, .14);
+        }
+
+        [data-theme='dark'] {
+            --brand: #4a92e0;
+            /* 暗色下提亮，防眩光 */
+            --brand-soft: #16233a;
+            --primary-color: #4a92e0;
+            --bg-color: #111827;
+            --card-bg: #1f2937;
+            --page-alt: #161f2e;
+            --text-main: #f3f4f6;
+            --text-light: #9ca7b8;
+            --border-color: #2c3a4f;
+            --ring: rgba(74, 146, 224, .22);
+        }
+
+        /* ---------- 基础版面（信息页模板：可滚动） ---------- */
+        /* body 使用 .scrollable（见 <body class="scrollable">）退出工具页固定高模型 */
+        body {
+            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                "Hiragino Sans GB", "Microsoft YaHei", Roboto, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .tool-container {
+            /* 覆盖 cgo_ui.css 的 flex:1 + overflow-y:auto，交还给文档流滚动 */
+            flex: none;
+            overflow: visible;
+            width: 100%;
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 20px 20px 72px;
+            box-sizing: border-box;
+        }
+
+        .brand-title {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: .5px;
+            color: var(--brand);
+        }
+
+        .brand-sub {
+            font-size: 11px;
+            color: var(--text-light);
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+        }
+
+        .header-logo {
+            color: var(--brand);
+        }
+
+        /* ---------- 顶栏 Tabs（模板自带类，需随版式一并携带） ---------- */
+        .header-tabs {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--page-alt);
+            padding: 4px;
+            border-radius: 10px;
+        }
+
+        .header-tabs .tab-item {
+            padding: 7px 14px;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-light);
+            text-decoration: none;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: background .18s ease, color .18s ease;
+        }
+
+        .header-tabs .tab-item:hover {
+            color: var(--brand);
+            background: var(--card-bg);
+        }
+
+        .header-tabs .tab-item.active {
+            color: var(--brand);
+            background: var(--card-bg);
+            box-shadow: 0 1px 4px var(--ring);
+        }
+
+        @media (max-width: 1080px) {
+            .header-center {
+                display: none;
+            }
+        }
+
+        /* ---------- 滚动播报条 ---------- */
+        .slogan-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 9px 16px;
+            margin-bottom: 18px;
+            border-radius: 10px;
+            background: var(--brand-soft);
+            color: var(--brand);
+            font-size: 13.5px;
+            font-weight: 600;
+            letter-spacing: 3px;
+        }
+
+        /* ---------- Hero 轮播 ---------- */
+        .hero-split {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        @media (min-width: 900px) {
+            .hero-split {
+                grid-template-columns: minmax(0, 1.9fr) minmax(300px, 1fr);
+                align-items: start;
+            }
+        }
+
+        .hero-main {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            min-width: 0;
+        }
+
+        .carousel {
+            /* align-self:start 让高度回归 auto，否则 grid 的 stretch 会先定高、
+               再由 aspect-ratio 反推出超出列宽的宽度，导致轮播溢出到右栏 */
+            align-self: start;
+            width: 100%;
+            min-width: 0;
+            position: relative;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            box-shadow: 0 6px 22px var(--glass-shadow);
+            aspect-ratio: 932 / 291;
+        }
+
+        .carousel-track {
+            display: flex;
+            height: 100%;
+            transition: transform .5s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .carousel-slide {
+            flex: 0 0 100%;
+            height: 100%;
+        }
+
+        .carousel-slide img,
+        .carousel-slide a {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .carousel-slide img {
+            object-fit: cover;
+        }
+
+        .carousel-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 34px;
+            height: 34px;
+            display: grid;
+            place-items: center;
+            border: 0;
+            border-radius: 50%;
+            cursor: pointer;
+            color: #fff;
+            background: rgba(0, 0, 0, .34);
+            backdrop-filter: blur(4px);
+            opacity: 0;
+            transition: opacity .2s ease, background .2s ease;
+        }
+
+        .carousel:hover .carousel-nav,
+        .carousel-nav:focus-visible {
+            opacity: 1;
+        }
+
+        .carousel-nav:hover {
+            background: rgba(0, 0, 0, .55);
+        }
+
+        .carousel-nav.prev {
+            left: 12px;
+        }
+
+        .carousel-nav.next {
+            right: 12px;
+        }
+
+        .carousel-dots {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 12px;
+            display: flex;
+            justify-content: center;
+            gap: 7px;
+        }
+
+        .carousel-dots button {
+            width: 22px;
+            height: 4px;
+            padding: 0;
+            border: 0;
+            border-radius: 99px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, .5);
+            transition: background .2s ease, width .2s ease;
+        }
+
+        .carousel-dots button[aria-current='true'] {
+            width: 34px;
+            background: #fff;
+        }
+
+        /* ---------- 通用卡片 ---------- */
+        .bjs-panel {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .bjs-panel-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .bjs-panel-head h2 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 0;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .bjs-panel-head h2 cgo-icon {
+            color: var(--brand);
+        }
+
+        .bjs-panel-head .eyebrow {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1.6px;
+            color: var(--brand);
+            opacity: .6;
+        }
+
+        .more-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            font-size: 12.5px;
+            color: var(--text-light);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .more-link:hover {
+            color: var(--brand);
+        }
+
+        /* ---------- 换乘查询（Hero 右栏） ---------- */
+        .query-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .query-plan {
+            display: flex;
+            gap: 8px;
+        }
+
+        .plan-opt {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 9px 8px;
+            border-radius: 9px;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-light);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all .18s ease;
+        }
+
+        .plan-opt[aria-pressed='true'] {
+            border-color: var(--brand);
+            color: var(--brand);
+            background: var(--brand-soft);
+            font-weight: 600;
+        }
+
+        .swap-row {
+            display: flex;
+            justify-content: center;
+            margin: -6px 0;
+        }
+
+        .swap-btn {
+            display: grid;
+            place-items: center;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            background: var(--card-bg);
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all .18s ease;
+        }
+
+        .swap-btn:hover {
+            color: var(--brand);
+            border-color: var(--brand);
+            transform: rotate(180deg);
+        }
+
+        /* ---------- 服务入口宫格 ---------- */
+        .entry-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        @media (min-width: 640px) {
+            .entry-grid {
+                grid-template-columns: repeat(4, minmax(0, 1fr));
+            }
+        }
+
+        @media (min-width: 1000px) {
+            .entry-grid {
+                grid-template-columns: repeat(8, minmax(0, 1fr));
+            }
+        }
+
+        .entry-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 9px;
+            min-height: 88px;
+            padding: 16px 6px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text-main);
+            border: 1px solid transparent;
+            transition: all .18s ease;
+        }
+
+        .entry-item:hover {
+            border-color: var(--border-color);
+            background: var(--page-alt);
+            transform: translateY(-2px);
+        }
+
+        .entry-item cgo-icon {
+            color: var(--brand);
+        }
+
+        .entry-item span {
+            font-size: 12.5px;
+            font-weight: 500;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        /* ---------- 主内容双栏 ---------- */
+        .main-split {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (min-width: 940px) {
+            .main-split {
+                grid-template-columns: minmax(0, 1.65fr) minmax(300px, 1fr);
+                align-items: start;
+            }
+        }
+
+        /* ---------- 新闻 ---------- */
+        .news-feature {
+            display: block;
+            border-radius: 11px;
+            overflow: hidden;
+            margin-bottom: 16px;
+            border: 1px solid var(--border-color);
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .news-feature img {
+            display: block;
+            width: 100%;
+            aspect-ratio: 16 / 8;
+            object-fit: cover;
+        }
+
+        .news-feature figcaption {
+            display: block;
+            padding: 12px 14px;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.5;
+            background: var(--page-alt);
+        }
+
+        .news-feature:hover figcaption {
+            color: var(--brand);
+        }
+
+        .news-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .news-list li {
+            padding: 14px 0;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .news-list li:first-child {
+            border-top: 0;
+            padding-top: 0;
+        }
+
+        .news-date {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--brand);
+            letter-spacing: .4px;
+        }
+
+        .news-list h3 {
+            margin: 7px 0 5px;
+            font-size: 14.5px;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .news-list h3 a {
+            color: var(--text-main);
+            text-decoration: none;
+        }
+
+        .news-list h3 a:hover {
+            color: var(--brand);
+        }
+
+        .news-list p {
+            margin: 0;
+            font-size: 12.5px;
+            line-height: 1.65;
+            color: var(--text-light);
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        /* ---------- 线路色彩体系 ---------- */
+        .line-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .line-grid cgo-line-badge {
+            cursor: default;
+        }
+
+        /* ---------- 侧栏图卡 ---------- */
+        .media-card {
+            display: block;
+            width: 100%;
+            padding: 0;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow: hidden;
+            background: var(--card-bg);
+            cursor: zoom-in;
+            text-align: left;
+        }
+
+        .media-card img {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .side-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .zoom-hint {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 9px;
+            font-size: 12px;
+            color: var(--text-light);
+            background: var(--page-alt);
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* ---------- 弹窗内大图 ---------- */
+        .modal-img {
+            display: block;
+            width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
+        /* ---------- 页脚 ---------- */
+        .site-footer {
+            margin-top: 40px;
+            padding: 32px 20px 40px;
+            background: var(--brand);
+            color: #fff;
+        }
+
+        [data-theme='dark'] .site-footer {
+            background: #0d1626;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .footer-inner {
+            max-width: 1180px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+            align-items: center;
+        }
+
+        @media (min-width: 820px) {
+            .footer-inner {
+                grid-template-columns: auto 1fr auto;
+            }
+        }
+
+        .hotline {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 21px;
+            font-weight: 700;
+            letter-spacing: .5px;
+        }
+
+        .footer-meta {
+            font-size: 12px;
+            line-height: 1.9;
+            opacity: .82;
+        }
+
+        .footer-meta a {
+            color: #fff;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(255, 255, 255, .35);
+        }
+
+        .footer-social {
+            display: flex;
+            gap: 10px;
+        }
+
+        .footer-social a {
+            display: grid;
+            place-items: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            color: #fff;
+            background: rgba(255, 255, 255, .13);
+            transition: background .18s ease;
+        }
+
+        .footer-social a:hover {
+            background: rgba(255, 255, 255, .28);
+        }
+
+        /* ---------- 移动端触控高度 ---------- */
+        @media (max-width: 640px) {
+
+            .entry-item,
+            .plan-opt {
+                min-height: 44px;
+            }
+
+            .tool-container {
+                padding: 16px 14px 56px;
+            }
+        }
+    </style>
+</head>
+
+<!-- body.scrollable：显式退出 cgo_ui.css 强加的「工具页」全屏不滚动模型 -->
+<body class="scrollable">
+
+    <!-- ==================== 三段式顶栏 ==================== -->
+    <header class="tool-header">
+        <div class="header-left">
+            <cgo-icon name="bjsubway" size="30" class="header-logo"></cgo-icon>
+            <div>
+                <div class="brand-title">北京地铁</div>
+                <div class="brand-sub">Beijing Subway</div>
+            </div>
+        </div>
+
+        <div class="header-center">
+            <nav class="header-tabs" aria-label="主导航">
+                <a href="#services" class="tab-item active">出行服务</a>
+                <a href="/support/ccgd/" class="tab-item">政策规定</a>
+                <a href="#news" class="tab-item">企业动态</a>
+                <a href="/culture/dtzs/" class="tab-item">地铁文化</a>
+                <a href="/corporate/gsgk/" class="tab-item">走进地铁</a>
+                <a href="/tsjlb/wjdc/" class="tab-item">近期活动</a>
+            </nav>
+        </div>
+
+        <div class="header-right">
+            <cgo-button variant="info" size="sm" icon="warning" id="delay-btn">延误告知</cgo-button>
+            <cgo-theme-toggle></cgo-theme-toggle>
+            <!-- 保持原生结构，供外部系统向 .dropdown-content 注入 -->
+            <div class="dropdown options-dropdown">
+                <button id="options-btn" class="btn btn-info dropbtn" title="更多">
+                    <cgo-icon name="menu"></cgo-icon>
+                    <span>更多</span>
+                </button>
+                <div class="dropdown-content">
+                    <a href="/job/"><cgo-icon name="user"></cgo-icon><span>人才招聘</span></a>
+                    <a href="/contact/"><cgo-icon name="mail"></cgo-icon><span>联系我们</span></a>
+                    <a href="/support/xxgkzn/"><cgo-icon name="file"></cgo-icon><span>信息公开</span></a>
+                    <a href="https://zhaocai.bjsubway.com/zhaocai-portal/"><cgo-icon name="external"></cgo-icon><span>采购项目</span></a>
+                    <a href="/en/"><cgo-icon name="link"></cgo-icon><span>English</span></a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ==================== 主体 ==================== -->
+    <main class="tool-container">
+
+        <!-- 服务口号播报（替换原 JS 跑马灯） -->
+        <div class="slogan-bar">
+            <cgo-icon name="sparkle" size="16"></cgo-icon>
+            <span>需求导向　持续改进　首善服务</span>
+        </div>
+
+        <!-- ---------- Hero：轮播 + 换乘查询 ---------- -->
+        <section class="hero-split">
+            <div class="hero-main">
+                <div class="carousel" id="hero-carousel" aria-roledescription="轮播" aria-label="专题推荐">
+                    <div class="carousel-track" id="carousel-track">
+                        <div class="carousel-slide">
+                            <a href="https://i.mydadui.com/u1q281" aria-label="乘客出行问卷">
+                                <img src="assets/images_banner_ptckwj-pc.jpg" alt="乘客出行问卷调查">
+                            </a>
+                        </div>
+                        <div class="carousel-slide">
+                            <img src="assets/subway_images_pc_96165.jpg" alt="地铁服务热线 96165">
+                        </div>
+                        <div class="carousel-slide">
+                            <a href="/culture/klcx/wmxcp/xbjz/index.html" aria-label="快乐出行文明宣传片">
+                                <img src="assets/culture_klcx_wmxcp_p_xcp.jpg" alt="快乐出行文明宣传片">
+                            </a>
+                        </div>
+                        <div class="carousel-slide">
+                            <img src="assets/subway_images_axzy.jpg" alt="安心之旅专题">
+                        </div>
+                        <div class="carousel-slide">
+                            <img src="assets/subway_images_swzl.jpg" alt="首善之旅专题">
+                        </div>
+                    </div>
+                    <button class="carousel-nav prev" id="carousel-prev" aria-label="上一张">
+                        <cgo-icon name="chevron-left" size="18"></cgo-icon>
+                    </button>
+                    <button class="carousel-nav next" id="carousel-next" aria-label="下一张">
+                        <cgo-icon name="chevron-right" size="18"></cgo-icon>
+                    </button>
+                    <div class="carousel-dots" id="carousel-dots" role="tablist"></div>
+                </div>
+
+            <section class="bjs-panel" id="services">
+                <div class="bjs-panel-head">
+                    <h2><cgo-icon name="train" size="18"></cgo-icon>出行服务</h2>
+                    <a class="more-link" href="/station/">全部服务 <cgo-icon name="chevron-right" size="14"></cgo-icon></a>
+                </div>
+                <div class="entry-grid">
+                    <a class="entry-item" href="https://map.bjsubway.com">
+                        <cgo-icon name="map" size="26"></cgo-icon><span>线路图查询</span>
+                    </a>
+                    <a class="entry-item" href="/station/smcsj/">
+                        <cgo-icon name="time" size="26"></cgo-icon><span>首末车时间</span>
+                    </a>
+                    <a class="entry-item" href="/station/">
+                        <cgo-icon name="location" size="26"></cgo-icon><span>站点及周边</span>
+                    </a>
+                    <a class="entry-item" href="/station/zjgls/">
+                        <cgo-icon name="compare" size="26"></cgo-icon><span>站间距信息</span>
+                    </a>
+                    <a class="entry-item" href="/station/index.html?type=sk">
+                        <cgo-icon name="calendar" size="26"></cgo-icon><span>列车时刻表</span>
+                    </a>
+                    <a class="entry-item" href="/station/index.html?type=ss">
+                        <cgo-icon name="gate" size="26"></cgo-icon><span>服务设施</span>
+                    </a>
+                    <a class="entry-item" href="/station/yktfw/">
+                        <cgo-icon name="payment" size="26"></cgo-icon><span>一卡通网点</span>
+                    </a>
+                    <a class="entry-item" href="/station/wzass/">
+                        <cgo-icon name="touch" size="26"></cgo-icon><span>无障碍设施</span>
+                    </a>
+                </div>
+            </section>
+            </div>
+
+            <!-- 换乘查询 -->
+            <div class="bjs-panel query-panel">
+                <div class="bjs-panel-head" style="margin-bottom:4px;">
+                    <h2><cgo-icon name="route" size="18"></cgo-icon>线路换乘查询</h2>
+                    <span class="eyebrow">ROUTE</span>
+                </div>
+
+                <cgo-input id="q-start" label="起始站" placeholder="请输入起始车站"></cgo-input>
+                <div class="swap-row">
+                    <button class="swap-btn" id="q-swap" title="交换起终点" aria-label="交换起终点">
+                        <cgo-icon name="reverse" size="15"></cgo-icon>
+                    </button>
+                </div>
+                <cgo-input id="q-end" label="终点站" placeholder="请输入终点车站"></cgo-input>
+
+                <div>
+                    <div style="font-size:12.5px;color:var(--text-light);margin-bottom:7px;">乘车方案</div>
+                    <div class="query-plan" role="group" aria-label="乘车方案">
+                        <button type="button" class="plan-opt" data-plan="0" aria-pressed="true">
+                            <cgo-icon name="time" size="15"></cgo-icon>较快捷
+                        </button>
+                        <button type="button" class="plan-opt" data-plan="1" aria-pressed="false">
+                            <cgo-icon name="transfer" size="15"></cgo-icon>少换乘
+                        </button>
+                    </div>
+                </div>
+
+                <cgo-button variant="primary" size="md" icon="search" id="q-submit" class="btn-full">查询路线</cgo-button>
+                <a class="more-link" href="/station/xltcx" style="justify-content:center;">
+                    <cgo-icon name="location" size="14"></cgo-icon>查询站点详细信息
+                </a>
+            </div>
+        </section>
+
+        <!-- ---------- 出行服务入口宫格 ---------- -->
+
+        <!-- ---------- 政策 / 文化 快捷入口 ---------- -->
+        <section class="bjs-panel" style="margin-top:20px;">
+            <div class="bjs-panel-head">
+                <h2><cgo-icon name="file" size="18"></cgo-icon>政策规定与地铁文化</h2>
+            </div>
+            <div class="entry-grid" style="max-width:760px;margin:0 auto;">
+                <a class="entry-item" href="/support/ccgd/">
+                    <cgo-icon name="check-circle" size="26"></cgo-icon><span>乘车规定</span>
+                </a>
+                <a class="entry-item" href="/support/faq/">
+                    <cgo-icon name="help" size="26"></cgo-icon><span>乘客问答</span>
+                </a>
+                <a class="entry-item" href="/culture/dtzs/">
+                    <cgo-icon name="bookmark" size="26"></cgo-icon><span>地铁知识</span>
+                </a>
+                <a class="entry-item" href="/culture/klcx/">
+                    <cgo-icon name="star" size="26"></cgo-icon><span>快乐出行展示窗</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- ---------- 新闻 + 侧栏 ---------- -->
+        <div class="main-split">
+
+            <section class="bjs-panel" id="news">
+                <div class="bjs-panel-head">
+                    <h2><cgo-icon name="notification" size="18"></cgo-icon>地铁新闻<span class="eyebrow"
+                            style="margin-left:6px;">NEWS</span></h2>
+                    <a class="more-link" href="/news/qyxw/yyzd/">更多 <cgo-icon name="chevron-right"
+                            size="14"></cgo-icon></a>
+                </div>
+
+                <a class="news-feature" href="/news/qyxw/yyzd/2024-07-10/129618.html">
+                    <img src="assets/news_qyxw_yyzd_2024-07-10_2.png" alt="地铁公司推出暑运服务“套餐”满足乘客出行需求">
+                    <figcaption>地铁公司推出暑运服务“套餐”满足乘客出行需求</figcaption>
+                </a>
+
+                <ul class="news-list">
+                    <li>
+                        <span class="news-date"><cgo-icon name="calendar" size="12"></cgo-icon>2026-05-16</span>
+                        <h3><a href="/news/qyxw/yyzd/2026-05-16/129685.html">5月16日首班车起，地铁1号线苹果园、古城、八宝山3座车站恢复运营</a></h3>
+                        <p>5月16日首班车起，地铁1号线西段苹果园站、古城站、八宝山站3座车站恢复运营。因配合1号线支线工程后续施工，地铁1号线八角游乐园站采取通过不停车方式运行。</p>
+                    </li>
+                    <li>
+                        <span class="news-date"><cgo-icon name="calendar" size="12"></cgo-icon>2025-12-30</span>
+                        <h3><a href="/news/qyxw/yyzd/2025-12-30/129675.html">“轨道+航空”一站式联运 首都机场线东直门站行李托运服务投用</a></h3>
+                        <p>2025年12月29日，北京地铁首都机场线东直门站行李托运工程正式投入运营。自此，前往首都机场T3航站楼乘坐中国国际航空股份有限公司国内航班的旅客，在地铁东直门站即可提前办理。</p>
+                    </li>
+                    <li>
+                        <span class="news-date"><cgo-icon name="calendar" size="12"></cgo-icon>2025-12-27</span>
+                        <h3><a href="/news/qyxw/yyzd/2025-12-27/129674.html">地铁运营信息</a></h3>
+                        <p>#新线开通# 2025年12月27日（周六）首班车起，地铁18号线（马连洼—天通苑东）和6号线南延（潞城—潞阳）开通试运营。18号线天通苑东站首班车时间为5:29。</p>
+                    </li>
+                </ul>
+            </section>
+
+            <div class="side-stack">
+                <!-- 服务质量承诺（点击放大） -->
+                <section class="bjs-panel" style="padding-bottom:0;">
+                    <div class="bjs-panel-head">
+                        <h2><cgo-icon name="check-circle" size="18"></cgo-icon>服务质量承诺</h2>
+                    </div>
+                    <button class="media-card" id="promise-open" style="margin:0 -20px;border-radius:0;border-left:0;border-right:0;border-bottom:0;">
+                        <img src="assets/subway_images_tu2.jpg" alt="北京市地铁运营有限公司服务质量承诺">
+                        <span class="zoom-hint"><cgo-icon name="zoom-in" size="14"></cgo-icon>点击查看高清全文</span>
+                    </button>
+                </section>
+
+                <!-- 志愿者报名 -->
+                <section class="bjs-panel">
+                    <div class="bjs-panel-head">
+                        <h2><cgo-icon name="user" size="18"></cgo-icon>志愿者报名</h2>
+                    </div>
+                    <a href="/contact/" class="media-card" style="cursor:pointer;">
+                        <img src="assets/images_11.jpg" alt="地铁志愿者报名">
+                    </a>
+                    <cgo-button variant="primary" size="md" icon="send" class="btn-full" style="margin-top:14px;"
+                        id="volunteer-btn">立即报名</cgo-button>
+                </section>
+
+                <!-- 线路色彩体系 -->
+                <section class="bjs-panel">
+                    <div class="bjs-panel-head">
+                        <h2><cgo-icon name="palette" size="18"></cgo-icon>线路色彩体系</h2>
+                    </div>
+                    <div class="line-grid">
+                        <cgo-line-badge line="1"></cgo-line-badge>
+                        <cgo-line-badge line="2"></cgo-line-badge>
+                        <cgo-line-badge line="4"></cgo-line-badge>
+                        <cgo-line-badge line="5"></cgo-line-badge>
+                        <cgo-line-badge line="6"></cgo-line-badge>
+                        <cgo-line-badge line="7"></cgo-line-badge>
+                        <cgo-line-badge line="8"></cgo-line-badge>
+                        <cgo-line-badge line="9"></cgo-line-badge>
+                        <cgo-line-badge line="10"></cgo-line-badge>
+                        <cgo-line-badge line="11"></cgo-line-badge>
+                        <cgo-line-badge line="13"></cgo-line-badge>
+                        <cgo-line-badge line="14"></cgo-line-badge>
+                        <cgo-line-badge line="15"></cgo-line-badge>
+                        <cgo-line-badge line="16"></cgo-line-badge>
+                        <cgo-line-badge line="17"></cgo-line-badge>
+                        <cgo-line-badge line="19"></cgo-line-badge>
+                        <cgo-line-badge line="cae"></cgo-line-badge>
+                        <cgo-line-badge line="dae"></cgo-line-badge>
+                        <cgo-line-badge line="xj"></cgo-line-badge>
+                        <cgo-line-badge line="t1"></cgo-line-badge>
+                    </div>
+                    <div class="disclaimer" style="margin-bottom:0;">
+                        色值取自 CGO UI 内置的轨道交通线路色令牌（<code>--line-color-*</code>），亮暗主题自动适配。
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- ---------- 友情链接 ---------- -->
+        <section class="bjs-panel" style="margin-top:20px;">
+            <div class="bjs-panel-head" style="margin-bottom:12px;">
+                <h2><cgo-icon name="link" size="18"></cgo-icon>友情链接</h2>
+            </div>
+            <cgo-toolbar-select id="friend-links" style="max-width:280px;">
+                <cgo-toolbar-option value="">———— 请选择 ————</cgo-toolbar-option>
+                <cgo-toolbar-option value="guangzhou">广州地铁</cgo-toolbar-option>
+                <cgo-toolbar-option value="shanghai">上海地铁</cgo-toolbar-option>
+                <cgo-toolbar-option value="tianjin">天津地铁</cgo-toolbar-option>
+                <cgo-toolbar-option value="mtrsz">港铁深圳</cgo-toolbar-option>
+                <cgo-toolbar-option value="mtrbj">京港地铁</cgo-toolbar-option>
+                <cgo-toolbar-option value="ruyixing">如易行科技</cgo-toolbar-option>
+            </cgo-toolbar-select>
+        </section>
+
+    </main>
+
+    <!-- ==================== 页脚 ==================== -->
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="hotline"><span aria-hidden="true">☎</span>地铁服务热线：010-96165</div>
+            <div class="footer-meta">
+                版权所有　北京市地铁运营有限公司<br>
+                <a href="https://beian.miit.gov.cn/">京ICP备12042668号-1</a>
+                <a href="https://www.beian.gov.cn/portal/registerSystemInfo?recordcode=11040302000112">京公网安备
+                    11040302000112号</a>
+            </div>
+            <div class="footer-social">
+                <a href="/contact/" title="微信"><cgo-icon name="chat" size="19"></cgo-icon></a>
+                <a href="https://weibo.com/bjsubway" title="微博"><cgo-icon name="share" size="19"></cgo-icon></a>
+                <a href="/contact/" title="移动客户端"><cgo-icon name="touch" size="19"></cgo-icon></a>
+                <a href="/contact/" title="联系我们"><cgo-icon name="mail" size="19"></cgo-icon></a>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ==================== 服务质量承诺 大图弹窗 ==================== -->
+    <cgo-modal id="promise-modal" title="北京市地铁运营有限公司服务质量承诺" max-width="880px">
+        <img class="modal-img" src="assets/subway_images_tu2.jpg" alt="服务质量承诺全文">
+    </cgo-modal>
+
+    <script type="module">
+        /* ============ 1. 轮播（替换原 Swiper + jQuery 实现，零依赖） ============ */
+        (function () {
+            const track = document.getElementById('carousel-track');
+            const dotsBox = document.getElementById('carousel-dots');
+            if (!track) return;
+            const total = track.children.length;
+            let idx = 0, timer = null;
+
+            for (let i = 0; i < total; i++) {
+                const b = document.createElement('button');
+                b.setAttribute('role', 'tab');
+                b.setAttribute('aria-label', `第 ${i + 1} 张`);
+                b.addEventListener('click', () => go(i));
+                dotsBox.appendChild(b);
+            }
+
+            function go(n) {
+                idx = (n + total) % total;
+                track.style.transform = `translateX(-${idx * 100}%)`;
+                [...dotsBox.children].forEach((d, i) =>
+                    d.setAttribute('aria-current', i === idx ? 'true' : 'false'));
+            }
+            const next = () => go(idx + 1);
+            const start = () => { stop(); timer = setInterval(next, 5000); };
+            const stop = () => timer && clearInterval(timer);
+
+            document.getElementById('carousel-next').addEventListener('click', () => { next(); start(); });
+            document.getElementById('carousel-prev').addEventListener('click', () => { go(idx - 1); start(); });
+            const box = document.getElementById('hero-carousel');
+            box.addEventListener('mouseenter', stop);
+            box.addEventListener('mouseleave', start);
+
+            go(0);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) start();
+        })();
+
+        /* ============ 2. 换乘查询 ============ */
+        (function () {
+            const startEl = document.getElementById('q-start');
+            const endEl = document.getElementById('q-end');
+            let plan = '0';
+
+            // cgo-input 派发的是带连字符的 cgo-input 事件（非 oncgoinput 属性）
+            startEl.addEventListener('cgo-input', (e) => { startEl.value = e.detail.value; });
+            endEl.addEventListener('cgo-input', (e) => { endEl.value = e.detail.value; });
+
+            document.querySelectorAll('.plan-opt').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    plan = btn.dataset.plan;
+                    document.querySelectorAll('.plan-opt').forEach((b) =>
+                        b.setAttribute('aria-pressed', String(b === btn)));
+                });
+            });
+
+            document.getElementById('q-swap').addEventListener('click', () => {
+                const a = startEl.value || '';
+                startEl.value = endEl.value || '';
+                endEl.value = a;
+            });
+
+            document.getElementById('q-submit').addEventListener('click', () => {
+                const s = (startEl.value || '').trim();
+                const t = (endEl.value || '').trim();
+                const q = new URLSearchParams();
+                if (s) q.set('start', s);
+                if (t) q.set('end', t);
+                q.set('type', plan);
+                window.location.href = 'https://map.bjsubway.com/' + (q.toString() ? '?' + q : '');
+            });
+        })();
+
+        /* ============ 3. 服务质量承诺弹窗（cgo-modal，事件名带连字符） ============ */
+        (function () {
+            const modal = document.getElementById('promise-modal');
+            document.getElementById('promise-open')
+                .addEventListener('click', () => modal.setAttribute('open', ''));
+            modal.addEventListener('cgo-close', () => modal.removeAttribute('open'));
+        })();
+
+        /* ============ 4. 友情链接下拉（cgo-change） ============ */
+        (function () {
+            const MAP = {
+                guangzhou: 'https://www.gzmtr.com/',
+                shanghai: 'http://www.shmetro.com/',
+                tianjin: 'http://www.tianjinmetro.com/',
+                mtrsz: 'https://www.mtrsh.com.cn/',
+                mtrbj: 'https://www.mtr.bj.cn/',
+                ruyixing: '/contact/'
+            };
+            document.getElementById('friend-links')
+                .addEventListener('cgo-change', (e) => {
+                    const url = MAP[e.detail.value];
+                    if (url) window.open(url, '_blank', 'noopener');
+                });
+        })();
+
+        /* ============ 5. 其他行动点 ============ */
+        document.getElementById('delay-btn')
+            .addEventListener('click', () => { window.location.href = '/support/ywgz/'; });
+        document.getElementById('volunteer-btn')
+            .addEventListener('click', () => { window.location.href = '/contact/'; });
+    </script>
+</body>
+
+</html>
