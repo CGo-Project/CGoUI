@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Security vulnerability report
+    url: https://github.com/ryan-si/CGoUI/security/advisories/new
+    about: Please report exploitable security issues privately instead of opening a public issue.

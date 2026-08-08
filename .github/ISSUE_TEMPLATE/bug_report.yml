@@ -1,0 +1,68 @@
+name: Bug report
+description: Report a reproducible problem in CGoUI
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve CGoUI. Please provide a minimal reproducible case whenever possible.
+  - type: input
+    id: version
+    attributes:
+      label: CGoUI version
+      description: Which version are you using?
+      placeholder: e.g. 2.1.0
+    validations:
+      required: true
+  - type: dropdown
+    id: usage
+    attributes:
+      label: Usage mode
+      options:
+        - Web Components / vanilla HTML
+        - React adapter
+        - Documentation / example
+        - Other / not sure
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser / OS / framework / bundler
+      placeholder: e.g. Chrome 141 on macOS 15, Vite 7, React 19
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: Describe the bug clearly, including expected and actual behavior.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Render component ...
+        2. Click ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Link to a repository, StackBlitz, CodePen, or paste reduced sample code.
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / recordings / console output
+      description: Add visual evidence or logs if useful. Do not paste secrets.
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context

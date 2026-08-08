@@ -1,0 +1,57 @@
+name: Feature request
+description: Suggest an improvement or new capability for CGoUI
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the suggestion. Please describe the user problem first, then the proposed solution.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / use case
+      description: What problem are you trying to solve?
+      placeholder: As a developer, I need ...
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the API, behavior, component, or UX you want.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - Component API
+        - Styling / theming
+        - React adapter
+        - Build / packaging
+        - Documentation / examples
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Have you considered any alternatives or workarounds?
+  - type: dropdown
+    id: breaking
+    attributes:
+      label: Could this be a breaking change?
+      options:
+        - No
+        - Maybe
+        - Yes
+    validations:
+      required: true
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mockups / references / additional context
