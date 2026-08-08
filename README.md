@@ -1,8 +1,15 @@
 # @centralgo/cgo-ui
 
-CGoUI 是一套基于 Lit 的 Web Components 组件库，同时提供可选的 React 适配
-器。它可以独立安装、独立构建、独立发布，也可以不依赖构建工具直接通过
-版本化 CDN 使用。
+**CGoUI（Central Go 前端视觉库）** 是一套面向公共服务网站与在线数字效率工具的轻量级前端视觉系统。项目基于 Lit 构建标准 Web Components，无需框架即可在原生 HTML 中使用，也提供可选的 React 适配器和版本化 CDN 入口。
+
+[官网与在线文档](https://centralgo.site/cgoui/#/welcome) · [贡献指南](./CONTRIBUTING.md) · [安全政策](./SECURITY.md) · [更新记录](./CHANGELOG.md)
+
+### 核心能力
+
+- **标准 Web Components**：基于 Lit，原生 HTML、React 等宿主均可接入。
+- **亮色 / 暗色与响应式布局**：组件支持明暗主题切换，并适配桌面端与移动端。
+- **CSS 变量与自定义主题**：通过统一设计变量和 `CGO.theme.setThemeColor()` 管理品牌色及衍生色。
+- **按需接入**：可通过 NPM 使用，也可直接加载固定版本 CDN 产物，无需额外构建工具。
 
 本仓库是 CGoUI 的独立开源仓库。主项目不再读取这里的源码目录，而是通过
 发布后的 `@centralgo/cgo-ui` 版本消费组件；主项目自己的备案号、应用路由、
