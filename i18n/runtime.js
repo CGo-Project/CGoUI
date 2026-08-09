@@ -1,6 +1,7 @@
 import { EXPANDED_TRANSLATIONS } from './catalog-expanded.js';
 import { EXTRA_TRANSLATIONS } from './catalog-extra.js';
 import { GAP_TRANSLATIONS } from './catalog-gap.js';
+import { REPAIR_TRANSLATIONS } from './catalog-repair.js';
 
 const SUPPORTED_LOCALES = ['zh', 'en', 'ja', 'ko', 'zh-HK', 'zh-TW'];
 const LOCALE_ALIASES = {
@@ -39,9 +40,16 @@ const HAN_RE = /[\u3400-\u9fff]/;
 // English suffix), while component-emitted strings live only in the supplemental list.
 // The gap catalogue is deliberately loaded here so newly audited code examples are
 // available on a cold page load as well as after a Vite hot update.
-const entries = [...EXTRA_TRANSLATIONS, ...GAP_TRANSLATIONS, ...EXPANDED_TRANSLATIONS]
+const entries = [...REPAIR_TRANSLATIONS, ...EXTRA_TRANSLATIONS, ...GAP_TRANSLATIONS, ...EXPANDED_TRANSLATIONS]
   .filter((row) => row[0] && row[localeIndex] !== undefined)
   .sort((a, b) => b[0].length - a[0].length);
+const entriesByInitial = new Map();
+for (const row of entries) {
+  const initial = row[0][0];
+  const bucket = entriesByInitial.get(initial) || [];
+  bucket.push(row);
+  entriesByInitial.set(initial, bucket);
+}
 const directTranslationSources = new Set(
   EXTRA_TRANSLATIONS
     .filter((row) => row[0] && !HAN_RE.test(row[0]))
@@ -181,10 +189,25 @@ function translateString(input, { code = false } = {}) {
     original = protectedCode.value;
   }
 
-  let result = original;
-  for (const row of entries) {
-    if (result.includes(row[0])) result = result.split(row[0]).join(row[localeIndex]);
+  // Match against the original text only. Replacing against the evolving output
+  // recursively used to corrupt translated Japanese (for example, `現在` contains
+  // the Chinese source character `在`, so a later word-level rule changed it to
+  // `現で`). Longest-first matching preserves complete phrases and prevents a
+  // translated target from being processed as a new source string.
+  const parts = [];
+  let cursor = 0;
+  while (cursor < original.length) {
+    const candidates = entriesByInitial.get(original[cursor]) || [];
+    const match = candidates.find((row) => original.startsWith(row[0], cursor));
+    if (match) {
+      parts.push(match[localeIndex]);
+      cursor += match[0].length;
+    } else {
+      parts.push(original[cursor]);
+      cursor += 1;
+    }
   }
+  let result = parts.join('');
   result = applyFallbackPatterns(result);
   if (code && protectedCode) result = protectedCode.restore(result);
   return result;
