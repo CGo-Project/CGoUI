@@ -649,6 +649,14 @@
     <main id="doc-main" class="doc-main"></main>
 </div>
 
+<!-- 网站语言：locale=en / locale=ja / locale=ko / locale=zh-HK / locale=zh-TW 使用同一份文档内容，避免多份页面漂移。 -->
+<script>
+    window.__CGO_LOCALE__ = new URLSearchParams(location.search).get('locale') || 'zh';
+    window.__CGO_LOCALE_SOURCE__ = location.href;
+    window.__CGO_I18N_SITE_ROOT__ = new URL('./', location.href).href;
+</script>
+<script type="module" src="./i18n/runtime.js"></script>
+
 <!-- CGoUI Web Components 统一 bundle -->
 <script type="module" src="./dist/cgo-ui.js"></script>
 
