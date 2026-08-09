@@ -26,3 +26,11 @@ jobs:
 
       - name: Build, package and smoke-test
         run: npm run release:check
+
+      - name: Check localized website JavaScript
+        run: |
+          node --check i18n/catalog-core.js
+          node --check i18n/catalog-foundation.js
+          node --check i18n/catalog-demos.js
+          node --check i18n/localized-page.js
+          node --check i18n/runtime.js
