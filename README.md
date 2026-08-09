@@ -2,7 +2,7 @@
 
 **CGoUI（Central Go 前端视觉库）** 是一套面向公共服务网站与在线数字效率工具的轻量级前端视觉系统。项目基于 Lit 构建标准 Web Components，无需框架即可在原生 HTML 中使用，也提供可选的 React 适配器和版本化 CDN 入口。
 
-[官网与在线文档](https://centralgo.site/cgoui/#/welcome) · [贡献指南](./CONTRIBUTING.md) · [安全政策](./SECURITY.md) · [更新记录](./CHANGELOG.md)
+[官网与在线文档](https://centralgo.site/cgoui/#/welcome) · [GitHub 仓库](https://github.com/ryan-si/CGoUI) · [贡献指南](./CONTRIBUTING.md) · [安全政策](./SECURITY.md) · [更新记录](./CHANGELOG.md)
 
 ### 核心能力
 

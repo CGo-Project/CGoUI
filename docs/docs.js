@@ -1266,6 +1266,16 @@ function renderWelcome() {
         <p style="color:var(--text-light);font-size:14px;line-height:1.8;">NaL - CentralGo，Ryan Si</p>`;
 }
 
+function localizedComponentLabel(component) {
+    const source = component.title;
+    const translated = window.CGO_I18N?.translate(source) || source;
+    const suffix = source.includes(' ') ? source.slice(source.indexOf(' ') + 1) : '';
+    if (suffix && translated !== suffix && translated.endsWith(suffix)) {
+        return translated.slice(0, -suffix.length).trim();
+    }
+    return translated;
+}
+
 /* 侧栏分组：render=自渲染函数 / comp=组件元数据 */
 const GROUPS = [
     {
@@ -1286,7 +1296,7 @@ const GROUPS = [
         items: [
             ...COMPONENTS.map((c) => ({
                 id: c.id,
-                label: c.title.split(' ')[0],
+                label: localizedComponentLabel(c),
                 icon: c.icon,
                 tag: c.tag.replace('cgo-', ''),
                 comp: c,
