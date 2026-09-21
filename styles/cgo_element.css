@@ -46,6 +46,21 @@ html {
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* Web Components 未注册前防闪烁 (FOUC 防护) */
+cgo-icon:not(:defined),
+cgo-button:not(:defined),
+cgo-card:not(:defined),
+cgo-theme-toggle:not(:defined),
+cgo-header-toggle:not(:defined),
+cgo-tabs:not(:defined) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    visibility: visible;
+    opacity: 0.6;
+}
+
+
 body {
     font-family: var(--font-sans);
     background-color: var(--bg-color);
@@ -611,6 +626,97 @@ a:hover {
     width: 32px;
     height: 32px;
 }
+
+/* ── 图标与图片渐进加载占位容器体系 ── */
+.img-icon-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.header-logo-wrapper {
+    height: 32px;
+    width: 32px;
+    margin-right: 8px;
+}
+
+.header-logo-wrapper .header-logo {
+    height: 32px;
+    width: 32px;
+    object-fit: contain;
+}
+
+.tool-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* 占位 Sparkle 图标 */
+.icon-placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--primary-color, #0070f3);
+    opacity: 0.85;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    animation: cgoSparklePulse 1.5s infinite ease-in-out;
+    pointer-events: none;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-logo-wrapper .icon-placeholder {
+    font-size: 20px;
+    --cgo-icon-size: 20px;
+}
+
+.tool-icon-wrapper .icon-placeholder {
+    font-size: 32px;
+    --cgo-icon-size: 32px;
+}
+
+@keyframes cgoSparklePulse {
+    0%,
+    100% {
+        opacity: 0.35;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+    50% {
+        opacity: 0.95;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+}
+
+/* 图像加载前的过渡与淡入 */
+.img-icon-wrapper img {
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background-color: transparent;
+    padding: 0;
+}
+
+.img-icon-wrapper.loaded img {
+    opacity: 1;
+}
+
+.img-icon-wrapper.loaded .icon-placeholder {
+    opacity: 0;
+    animation: none;
+    visibility: hidden;
+}
+
 
 /* =====================================================
    §5  输入框 / 表单 (Forms)
@@ -1706,7 +1812,8 @@ body[data-glass-mode='blur'] .dropdown-content {
    §14  卡片 (Cards) - 默认采用 tool.html 苹果物理折射液态玻璃规范
    ===================================================== */
 .tool-card,
-.glass-card {
+.glass-card,
+.tool-item {
     position: relative;
     border: none;
     background: transparent;
@@ -1722,15 +1829,36 @@ body[data-glass-mode='blur'] .dropdown-content {
 }
 
 .tool-card:hover,
-.glass-card:hover {
+.glass-card:hover,
+.tool-item:hover {
     box-shadow: var(--glass-shadow-hover);
+}
+
+/* 独立工具项专属几何与排版微调 */
+.tool-item {
+    border-radius: var(--radius-xl, 20px);
+    padding: 30px 25px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.tool-check-link {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    height: 100%;
 }
 
 /* Layer 0: 折射磨砂层 (完全对齐 tool.html) */
 .tool-card .liquid-glass-effect,
 .tool-card .glass-refraction,
 .glass-card .liquid-glass-effect,
-.glass-card .glass-refraction {
+.glass-card .glass-refraction,
+.tool-item .liquid-glass-effect,
+.tool-item .glass-refraction {
     position: absolute;
     inset: 0;
     z-index: 0;
@@ -1745,14 +1873,16 @@ body[data-glass-mode='blur'] .dropdown-content {
 
 /* 当卡片未手动插入 .liquid-glass-effect 元素时的自动毛玻璃降级保护 */
 .tool-card:not(:has(.liquid-glass-effect)):not(:has(.glass-refraction)),
-.glass-card:not(:has(.liquid-glass-effect)):not(:has(.glass-refraction)) {
+.glass-card:not(:has(.liquid-glass-effect)):not(:has(.glass-refraction)),
+.tool-item:not(:has(.liquid-glass-effect)):not(:has(.glass-refraction)) {
     backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
     -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
 }
 
 /* Layer 1: 半透明底色衬底层 (完全对齐 tool.html: 亮色 0.60, 暗色 0.60) */
 .tool-card::after,
-.glass-card::after {
+.glass-card::after,
+.tool-item::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -1764,27 +1894,33 @@ body[data-glass-mode='blur'] .dropdown-content {
 }
 
 .tool-card:hover::after,
-.glass-card:hover::after {
+.glass-card:hover::after,
+.tool-item:hover::after {
     background: var(--glass-bg-hover, rgba(255, 255, 255, 0.68));
 }
 
 [data-theme='dark'] .tool-card::after,
 :root:not([data-theme='light']) .tool-card::after,
 [data-theme='dark'] .glass-card::after,
-:root:not([data-theme='light']) .glass-card::after {
+:root:not([data-theme='light']) .glass-card::after,
+[data-theme='dark'] .tool-item::after,
+:root:not([data-theme='light']) .tool-item::after {
     background: var(--glass-bg, rgba(31, 32, 34, 0.60));
 }
 
 [data-theme='dark'] .tool-card:hover::after,
 :root:not([data-theme='light']) .tool-card:hover::after,
 [data-theme='dark'] .glass-card:hover::after,
-:root:not([data-theme='light']) .glass-card:hover::after {
+:root:not([data-theme='light']) .glass-card:hover::after,
+[data-theme='dark'] .tool-item:hover::after,
+:root:not([data-theme='light']) .tool-item:hover::after {
     background: var(--glass-bg-hover, rgba(38, 40, 44, 0.68));
 }
 
 /* Layer 2: 双轴微光圈层 (完全对齐 tool.html 极简微边框) */
 .tool-card::before,
-.glass-card::before {
+.glass-card::before,
+.tool-item::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -1814,9 +1950,55 @@ body[data-glass-mode='blur'] .dropdown-content {
 
 /* Layer 3: 文字与内容保证绝对清晰 */
 .tool-card > *:not(.liquid-glass-effect):not(.glass-refraction),
-.glass-card > *:not(.liquid-glass-effect):not(.glass-refraction) {
+.glass-card > *:not(.liquid-glass-effect):not(.glass-refraction),
+.tool-item > *:not(.liquid-glass-effect):not(.glass-refraction) {
     position: relative;
     z-index: 3;
+}
+
+.tool-icon-wrapper,
+.tool-content,
+.tool-arrow {
+    position: relative;
+    z-index: 3;
+}
+
+.tool-item:hover .tool-icon,
+.tool-card:hover .tool-icon {
+    transform: scale(1.05);
+}
+
+.tool-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 15px;
+}
+
+.tool-desc {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    line-height: 1.5;
+    flex-grow: 1;
+}
+
+.tool-arrow {
+    margin-top: 20px;
+    color: var(--primary-color);
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.3s ease;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.9rem;
+}
+
+.tool-item:hover .tool-arrow,
+.tool-card:hover .tool-arrow {
+    opacity: 1;
+    transform: translateX(0);
 }
 
 /* 显式 flat 模式降级（若开发者指定 flat / none，则回退为传统平面卡片） */
@@ -1835,7 +2017,15 @@ body[data-glass-mode='flat'] .tool-card,
 body[glass-mode='flat'] .glass-card,
 body[data-glass-mode='flat'] .glass-card,
 .glass-card[glass-mode='flat'],
-.glass-card[data-glass-mode='flat'] {
+.glass-card[data-glass-mode='flat'],
+:root[glass-mode='flat'] .tool-item,
+:root[data-glass-mode='flat'] .tool-item,
+:root[glass-mode='none'] .tool-item,
+:root[data-glass-mode='none'] .tool-item,
+body[glass-mode='flat'] .tool-item,
+body[data-glass-mode='flat'] .tool-item,
+.tool-item[glass-mode='flat'],
+.tool-item[data-glass-mode='flat'] {
     background: var(--card-bg);
     border: 1px solid var(--border-color);
     box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06));
@@ -1859,7 +2049,17 @@ body[data-glass-mode='flat'] .glass-card,
 :root[glass-mode='flat'] .glass-card .liquid-glass-effect,
 :root[data-glass-mode='flat'] .glass-card .liquid-glass-effect,
 :root[glass-mode='flat'] .glass-card .glass-refraction,
-:root[data-glass-mode='flat'] .glass-card .glass-refraction {
+:root[data-glass-mode='flat'] .glass-card .glass-refraction,
+:root[glass-mode='flat'] .tool-item::before,
+:root[data-glass-mode='flat'] .tool-item::before,
+.tool-item[glass-mode='flat']::before,
+:root[glass-mode='flat'] .tool-item::after,
+:root[data-glass-mode='flat'] .tool-item::after,
+.tool-item[glass-mode='flat']::after,
+:root[glass-mode='flat'] .tool-item .liquid-glass-effect,
+:root[data-glass-mode='flat'] .tool-item .liquid-glass-effect,
+:root[glass-mode='flat'] .tool-item .glass-refraction,
+:root[data-glass-mode='flat'] .tool-item .glass-refraction {
     display: none;
 }
 
