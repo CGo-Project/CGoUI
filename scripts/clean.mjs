@@ -5,4 +5,5 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 await rm(resolve(ROOT, 'dist'), { recursive: true, force: true });
-console.log('[CGoUI Clean] dist removed');
+await rm(resolve(ROOT, 'site'), { recursive: true, force: true });
+console.log('[CGoUI Clean] dist & site removed');
