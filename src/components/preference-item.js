@@ -103,7 +103,7 @@ export class CgoPreferenceItem extends LitElement {
             background: var(--primary-color, #00263b);
             color: #fff;
         }
-        @media (max-width: 720px) {
+        @media (max-width: 640px) {
             .item {
                 flex-wrap: wrap;
                 align-items: flex-start;

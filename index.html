@@ -62,7 +62,7 @@
             height: 100dvh;
         }
 
-        @media (min-width: 769px) {
+        @media (min-width: 641px) {
             :root[header-mode="floating"] .doc-shell,
             body[header-mode="floating"] .doc-shell {
                 height: 100dvh;
@@ -98,7 +98,7 @@
             }
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 640px) {
             :root[header-mode="floating"] .doc-shell,
             body[header-mode="floating"] .doc-shell {
                 height: 100dvh;
@@ -483,7 +483,7 @@
             color: #00263b;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 640px) {
             .doc-shell {
                 flex-direction: column;
             }
@@ -502,11 +502,80 @@
 
         /* ===== 文档站演示区辅助样式（原 legacy-helpers.css） ===== */
         .preview-box {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
+            position: relative;
+            border: none;
+            background: transparent;
+            border-radius: var(--radius-lg, 12px);
             padding: 24px;
             margin-bottom: 8px;
+            overflow: hidden;
+            isolation: isolate;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .preview-box .liquid-glass-effect {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            border-radius: inherit;
+            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            filter: var(--glass-refraction-filter, url(#glass-distortion));
+            pointer-events: none;
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .preview-box:not(:has(.liquid-glass-effect)) {
+            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+        }
+
+        .preview-box::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            border-radius: inherit;
+            background: var(--glass-bg, rgba(255, 255, 255, 0.60));
+            pointer-events: none;
+        }
+
+        [data-theme='dark'] .preview-box::after,
+        :root:not([data-theme='light']) .preview-box::after {
+            background: var(--glass-bg, rgba(31, 32, 34, 0.60));
+        }
+
+        .preview-box::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background:
+                linear-gradient(to right,
+                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 0,
+                    rgba(0, 0, 0, 0) var(--lg-rim-side, 4px),
+                    rgba(0, 0, 0, 0) calc(100% - var(--lg-rim-side, 4px)),
+                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 100%),
+                linear-gradient(to bottom,
+                    rgba(255, 255, 255, var(--lg-rim-lit, 0.95)) 0,
+                    rgba(255, 255, 255, var(--lg-rim-lit, 0.95)) var(--lg-rim-hold, 1px),
+                    rgba(255, 255, 255, 0) var(--lg-rim-fade, 12px),
+                    rgba(255, 255, 255, 0) calc(100% - var(--lg-rim-fade, 12px)),
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.4)) calc(100% - var(--lg-rim-hold, 1px)),
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.4)) 100%);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .preview-box > * {
+            position: relative;
+            z-index: 3;
         }
 
         .metro-palette-header {
@@ -533,18 +602,96 @@
         }
 
         .compare-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
+            position: relative;
+            border: none;
+            background: transparent;
+            border-radius: var(--radius-lg, 12px);
             overflow: hidden;
-            box-shadow: var(--shadow-xs);
+            isolation: isolate;
+            box-shadow: var(--glass-shadow);
             display: flex;
             flex-direction: column;
+            transition: box-shadow var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1));
         }
 
         .compare-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--glass-shadow-hover);
+        }
+
+        .compare-card .liquid-glass-effect {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            border-radius: inherit;
+            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            filter: var(--glass-refraction-filter, url(#glass-distortion));
+            pointer-events: none;
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .compare-card:not(:has(.liquid-glass-effect)) {
+            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+        }
+
+        .compare-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            border-radius: inherit;
+            background: var(--glass-bg, rgba(255, 255, 255, 0.60));
+            pointer-events: none;
+            transition: background-color 0.25s ease;
+        }
+
+        .compare-card:hover::after {
+            background: var(--glass-bg-hover, rgba(255, 255, 255, 0.68));
+        }
+
+        [data-theme='dark'] .compare-card::after,
+        :root:not([data-theme='light']) .compare-card::after {
+            background: var(--glass-bg, rgba(31, 32, 34, 0.60));
+        }
+
+        [data-theme='dark'] .compare-card:hover::after,
+        :root:not([data-theme='light']) .compare-card:hover::after {
+            background: var(--glass-bg-hover, rgba(38, 40, 44, 0.68));
+        }
+
+        .compare-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background:
+                linear-gradient(to right,
+                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 0,
+                    rgba(0, 0, 0, 0) var(--lg-rim-side, 4px),
+                    rgba(0, 0, 0, 0) calc(100% - var(--lg-rim-side, 4px)),
+                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 100%),
+                linear-gradient(to bottom,
+                    rgba(255, 255, 255, var(--lg-rim-lit, 0.95)) 0,
+                    rgba(255, 255, 255, var(--lg-rim-lit, 0.95)) var(--lg-rim-hold, 1px),
+                    rgba(255, 255, 255, 0) var(--lg-rim-fade, 12px),
+                    rgba(255, 255, 255, 0) calc(100% - var(--lg-rim-fade, 12px)),
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.4)) calc(100% - var(--lg-rim-hold, 1px)),
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.4)) 100%);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 2;
+            transition: opacity 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+
+        .compare-card > * {
+            position: relative;
+            z-index: 3;
         }
 
         .compare-header {
@@ -687,12 +834,22 @@
 </head>
 
 <body>
-    <!-- Liquid Glass 硬件加速空间折射滤镜管线（供 glass-mode="liquid" 调用） -->
+    <!-- 苹果 Liquid Glass: Lucas Romero Di Benedetto 核心物理折射滤镜管线 -->
     <svg id="cgo-liquid-glass-filters" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;" xmlns="http://www.w3.org/2000/svg">
         <defs>
-            <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%">
-                <feTurbulence type="fractalNoise" baseFrequency="0.025 0.025" numOctaves="1" result="noise" />
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="12" xChannelSelector="R" yChannelSelector="G" />
+            <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" seed="5" result="turbulence" />
+                <feComponentTransfer in="turbulence" result="mapped">
+                    <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
+                    <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
+                    <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
+                </feComponentTransfer>
+                <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
+                <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lighting-color="white" result="specLight">
+                    <fePointLight x="-200" y="-200" z="300" />
+                </feSpecularLighting>
+                <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
+                <feDisplacementMap in="SourceGraphic" in2="softMap" scale="100" xChannelSelector="R" yChannelSelector="G" />
             </filter>
         </defs>
     </svg>

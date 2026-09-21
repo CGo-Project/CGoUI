@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { injectLiquidGlassFilter } from '../theme.js';
 
 export class CgoCard extends LitElement {
     static properties = {
@@ -16,57 +17,80 @@ export class CgoCard extends LitElement {
             position: relative;
             padding: 24px;
             border-radius: var(--radius-lg, 12px);
-            background: var(--card-bg, #fff);
+            background: transparent;
             color: var(--text-main, #00263b);
-            border: 1px solid transparent;
-            box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06));
+            border: none;
+            box-shadow: var(--glass-shadow);
             box-sizing: border-box;
-            transition: transform var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1)),
-                        box-shadow var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1));
+            transition: box-shadow var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1));
+            overflow: hidden;
+            isolation: isolate;
         }
         .card:hover {
-            box-shadow: var(--shadow-md, 0 4px 15px rgba(0, 0, 0, 0.08));
+            box-shadow: var(--glass-shadow-hover);
         }
 
-        /* ===== 玻璃卡片体系 ===== */
+        /* ===== 玻璃卡片体系（默认对齐 tool.html 苹果物理折射液态玻璃） ===== */
         .glass,
-        .liquid-glass {
+        .liquid-glass,
+        .card:not(.flat):not(.info):not(.danger) {
             background: transparent;
             border: none;
-            box-shadow: var(--glass-shadow, 0 4px 20px rgba(0, 0, 0, 0.08));
+            box-shadow: var(--glass-shadow);
             overflow: hidden;
             isolation: isolate;
         }
 
-        /* Layer 0: 折射磨砂层 */
+        /* Layer 0: 折射磨砂层 (完全对齐 tool.html) */
         .glass-refraction {
             position: absolute;
             inset: 0;
             z-index: 0;
             border-radius: inherit;
-            backdrop-filter: var(--glass-backdrop-blur, none);
-            -webkit-backdrop-filter: var(--glass-backdrop-blur, none);
-            filter: var(--glass-refraction-filter, none);
+            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            filter: var(--glass-refraction-filter, url(#glass-distortion));
             pointer-events: none;
             overflow: hidden;
+            isolation: isolate;
         }
 
-        /* Layer 1: 半透明底色衬底层 */
+        /* Layer 1: 半透明底色衬底层 (完全对齐 tool.html: 亮色 0.60, 暗色 0.60) */
         .glass::after,
-        .liquid-glass::after {
+        .liquid-glass::after,
+        .card:not(.flat):not(.info):not(.danger)::after {
             content: "";
             position: absolute;
             inset: 0;
             z-index: 1;
             border-radius: inherit;
-            background: var(--glass-bg, rgba(255, 255, 255, 0.7));
+            background: var(--glass-bg, rgba(255, 255, 255, 0.60));
             pointer-events: none;
             transition: background-color 0.25s ease;
         }
 
-        /* Layer 2: 双轴微光圈层 */
+        .glass:hover::after,
+        .liquid-glass:hover::after,
+        .card:not(.flat):not(.info):not(.danger):hover::after {
+            background: var(--glass-bg-hover, rgba(255, 255, 255, 0.68));
+        }
+
+        :host-context([data-theme='dark']) .glass::after,
+        :host-context([data-theme='dark']) .liquid-glass::after,
+        :host-context([data-theme='dark']) .card:not(.flat):not(.info):not(.danger)::after {
+            background: var(--glass-bg, rgba(31, 32, 34, 0.60));
+        }
+
+        :host-context([data-theme='dark']) .glass:hover::after,
+        :host-context([data-theme='dark']) .liquid-glass:hover::after,
+        :host-context([data-theme='dark']) .card:not(.flat):not(.info):not(.danger):hover::after {
+            background: var(--glass-bg-hover, rgba(38, 40, 44, 0.68));
+        }
+
+        /* Layer 2: 双轴微光圈层 (完全对齐 tool.html 极简微边框) */
         .glass::before,
-        .liquid-glass::before {
+        .liquid-glass::before,
+        .card:not(.flat):not(.info):not(.danger)::before {
             content: "";
             position: absolute;
             inset: 0;
@@ -91,7 +115,6 @@ export class CgoCard extends LitElement {
             mask-composite: exclude;
             pointer-events: none;
             z-index: 2;
-            display: var(--lg-rim-display, none);
             transition: opacity 0.25s cubic-bezier(0.32, 0.72, 0, 1);
         }
 
@@ -101,79 +124,23 @@ export class CgoCard extends LitElement {
             z-index: 3;
         }
 
-        .glass:hover,
-        .liquid-glass:hover {
-            box-shadow: var(--glass-shadow-hover, var(--shadow-md));
+        /* 传统扁平卡片（仅当开发者显式指定 flat 时降级） */
+        .card.flat,
+        :host([glass-mode="flat"]) .card,
+        :host([glass-mode="none"]) .card {
+            background: var(--card-bg, #fff);
+            border: 1px solid var(--border-color, #dee2e6);
+            box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06));
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
         }
-
-        /* 激活模式下的悬停微位移与温润反光 */
-        :host([glass-mode="liquid"]) .card.glass:hover,
-        :host([glass-mode="liquid"]) .card.liquid-glass:hover,
-        :host([glass-mode="blur"]) .card.glass:hover,
-        :host([glass-mode="blur"]) .card.liquid-glass:hover,
-        :host-context([glass-mode="liquid"]) .card.glass:hover,
-        :host-context([glass-mode="liquid"]) .card.liquid-glass:hover,
-        :host-context([glass-mode="blur"]) .card.glass:hover,
-        :host-context([glass-mode="blur"]) .card.liquid-glass:hover,
-        :host-context([data-glass-mode="liquid"]) .card.glass:hover,
-        :host-context([data-glass-mode="liquid"]) .card.liquid-glass:hover,
-        :host-context([data-glass-mode="blur"]) .card.glass:hover,
-        :host-context([data-glass-mode="blur"]) .card.liquid-glass:hover {
-            transform: translateY(-4px);
-        }
-
-        /* 组件级 glass-mode 精准重载 */
-        :host([glass-mode="liquid"]) .card,
-        :host([glass-mode="blur"]) .card {
-            border: none;
-        }
-        :host([glass-mode="liquid"]) {
-            --glass-refraction-filter: url(#glass-distortion);
-            --glass-backdrop-blur: blur(5px) saturate(130%);
-            --glass-bg: rgba(255, 255, 255, 0.60);
-            --glass-border: rgba(255, 255, 255, 0.40);
-            --glass-shadow:
-                0 0 0 0.5px rgba(0, 0, 0, 0.06),
-                0 8px 24px -6px rgba(0, 38, 59, 0.06),
-                0 2px 6px -2px rgba(0, 38, 59, 0.04),
-                inset 0 1px 1px 0 rgba(255, 255, 255, 0.8),
-                inset 0 -8px 16px -12px rgba(0, 0, 0, 0.03);
-            --glass-shadow-hover:
-                0 0 0 0.5px rgba(0, 0, 0, 0.08),
-                0 14px 30px -8px rgba(0, 38, 59, 0.12),
-                0 4px 10px -2px rgba(0, 38, 59, 0.06),
-                inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
-            --lg-rim-display: block;
-        }
-
-        :host([glass-mode="blur"]) {
-            --glass-refraction-filter: none;
-            --glass-backdrop-blur: blur(5px) saturate(130%);
-            --glass-bg: rgba(255, 255, 255, 0.60);
-            --glass-border: rgba(255, 255, 255, 0.40);
-            --glass-shadow:
-                0 0 0 0.5px rgba(0, 0, 0, 0.06),
-                0 8px 24px -6px rgba(0, 38, 59, 0.06),
-                0 2px 6px -2px rgba(0, 38, 59, 0.04),
-                inset 0 1px 1px 0 rgba(255, 255, 255, 0.8),
-                inset 0 -8px 16px -12px rgba(0, 0, 0, 0.03);
-            --glass-shadow-hover:
-                0 0 0 0.5px rgba(0, 0, 0, 0.08),
-                0 14px 30px -8px rgba(0, 38, 59, 0.12),
-                0 4px 10px -2px rgba(0, 38, 59, 0.06),
-                inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
-            --lg-rim-display: block;
-        }
-
-        :host([glass-mode="flat"]),
-        :host([glass-mode="none"]) {
-            --glass-refraction-filter: none;
-            --glass-backdrop-blur: none;
-            --glass-bg: var(--card-bg, #ffffff);
-            --glass-border: var(--border-color, #dee2e6);
-            --glass-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06));
-            --glass-shadow-hover: var(--shadow-md, 0 4px 15px rgba(0, 0, 0, 0.08));
-            --lg-rim-display: none;
+        .card.flat::before,
+        .card.flat::after,
+        :host([glass-mode="flat"]) .card::before,
+        :host([glass-mode="flat"]) .card::after,
+        :host([glass-mode="none"]) .card::before,
+        :host([glass-mode="none"]) .card::after {
+            display: none;
         }
 
         .info {
@@ -206,13 +173,19 @@ export class CgoCard extends LitElement {
 
     constructor() {
         super();
-        this.variant = 'standard';
+        this.variant = 'liquid-glass';
         this.title = '';
         this.glassMode = '';
     }
 
+    connectedCallback() {
+        super.connectedCallback();
+        injectLiquidGlassFilter();
+    }
+
     render() {
-        const isGlass = this.variant === 'glass' || this.variant === 'liquid-glass';
+        const isFlat = this.variant === 'flat' || this.glassMode === 'flat' || this.glassMode === 'none';
+        const isGlass = !isFlat && this.variant !== 'info' && this.variant !== 'danger';
         return html`
             <section class="card ${this.variant}">
                 ${isGlass ? html`<div class="glass-refraction" aria-hidden="true"></div>` : null}

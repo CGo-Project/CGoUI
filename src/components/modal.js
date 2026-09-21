@@ -138,7 +138,7 @@ export class CgoModal extends LitElement {
             gap: 10px;
             margin-top: 16px;
         }
-        @media screen and (max-width: 600px) {
+        @media screen and (max-width: 640px) {
             .dialog {
                 top: auto;
                 bottom: 0;

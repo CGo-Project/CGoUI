@@ -1703,85 +1703,56 @@ body[data-glass-mode='blur'] .dropdown-content {
 }
 
 /* =====================================================
-   §14  卡片 (Cards)
+   §14  卡片 (Cards) - 默认采用 tool.html 苹果物理折射液态玻璃规范
    ===================================================== */
-.tool-card {
-    background: var(--card-bg);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    padding: 30px;
-    margin-bottom: 30px;
-    color: var(--text-main);
-    transition: box-shadow var(--transition-base);
-}
-
-.tool-card:hover {
-    box-shadow: var(--shadow-lg);
-}
-
-/* 玻璃态卡片（支持 Liquid Glass 4层结构与三档自适应切换）*/
+.tool-card,
 .glass-card {
     position: relative;
-    background: var(--card-bg);
-    border: 1px solid var(--glass-border);
-    backdrop-filter: var(--glass-backdrop-blur, blur(10px));
-    -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(10px));
-    box-shadow: var(--glass-shadow, 0 4px 20px var(--glass-shadow));
-    border-radius: var(--radius-lg);
-    padding: 16px 20px;
-    margin-bottom: 16px;
-    box-sizing: border-box;
-    transition: transform var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1)),
-                box-shadow var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1));
-}
-
-/* 激活 liquid 或 blur 时的 4 层立体复合架构 */
-:root[glass-mode='liquid'] .glass-card,
-:root[data-glass-mode='liquid'] .glass-card,
-:root[glass-mode='blur'] .glass-card,
-:root[data-glass-mode='blur'] .glass-card,
-body[glass-mode='liquid'] .glass-card,
-body[data-glass-mode='liquid'] .glass-card,
-body[glass-mode='blur'] .glass-card,
-body[data-glass-mode='blur'] .glass-card,
-.glass-card[glass-mode='liquid'],
-.glass-card[data-glass-mode='liquid'],
-.glass-card[glass-mode='blur'],
-.glass-card[data-glass-mode='blur'] {
-    background: transparent;
     border: none;
+    background: transparent;
+    border-radius: var(--radius-lg, 12px);
+    padding: 20px;
+    margin-bottom: 20px;
+    color: var(--text-main);
+    box-sizing: border-box;
     overflow: hidden;
     isolation: isolate;
+    box-shadow: var(--glass-shadow);
+    transition: box-shadow var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1));
 }
 
-/* Layer 0: 折射磨砂层 */
-.liquid-glass-effect,
-.glass-refraction {
+.tool-card:hover,
+.glass-card:hover {
+    box-shadow: var(--glass-shadow-hover);
+}
+
+/* Layer 0: 折射磨砂层 (完全对齐 tool.html) */
+.tool-card .liquid-glass-effect,
+.tool-card .glass-refraction,
+.glass-card .liquid-glass-effect,
+.glass-card .glass-refraction {
     position: absolute;
     inset: 0;
     z-index: 0;
     border-radius: inherit;
     backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
     -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
-    filter: var(--glass-refraction-filter, none);
+    filter: var(--glass-refraction-filter, url(#glass-distortion));
     pointer-events: none;
     overflow: hidden;
     isolation: isolate;
 }
 
-/* Layer 1: 半透明底色衬底层 */
-:root[glass-mode='liquid'] .glass-card::after,
-:root[data-glass-mode='liquid'] .glass-card::after,
-:root[glass-mode='blur'] .glass-card::after,
-:root[data-glass-mode='blur'] .glass-card::after,
-body[glass-mode='liquid'] .glass-card::after,
-body[data-glass-mode='liquid'] .glass-card::after,
-body[glass-mode='blur'] .glass-card::after,
-body[data-glass-mode='blur'] .glass-card::after,
-.glass-card[glass-mode='liquid']::after,
-.glass-card[data-glass-mode='liquid']::after,
-.glass-card[glass-mode='blur']::after,
-.glass-card[data-glass-mode='blur']::after {
+/* 当卡片未手动插入 .liquid-glass-effect 元素时的自动毛玻璃降级保护 */
+.tool-card:not(:has(.liquid-glass-effect)):not(:has(.glass-refraction)),
+.glass-card:not(:has(.liquid-glass-effect)):not(:has(.glass-refraction)) {
+    backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+    -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+}
+
+/* Layer 1: 半透明底色衬底层 (完全对齐 tool.html: 亮色 0.60, 暗色 0.60) */
+.tool-card::after,
+.glass-card::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -1792,19 +1763,28 @@ body[data-glass-mode='blur'] .glass-card::after,
     transition: background-color 0.25s ease;
 }
 
-/* Layer 2: 双轴微光圈层 */
-:root[glass-mode='liquid'] .glass-card::before,
-:root[data-glass-mode='liquid'] .glass-card::before,
-:root[glass-mode='blur'] .glass-card::before,
-:root[data-glass-mode='blur'] .glass-card::before,
-body[glass-mode='liquid'] .glass-card::before,
-body[data-glass-mode='liquid'] .glass-card::before,
-body[glass-mode='blur'] .glass-card::before,
-body[data-glass-mode='blur'] .glass-card::before,
-.glass-card[glass-mode='liquid']::before,
-.glass-card[data-glass-mode='liquid']::before,
-.glass-card[glass-mode='blur']::before,
-.glass-card[data-glass-mode='blur']::before {
+.tool-card:hover::after,
+.glass-card:hover::after {
+    background: var(--glass-bg-hover, rgba(255, 255, 255, 0.68));
+}
+
+[data-theme='dark'] .tool-card::after,
+:root:not([data-theme='light']) .tool-card::after,
+[data-theme='dark'] .glass-card::after,
+:root:not([data-theme='light']) .glass-card::after {
+    background: var(--glass-bg, rgba(31, 32, 34, 0.60));
+}
+
+[data-theme='dark'] .tool-card:hover::after,
+:root:not([data-theme='light']) .tool-card:hover::after,
+[data-theme='dark'] .glass-card:hover::after,
+:root:not([data-theme='light']) .glass-card:hover::after {
+    background: var(--glass-bg-hover, rgba(38, 40, 44, 0.68));
+}
+
+/* Layer 2: 双轴微光圈层 (完全对齐 tool.html 极简微边框) */
+.tool-card::before,
+.glass-card::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -1833,52 +1813,54 @@ body[data-glass-mode='blur'] .glass-card::before,
 }
 
 /* Layer 3: 文字与内容保证绝对清晰 */
-:root[glass-mode='liquid'] .glass-card > *:not(.liquid-glass-effect):not(.glass-refraction),
-:root[data-glass-mode='liquid'] .glass-card > *:not(.liquid-glass-effect):not(.glass-refraction),
-:root[glass-mode='blur'] .glass-card > *:not(.liquid-glass-effect):not(.glass-refraction),
-:root[data-glass-mode='blur'] .glass-card > *:not(.liquid-glass-effect):not(.glass-refraction),
-body[glass-mode='liquid'] .glass-card > *:not(.liquid-glass-effect):not(.glass-refraction),
-body[data-glass-mode='liquid'] .glass-card > *:not(.liquid-glass-effect):not(.glass-refraction),
-body[glass-mode='blur'] .glass-card > *:not(.liquid-glass-effect):not(.glass-refraction),
-body[data-glass-mode='blur'] .glass-card > *:not(.liquid-glass-effect):not(.glass-refraction),
-.glass-card[glass-mode='liquid'] > *:not(.liquid-glass-effect):not(.glass-refraction),
-.glass-card[data-glass-mode='liquid'] > *:not(.liquid-glass-effect):not(.glass-refraction),
-.glass-card[glass-mode='blur'] > *:not(.liquid-glass-effect):not(.glass-refraction),
-.glass-card[data-glass-mode='blur'] > *:not(.liquid-glass-effect):not(.glass-refraction) {
+.tool-card > *:not(.liquid-glass-effect):not(.glass-refraction),
+.glass-card > *:not(.liquid-glass-effect):not(.glass-refraction) {
     position: relative;
     z-index: 3;
 }
 
-/* 悬停微位移与高光增强 */
-:root[glass-mode='liquid'] .glass-card:hover,
-:root[data-glass-mode='liquid'] .glass-card:hover,
-:root[glass-mode='blur'] .glass-card:hover,
-:root[data-glass-mode='blur'] .glass-card:hover,
-body[glass-mode='liquid'] .glass-card:hover,
-body[data-glass-mode='liquid'] .glass-card:hover,
-body[glass-mode='blur'] .glass-card:hover,
-body[data-glass-mode='blur'] .glass-card:hover,
-.glass-card[glass-mode='liquid']:hover,
-.glass-card[data-glass-mode='liquid']:hover,
-.glass-card[glass-mode='blur']:hover,
-.glass-card[data-glass-mode='blur']:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--glass-shadow-hover);
+/* 显式 flat 模式降级（若开发者指定 flat / none，则回退为传统平面卡片） */
+:root[glass-mode='flat'] .tool-card,
+:root[data-glass-mode='flat'] .tool-card,
+:root[glass-mode='none'] .tool-card,
+:root[data-glass-mode='none'] .tool-card,
+body[glass-mode='flat'] .tool-card,
+body[data-glass-mode='flat'] .tool-card,
+.tool-card[glass-mode='flat'],
+.tool-card[data-glass-mode='flat'],
+:root[glass-mode='flat'] .glass-card,
+:root[data-glass-mode='flat'] .glass-card,
+:root[glass-mode='none'] .glass-card,
+:root[data-glass-mode='none'] .glass-card,
+body[glass-mode='flat'] .glass-card,
+body[data-glass-mode='flat'] .glass-card,
+.glass-card[glass-mode='flat'],
+.glass-card[data-glass-mode='flat'] {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06));
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
-
-:root[glass-mode='liquid'] .glass-card:hover::after,
-:root[data-glass-mode='liquid'] .glass-card:hover::after,
-:root[glass-mode='blur'] .glass-card:hover::after,
-:root[data-glass-mode='blur'] .glass-card:hover::after,
-body[glass-mode='liquid'] .glass-card:hover::after,
-body[data-glass-mode='liquid'] .glass-card:hover::after,
-body[glass-mode='blur'] .glass-card:hover::after,
-body[data-glass-mode='blur'] .glass-card:hover::after,
-.glass-card[glass-mode='liquid']:hover::after,
-.glass-card[data-glass-mode='liquid']:hover::after,
-.glass-card[glass-mode='blur']:hover::after,
-.glass-card[data-glass-mode='blur']:hover::after {
-    background: var(--glass-bg-hover, rgba(255, 255, 255, 0.68));
+:root[glass-mode='flat'] .tool-card::before,
+:root[data-glass-mode='flat'] .tool-card::before,
+.tool-card[glass-mode='flat']::before,
+:root[glass-mode='flat'] .tool-card::after,
+:root[data-glass-mode='flat'] .tool-card::after,
+.tool-card[glass-mode='flat']::after,
+:root[glass-mode='flat'] .tool-card .liquid-glass-effect,
+:root[data-glass-mode='flat'] .tool-card .liquid-glass-effect,
+:root[glass-mode='flat'] .glass-card::before,
+:root[data-glass-mode='flat'] .glass-card::before,
+.glass-card[glass-mode='flat']::before,
+:root[glass-mode='flat'] .glass-card::after,
+:root[data-glass-mode='flat'] .glass-card::after,
+.glass-card[glass-mode='flat']::after,
+:root[glass-mode='flat'] .glass-card .liquid-glass-effect,
+:root[data-glass-mode='flat'] .glass-card .liquid-glass-effect,
+:root[glass-mode='flat'] .glass-card .glass-refraction,
+:root[data-glass-mode='flat'] .glass-card .glass-refraction {
+    display: none;
 }
 
 /* 视口外非首屏卡片渲染性能优化 */
@@ -1887,7 +1869,7 @@ body[data-glass-mode='blur'] .glass-card:hover::after,
     content-visibility: auto;
     contain-intrinsic-size: auto none auto 160px;
 }
-@media (max-width: 600px) {
+@media (max-width: 640px) {
     .cgo-glass-auto-render,
     .glass-auto-render {
         contain-intrinsic-size: auto none auto 90px;
@@ -1927,7 +1909,6 @@ body[data-glass-mode='blur'] .glass-card:hover::after,
 }
 
 .upgrade-tier-card:hover {
-    transform: translateY(-5px);
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
     border-color: var(--primary-color) !important;
     background: rgba(0, 0, 0, 0.04) !important;
@@ -2235,9 +2216,9 @@ th.selected::after {
 }
 
 /* =====================================================
-   §15  移动端 (宽度 <= 600px) 对话框与弹窗靠底样式
+   §15  移动端 (宽度 <= 640px) 对话框与弹窗靠底样式
    ===================================================== */
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 640px) {
 
     /* 普通对话框和弹窗自动转为底部抽屉 */
     .text-dialog:not(.help-dialog):not(.modal-dialog-keep-center),

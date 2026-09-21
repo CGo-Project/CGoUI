@@ -85,7 +85,7 @@ export class CgoTabs extends LitElement {
             color: var(--text-main, #00263b);
             font-family: var(--font-sans, system-ui, sans-serif);
         }
-        @media (max-width: 600px) {
+        @media (max-width: 640px) {
             .tab {
                 padding: 11px 16px;
             }

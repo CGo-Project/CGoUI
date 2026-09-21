@@ -140,14 +140,10 @@
       line-height: 1.65;
     }
 
-    @media (max-width: 860px) {
-      .hero, .content-grid { grid-template-columns: 1fr; }
-      .service-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-
-    @media (max-width: 520px) {
+    @media (max-width: 640px) {
       .demo-shell { width: min(100% - 20px, 1180px); padding-top: 14px; }
       .demo-header { align-items: flex-start; }
+      .hero, .content-grid { grid-template-columns: 1fr; }
       .service-grid, .art-grid, .route-actions { grid-template-columns: 1fr; }
       .hero-media, .hero-media img { min-height: 280px; }
     }
