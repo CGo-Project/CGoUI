@@ -141,6 +141,26 @@ export class CgoButton extends LitElement {
         .v-custom:hover {
             filter: brightness(1.06);
         }
+        .v-glass {
+            background: var(--glass-bg, rgba(255, 255, 255, 0.7));
+            color: var(--text-main, #00263b);
+            border-color: var(--glass-border, rgba(255, 255, 255, 0.4));
+            box-shadow: 0 2px 8px rgba(0, 38, 59, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+            backdrop-filter: var(--glass-backdrop-blur, none);
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, none);
+        }
+        .v-glass:hover {
+            background: var(--glass-bg-hover, rgba(255, 255, 255, 0.85));
+            box-shadow: 0 4px 14px rgba(0, 38, 59, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.95);
+            transform: translateY(-1px);
+        }
+        :host-context([data-theme='dark']) .v-glass {
+            color: var(--text-main, #f0f2f5);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+        :host-context([data-theme='dark']) .v-glass:hover {
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+        }
 
         /* 尺寸 */
         .s-sm {

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" glass-mode="liquid">
 
 <head>
     <meta charset="UTF-8">
@@ -52,10 +52,19 @@
             display: flex;
             flex-direction: column;
             margin: 0;
-            background-color: var(--bg-color, #f8f9fa);
+            background: radial-gradient(circle at 15% 15%, rgba(0, 96, 152, 0.09), transparent 45%),
+                        radial-gradient(circle at 85% 75%, rgba(0, 160, 233, 0.07), transparent 45%),
+                        var(--bg-color, #f8f9fa);
             color: var(--text-main, #00263b);
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
             overflow-y: auto;
+            min-height: 100vh;
+        }
+
+        [data-theme="dark"] body {
+            background: radial-gradient(circle at 15% 15%, rgba(0, 96, 152, 0.18), transparent 50%),
+                        radial-gradient(circle at 85% 75%, rgba(10, 40, 80, 0.35), transparent 50%),
+                        var(--bg-color, #0f1115);
         }
 
         /* 顶部 Header 中的 Tabs 样式扩展 */
@@ -63,7 +72,10 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            background: rgba(0, 0, 0, 0.04);
+            background: var(--glass-bg, rgba(0, 0, 0, 0.04));
+            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(180%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(180%));
+            border: 1px solid var(--glass-border, transparent);
             padding: 4px;
             border-radius: 8px;
         }
@@ -101,16 +113,24 @@
             box-sizing: border-box;
         }
 
-        /* Hero / Banner 大图文展现区 */
+        /* Hero / Banner 大图文展现区 (Liquid Glass) */
         .hero-split {
             display: flex;
             flex-direction: column;
-            background: var(--card-bg, #ffffff);
+            background: var(--glass-bg, #ffffff);
+            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(180%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(180%));
             border-radius: 16px;
-            border: 1px solid var(--border-color, #dee2e6);
+            border: 1px solid var(--glass-border, #dee2e6);
             overflow: hidden;
             margin-bottom: 30px;
-            box-shadow: 0 8px 24px var(--glass-shadow, rgba(0, 0, 0, 0.04));
+            box-shadow: var(--lg-shadow, 0 8px 24px rgba(0, 0, 0, 0.04));
+            transition: transform var(--transition-base, 0.25s), box-shadow var(--transition-base, 0.25s);
+        }
+
+        .hero-split:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--lg-shadow-hover, 0 12px 32px rgba(0, 0, 0, 0.08));
         }
 
         @media (min-width: 768px) {
@@ -168,11 +188,20 @@
             display: flex;
             flex-direction: column;
             gap: 24px;
-            background: var(--card-bg, #ffffff);
-            border: 1px solid var(--border-color, #dee2e6);
+            background: var(--glass-bg, #ffffff);
+            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(180%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(180%));
+            border: 1px solid var(--glass-border, #dee2e6);
             border-radius: 12px;
             padding: 24px;
             align-items: center;
+            box-shadow: var(--lg-shadow, 0 8px 24px rgba(0, 0, 0, 0.04));
+            transition: transform var(--transition-base, 0.25s), box-shadow var(--transition-base, 0.25s);
+        }
+
+        .content-group:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--lg-shadow-hover, 0 12px 32px rgba(0, 0, 0, 0.08));
         }
 
         @media (min-width: 768px) {
@@ -219,10 +248,13 @@
 
         /* 现代长文内容卡片与表格 */
         .article-content {
-            background: var(--card-bg, #ffffff);
-            border: 1px solid var(--border-color, #dee2e6);
+            background: var(--glass-bg, #ffffff);
+            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(180%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(180%));
+            border: 1px solid var(--glass-border, #dee2e6);
             border-radius: 12px;
             padding: 32px;
+            box-shadow: var(--lg-shadow, 0 8px 24px rgba(0, 0, 0, 0.04));
         }
 
         .modern-table {
@@ -247,6 +279,15 @@
 
 <!-- .scrollable：退出 cgo_ui.css 对 body 施加的 height:100dvh + overflow:hidden 工具页模型 -->
 <body class="scrollable">
+    <!-- Liquid Glass 硬件加速空间折射滤镜管线 -->
+    <svg id="cgo-liquid-glass-filters" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.025 0.025" numOctaves="1" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
 
     <!-- ==================== 顶部菜单栏 Header ==================== -->
     <header class="tool-header">
@@ -303,6 +344,7 @@
                 <h1>CGoUI 视觉与设计规范体系</h1>
                 <p>轻量、高品质的 Web Components UI 组件库与视觉系统。专为现代化轨道交通与复杂 Web 工具打造，提供统一的色卡、高精度的图标与极简的开箱即用体验。</p>
                 <div class="hero-actions">
+                    <cgo-button variant="glass" icon="sparkle">液态玻璃规范</cgo-button>
                     <cgo-button variant="primary" icon="sparkle">立即体验组件</cgo-button>
                     <cgo-button variant="info" icon="download">下载完整规范 PDF</cgo-button>
                 </div>

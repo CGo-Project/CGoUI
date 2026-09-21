@@ -433,6 +433,70 @@ function applyThemeColorCSS(palette) {
 `;
 }
 
+export function injectLiquidGlassFilter() {
+    if (typeof document === 'undefined') return;
+    if (document.getElementById('glass-distortion') || document.getElementById('cgo-glass-svg')) return;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.id = 'cgo-glass-svg';
+    svg.setAttribute('style', 'position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none;');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.innerHTML = `
+        <defs>
+            <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" seed="5" result="turbulence" />
+                <feComponentTransfer in="turbulence" result="mapped">
+                    <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
+                    <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
+                    <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
+                </feComponentTransfer>
+                <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
+                <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lighting-color="white" result="specLight">
+                    <fePointLight x="-200" y="-200" z="300" />
+                </feSpecularLighting>
+                <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
+                <feDisplacementMap in="SourceGraphic" in2="softMap" scale="100" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    `;
+    const attach = () => {
+        if (!document.getElementById('glass-distortion') && !document.getElementById('cgo-glass-svg')) {
+            (document.body || document.documentElement).appendChild(svg);
+        }
+    };
+    if (document.body) {
+        attach();
+    } else {
+        document.addEventListener('DOMContentLoaded', attach, { once: true });
+    }
+}
+
+export function setGlassMode(mode) {
+    if (typeof document === 'undefined') return;
+    if (mode === 'flat' || mode === 'none') {
+        document.documentElement.setAttribute('glass-mode', 'flat');
+    } else if (mode === 'blur') {
+        document.documentElement.setAttribute('glass-mode', 'blur');
+    } else if (mode === 'liquid') {
+        document.documentElement.setAttribute('glass-mode', 'liquid');
+    } else if (!mode) {
+        document.documentElement.removeAttribute('glass-mode');
+    }
+}
+
+export function getGlassMode() {
+    if (typeof document === 'undefined') return 'flat';
+    return (
+        document.documentElement.getAttribute('glass-mode') ||
+        getComputedStyle(document.documentElement).getPropertyValue('--cgo-glass-default')?.trim() ||
+        'flat'
+    );
+}
+
+export function setDefaultGlassMode(mode) {
+    if (typeof document === 'undefined') return;
+    document.documentElement.style.setProperty('--cgo-glass-default', mode);
+}
+
 export function initTheme() {
     if (_inited) return;
     _inited = true;
@@ -448,6 +512,9 @@ export function initTheme() {
     } catch (e) {
         console.warn('Failed to auto-inject cgo_clr.css:', e);
     }
+
+    // 自动确保 Liquid Glass 光学折射 SVG 滤镜管线就绪
+    injectLiquidGlassFilter();
 
     checkEmbedMode();
     initMessageListener();
@@ -469,3 +536,4 @@ export function initTheme() {
         }
     } catch (e) {}
 }
+

@@ -72,6 +72,36 @@ export class CgoNoticeCard extends LitElement {
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
         }
 
+        :host([popup]):host-context([glass-mode="liquid"]) .notice-card,
+        :host([popup]):host-context([glass-mode="blur"]) .notice-card,
+        :host([popup]):host-context([data-glass-mode="liquid"]) .notice-card,
+        :host([popup]):host-context([data-glass-mode="blur"]) .notice-card {
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(14px) saturate(135%);
+            -webkit-backdrop-filter: blur(14px) saturate(135%);
+            border-color: var(--glass-border, rgba(255, 255, 255, 0.4));
+            box-shadow:
+                0 0 0 0.5px rgba(0, 0, 0, 0.06),
+                0 14px 34px -6px rgba(0, 38, 59, 0.14),
+                0 3px 8px -2px rgba(0, 38, 59, 0.06),
+                inset 0 1px 1px 0 rgba(255, 255, 255, 0.85);
+        }
+
+        :host([popup]):host-context([data-theme="dark"][glass-mode="liquid"]) .notice-card,
+        :host([popup]):host-context([data-theme="dark"][glass-mode="blur"]) .notice-card,
+        :host([popup]):host-context([data-theme="dark"][data-glass-mode="liquid"]) .notice-card,
+        :host([popup]):host-context([data-theme="dark"][data-glass-mode="blur"]) .notice-card {
+            background: rgba(28, 30, 32, 0.82);
+            backdrop-filter: blur(14px) saturate(135%);
+            -webkit-backdrop-filter: blur(14px) saturate(135%);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow:
+                0 0 0 0.5px rgba(255, 255, 255, 0.1),
+                0 18px 40px -6px rgba(0, 0, 0, 0.6),
+                0 4px 10px -2px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+        }
+
         .header {
             font-size: 11px;
             font-weight: 600;

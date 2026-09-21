@@ -54,7 +54,8 @@ const COMPONENTS = [
 <cgo-button variant="success">成功</cgo-button>
 <cgo-button variant="danger">危险</cgo-button>
 <cgo-button variant="warning">警示</cgo-button>
-<cgo-button variant="ghost">幽灵</cgo-button>`,
+<cgo-button variant="ghost">幽灵</cgo-button>
+<cgo-button variant="glass">液态玻璃</cgo-button>`,
             },
             {
                 title: '尺寸',
@@ -93,7 +94,7 @@ const COMPONENTS = [
             },
         ],
         props: [
-            ['variant', `primary | info | dark | success | warning | danger | ghost`, 'info', '按钮语义变体'],
+            ['variant', `primary | info | dark | success | warning | danger | ghost | glass`, 'info', '按钮语义变体'],
             ['size', `'' | sm | lg | xl`, `''`, '尺寸档位'],
             ['icon', 'string', `''`, '图标名（见图标库页）'],
             ['icon-pos', 'left | right', 'left', '图标位置'],
@@ -241,18 +242,33 @@ CGO.icon("edit", { colorMode: "brand" });`,
         tag: 'cgo-card',
         title: '卡片 Card',
         icon: 'view-grid',
-        desc: '旧版 tool-card、glass-card、info-card、danger-card 的组件化封装。',
+        desc: '旧版 tool-card、glass-card、info-card、danger-card 的组件化封装，支持次世代 Liquid Glass 三档玻璃模式（默认扁平，按需开启模糊/折射）。',
         examples: [
             {
-                title: '卡片类型',
+                title: '标准卡片类型（默认扁平风格，零破坏保证）',
                 code: `<cgo-card title="标准卡片 .tool-card">带圆角 12px、轻阴影，悬停时阴影加深。用于内容分块展示。</cgo-card>
-<cgo-card variant="glass" title="玻璃态卡片 .glass-card">带 backdrop-filter blur，适合 cgoauth 风格页面的毛玻璃效果。</cgo-card>
+<cgo-card variant="glass" title="经典玻璃态卡片 .glass-card">默认保持原版扁平风格。当页面或卡片开启 glass-mode 属性时激活对应玻璃质感。</cgo-card>
 <cgo-card variant="info" title="渐变信息卡 .info-card">用于页面底部说明区域，展示版权、备案或功能介绍。</cgo-card>
 <cgo-card variant="danger" title="危险操作区域 .danger-card">该操作是永久性的，且不可撤销。</cgo-card>`,
+            },
+            {
+                title: 'Liquid Glass 液态玻璃三档模式（在绚丽背景上对比演示）',
+                code: `<div style="background: linear-gradient(135deg, #0076a8, #00263b 40%, #009655 75%, #5f1985); padding: 24px; border-radius: 16px; display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+  <cgo-card variant="glass" glass-mode="liquid" title="1. 折射+模糊 (liquid)">
+    开启硬件加速 SVG 光学折射、5px 模糊、双轴微光圈与多重微阴影，呈现次世代物理流体质感。
+  </cgo-card>
+  <cgo-card variant="glass" glass-mode="blur" title="2. 仅模糊 (blur)">
+    仅应用 5px 模糊与微透衬底，不计算 SVG 空间折射，轻量通透，适合中低端设备。
+  </cgo-card>
+  <cgo-card variant="glass" glass-mode="flat" title="3. 经典扁平 (flat / 默认)">
+    无模糊无折射，恢复经典原版实体背景与常规边框，保证对现有网页 100% 零非预期影响。
+  </cgo-card>
+</div>`,
             },
         ],
         props: [
             ['variant', `standard | glass | info | danger`, 'standard', '卡片视觉类型'],
+            ['glass-mode', `liquid | blur | flat`, '（继承全局默认 flat）', '玻璃模式档位：liquid(折射+模糊) / blur(仅模糊) / flat(完全扁平)'],
             ['title', 'string', `''`, '卡片标题'],
         ],
         slots: [['(默认)', '卡片正文']],

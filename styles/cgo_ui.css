@@ -68,10 +68,34 @@ body.scrollable {
 
 /* 磁性 Header（玻璃态，适用于 cgoauth 风格）*/
 .cgoauth-header {
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: var(--glass-backdrop-blur, blur(10px));
+    -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(10px));
     background-color: var(--glass-bg);
     border-bottom: 1px solid var(--glass-border);
+}
+
+:root[glass-mode='liquid'] .cgoauth-header,
+:root[data-glass-mode='liquid'] .cgoauth-header,
+:root[glass-mode='blur'] .cgoauth-header,
+:root[data-glass-mode='blur'] .cgoauth-header,
+body[glass-mode='liquid'] .cgoauth-header,
+body[data-glass-mode='liquid'] .cgoauth-header,
+body[glass-mode='blur'] .cgoauth-header,
+body[data-glass-mode='blur'] .cgoauth-header {
+    backdrop-filter: blur(14px) saturate(135%);
+    -webkit-backdrop-filter: blur(14px) saturate(135%);
+    box-shadow: 0 4px 20px -6px rgba(0, 38, 59, 0.08), inset 0 -1px 0 0 rgba(255, 255, 255, 0.6);
+}
+
+[data-theme='dark'][glass-mode='liquid'] .cgoauth-header,
+[data-theme='dark'][data-glass-mode='liquid'] .cgoauth-header,
+[data-theme='dark'][glass-mode='blur'] .cgoauth-header,
+[data-theme='dark'][data-glass-mode='blur'] .cgoauth-header,
+[data-theme='dark'] body[glass-mode='liquid'] .cgoauth-header,
+[data-theme='dark'] body[data-glass-mode='liquid'] .cgoauth-header,
+[data-theme='dark'] body[glass-mode='blur'] .cgoauth-header,
+[data-theme='dark'] body[data-glass-mode='blur'] .cgoauth-header {
+    box-shadow: 0 4px 24px -6px rgba(0, 0, 0, 0.5), inset 0 -1px 0 0 rgba(255, 255, 255, 0.08);
 }
 
 /* Header 三区块 */
@@ -227,13 +251,37 @@ body.scrollable {
 .sidebar {
     width: var(--sidebar-width);
     background-color: var(--glass-bg);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: var(--glass-backdrop-blur, blur(10px));
+    -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(10px));
     border-right: 1px solid var(--glass-border);
     display: flex;
     flex-direction: column;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 10;
+}
+
+:root[glass-mode='liquid'] .sidebar,
+:root[data-glass-mode='liquid'] .sidebar,
+:root[glass-mode='blur'] .sidebar,
+:root[data-glass-mode='blur'] .sidebar,
+body[glass-mode='liquid'] .sidebar,
+body[data-glass-mode='liquid'] .sidebar,
+body[glass-mode='blur'] .sidebar,
+body[data-glass-mode='blur'] .sidebar {
+    backdrop-filter: blur(14px) saturate(135%);
+    -webkit-backdrop-filter: blur(14px) saturate(135%);
+    box-shadow: inset -1px 0 0 0 rgba(255, 255, 255, 0.6);
+}
+
+[data-theme='dark'][glass-mode='liquid'] .sidebar,
+[data-theme='dark'][data-glass-mode='liquid'] .sidebar,
+[data-theme='dark'][glass-mode='blur'] .sidebar,
+[data-theme='dark'][data-glass-mode='blur'] .sidebar,
+[data-theme='dark'] body[glass-mode='liquid'] .sidebar,
+[data-theme='dark'] body[data-glass-mode='liquid'] .sidebar,
+[data-theme='dark'] body[glass-mode='blur'] .sidebar,
+[data-theme='dark'] body[data-glass-mode='blur'] .sidebar {
+    box-shadow: inset -1px 0 0 0 rgba(255, 255, 255, 0.08);
 }
 
 .user-brief {

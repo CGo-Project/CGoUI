@@ -36,3 +36,7 @@ export function setThemeColor(baseColor: string, overrides?: Partial<ThemePalett
 export function resetThemeColor(): void;
 export function getThemeColor(): ThemeColorConfig | null;
 export function initTheme(): void;
+export function injectLiquidGlassFilter(): void;
+export function setGlassMode(mode: 'flat' | 'blur' | 'liquid' | string): void;
+export function getGlassMode(): string;
+export function setDefaultGlassMode(mode: 'flat' | 'blur' | 'liquid' | string): void;

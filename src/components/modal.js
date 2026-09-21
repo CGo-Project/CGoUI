@@ -30,6 +30,13 @@ export class CgoModal extends LitElement {
             -webkit-backdrop-filter: blur(4px);
             animation: overlayIn 0.2s ease;
         }
+        :host-context([glass-mode="liquid"]) .overlay,
+        :host-context([glass-mode="blur"]) .overlay,
+        :host-context([data-glass-mode="liquid"]) .overlay,
+        :host-context([data-glass-mode="blur"]) .overlay {
+            backdrop-filter: blur(8px) saturate(120%);
+            -webkit-backdrop-filter: blur(8px) saturate(120%);
+        }
         @keyframes overlayIn {
             from {
                 opacity: 0;
@@ -55,6 +62,32 @@ export class CgoModal extends LitElement {
             display: flex;
             flex-direction: column;
             animation: dialogIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            backdrop-filter: var(--glass-backdrop-blur-surface, none);
+            -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, none);
+        }
+        :host-context([glass-mode="liquid"]) .dialog,
+        :host-context([glass-mode="blur"]) .dialog,
+        :host-context([data-glass-mode="liquid"]) .dialog,
+        :host-context([data-glass-mode="blur"]) .dialog {
+            background: rgba(255, 255, 255, 0.82);
+            border-color: var(--glass-border, rgba(255, 255, 255, 0.4));
+            box-shadow:
+                0 0 0 0.5px rgba(0, 0, 0, 0.08),
+                0 20px 50px -10px rgba(0, 38, 59, 0.2),
+                0 6px 16px -4px rgba(0, 38, 59, 0.1),
+                inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
+        }
+        :host-context([data-theme="dark"][glass-mode="liquid"]) .dialog,
+        :host-context([data-theme="dark"][glass-mode="blur"]) .dialog,
+        :host-context([data-theme="dark"][data-glass-mode="liquid"]) .dialog,
+        :host-context([data-theme="dark"][data-glass-mode="blur"]) .dialog {
+            background: rgba(28, 30, 32, 0.85);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow:
+                0 0 0 0.5px rgba(255, 255, 255, 0.12),
+                0 24px 60px -10px rgba(0, 0, 0, 0.7),
+                0 8px 20px -4px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.16);
         }
         @keyframes dialogIn {
             from {

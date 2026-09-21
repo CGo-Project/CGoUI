@@ -50,9 +50,15 @@ export class CgoLevelCard extends LitElement {
             backdrop-filter: blur(5px);
             -webkit-backdrop-filter: blur(5px);
             border: 1px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), inset 0 1px 1px rgba(255, 255, 255, 0.6);
             font-size: var(--text-md, 0.9rem);
             font-weight: 700;
+            transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1), background 0.25s ease, box-shadow 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+        .tag:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.32);
+            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15), inset 0 1px 1px rgba(255, 255, 255, 0.8);
         }
     `;
 

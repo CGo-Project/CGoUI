@@ -125,6 +125,24 @@ export class CgoSideNav extends LitElement {
             overflow: hidden;
         }
 
+        :host-context([glass-mode="liquid"]) .sidenav,
+        :host-context([glass-mode="blur"]) .sidenav,
+        :host-context([data-glass-mode="liquid"]) .sidenav,
+        :host-context([data-glass-mode="blur"]) .sidenav {
+            background: var(--glass-bg, rgba(248, 249, 250, 0.82));
+            backdrop-filter: blur(14px) saturate(135%);
+            -webkit-backdrop-filter: blur(14px) saturate(135%);
+            box-shadow: inset -1px 0 0 0 rgba(255, 255, 255, 0.6);
+        }
+
+        :host-context([data-theme="dark"][glass-mode="liquid"]) .sidenav,
+        :host-context([data-theme="dark"][glass-mode="blur"]) .sidenav,
+        :host-context([data-theme="dark"][data-glass-mode="liquid"]) .sidenav,
+        :host-context([data-theme="dark"][data-glass-mode="blur"]) .sidenav {
+            background: var(--glass-bg, rgba(31, 32, 34, 0.75));
+            box-shadow: inset -1px 0 0 0 rgba(255, 255, 255, 0.08);
+        }
+
         /* ===== 用户简介区 ===== */
         .sidenav-user-brief {
             padding: 20px 15px;

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" glass-mode="liquid">
 
 <head>
     <meta charset="UTF-8">
@@ -46,6 +46,15 @@
         /* ===== 文档站布局 ===== */
         body {
             margin: 0;
+            background: radial-gradient(circle at 12% 18%, rgba(0, 96, 152, 0.08), transparent 45%),
+                        radial-gradient(circle at 88% 82%, rgba(0, 160, 233, 0.06), transparent 45%),
+                        var(--bg-color, #f8f9fa);
+            min-height: 100vh;
+        }
+        [data-theme="dark"] body {
+            background: radial-gradient(circle at 12% 18%, rgba(0, 96, 152, 0.16), transparent 50%),
+                        radial-gradient(circle at 88% 82%, rgba(15, 35, 65, 0.4), transparent 50%),
+                        var(--bg-color, #0f1115);
         }
 
         .doc-shell {
@@ -620,6 +629,17 @@
         }
     </style>
 </head>
+
+<body>
+    <!-- Liquid Glass 硬件加速空间折射滤镜管线（供 glass-mode="liquid" 调用） -->
+    <svg id="cgo-liquid-glass-filters" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.025 0.025" numOctaves="1" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
 
 <header class="tool-header">
     <div class="header-left">

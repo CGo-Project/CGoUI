@@ -19,6 +19,10 @@ import {
     generateThemePalette,
     setThemeColorStorageKey,
     getThemeColorStorageKey,
+    injectLiquidGlassFilter,
+    setGlassMode,
+    getGlassMode,
+    setDefaultGlassMode,
 } from '../theme.js';
 
 const DEFAULT_SHIM_CONFIG = Object.freeze({
@@ -369,6 +373,10 @@ export function installGlobalShim(global = window) {
         applyTheme,
         setThemeColorStorageKey,
         getThemeColorStorageKey,
+        setGlassMode,
+        getGlassMode,
+        setDefaultGlassMode,
+        injectLiquidGlassFilter,
     };
     CGO.setThemeColor = setThemeColor;
     CGO.resetThemeColor = resetThemeColor;
@@ -376,6 +384,10 @@ export function installGlobalShim(global = window) {
     CGO.generateThemePalette = generateThemePalette;
     CGO.setThemeColorStorageKey = setThemeColorStorageKey;
     CGO.getThemeColorStorageKey = getThemeColorStorageKey;
+    CGO.setGlassMode = setGlassMode;
+    CGO.getGlassMode = getGlassMode;
+    CGO.setDefaultGlassMode = setDefaultGlassMode;
+    CGO.injectLiquidGlassFilter = injectLiquidGlassFilter;
     global.CGO = CGO;
 
     // 兼容 cgo_theme.js 暴露的 window.ToolTheme

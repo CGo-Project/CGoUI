@@ -32,6 +32,16 @@ export class CgoTooltip extends LitElement {
             transition: opacity var(--transition-base, 0.2s ease);
             z-index: 200;
         }
+        :host-context([glass-mode="liquid"]) .bubble,
+        :host-context([glass-mode="blur"]) .bubble,
+        :host-context([data-glass-mode="liquid"]) .bubble,
+        :host-context([data-glass-mode="blur"]) .bubble {
+            background: rgba(15, 23, 36, 0.85);
+            backdrop-filter: blur(12px) saturate(140%);
+            -webkit-backdrop-filter: blur(12px) saturate(140%);
+            border: 0.5px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
         .bubble.bottom {
             bottom: auto;
             top: calc(100% + 8px);

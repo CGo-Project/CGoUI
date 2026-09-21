@@ -90,6 +90,32 @@ export class CgoNoticePopup extends LitElement {
             justify-content: space-between;
             gap: 10px;
         }
+        :host-context([glass-mode="liquid"]) .toast-card,
+        :host-context([glass-mode="blur"]) .toast-card,
+        :host-context([data-glass-mode="liquid"]) .toast-card,
+        :host-context([data-glass-mode="blur"]) .toast-card {
+            background: rgba(0, 38, 59, 0.85);
+            backdrop-filter: blur(14px) saturate(140%);
+            -webkit-backdrop-filter: blur(14px) saturate(140%);
+            border-color: rgba(255, 255, 255, 0.12);
+            box-shadow:
+                0 0 0 0.5px rgba(255, 255, 255, 0.1),
+                0 10px 30px -4px rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+        :host-context([data-theme="dark"][glass-mode="liquid"]) .toast-card,
+        :host-context([data-theme="dark"][glass-mode="blur"]) .toast-card,
+        :host-context([data-theme="dark"][data-glass-mode="liquid"]) .toast-card,
+        :host-context([data-theme="dark"][data-glass-mode="blur"]) .toast-card {
+            background: rgba(24, 26, 28, 0.85);
+            backdrop-filter: blur(14px) saturate(140%);
+            -webkit-backdrop-filter: blur(14px) saturate(140%);
+            border-color: rgba(255, 255, 255, 0.12);
+            box-shadow:
+                0 0 0 0.5px rgba(255, 255, 255, 0.12),
+                0 12px 34px -4px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
 
         .toast-message {
             flex: 1;

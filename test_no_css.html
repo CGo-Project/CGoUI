@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" glass-mode="liquid">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,22 +14,33 @@
         }
         body {
             font-family: var(--font-sans);
-            background-color: var(--bg-color, #f8f9fa);
+            background: radial-gradient(circle at 15% 15%, rgba(0, 96, 152, 0.12), transparent 45%),
+                        radial-gradient(circle at 85% 85%, rgba(0, 160, 233, 0.08), transparent 45%),
+                        var(--bg-color, #f8f9fa);
             color: var(--text-main, #00263b);
             padding: 40px 20px;
             margin: 0;
+            min-height: 100vh;
+            box-sizing: border-box;
             transition: background-color 0.3s, color 0.3s;
             display: flex;
             justify-content: center;
         }
+        [data-theme="dark"] body {
+            background: radial-gradient(circle at 15% 15%, rgba(0, 96, 152, 0.2), transparent 50%),
+                        radial-gradient(circle at 85% 85%, rgba(15, 35, 60, 0.4), transparent 50%),
+                        var(--bg-color, #0f1115);
+        }
         .demo-card {
             width: 100%;
             max-width: 680px;
-            background: var(--card-bg, #ffffff);
-            border: 1px solid var(--border-color, #dee2e6);
-            border-radius: 12px;
+            background: var(--glass-bg, rgba(255, 255, 255, 0.8));
+            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(180%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(180%));
+            border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.35));
+            border-radius: 14px;
             padding: 40px;
-            box-shadow: 0 10px 30px var(--glass-shadow, rgba(0,0,0,0.05));
+            box-shadow: var(--lg-shadow, 0 10px 30px rgba(0,0,0,0.05));
         }
         .header-bar {
             display: flex;
@@ -62,8 +73,10 @@
             padding-left: 8px;
         }
         .demo-row {
-            background: var(--bg-color, #f8f9fa);
-            border: 1px dashed var(--border-color, #dee2e6);
+            background: var(--glass-bg, rgba(255, 255, 255, 0.45));
+            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(180%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(180%));
+            border: 1px dashed var(--glass-border, rgba(0, 0, 0, 0.1));
             border-radius: 8px;
             padding: 20px;
             display: flex;
@@ -84,6 +97,15 @@
     </style>
 </head>
 <body>
+    <!-- Liquid Glass 硬件加速空间折射滤镜管线 -->
+    <svg id="cgo-liquid-glass-filters" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.025 0.025" numOctaves="1" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
 
     <div class="demo-card">
         <div class="header-bar">
@@ -94,12 +116,13 @@
             <cgo-theme-toggle></cgo-theme-toggle>
         </div>
         
-        <p>此页面仅通过 <code>&lt;script type="module" src="./cgo-ui.js"&gt;&lt;/script&gt;</code> 引入本地打包好的 JS，在 <code>&lt;head&gt;</code> 中<strong>没有引入任何外部 CGoUI CSS 样式表</strong>。验证所有 Web Components 组件通过 Shadow DOM 自包含样式与 CSS 变量的独立呈现能力。</p>
+        <p>此页面仅通过 <code>&lt;script type="module" src="./dist/cgo-ui.js"&gt;&lt;/script&gt;</code> 引入本地打包好的 JS，在 <code>&lt;head&gt;</code> 中<strong>没有引入任何外部 CGoUI CSS 样式表</strong>。验证所有 Web Components 组件通过 Shadow DOM 自包含样式与 CSS 变量的独立呈现能力。</p>
         
-        <pre>&lt;script type="module" src="./cgo-ui.js"&gt;&lt;/script&gt;</pre>
+        <pre>&lt;script type="module" src="./dist/cgo-ui.js"&gt;&lt;/script&gt;</pre>
 
         <div class="section-title">1. 按钮组件 (&lt;cgo-button&gt;)</div>
         <div class="demo-row">
+            <cgo-button variant="glass" icon="sparkle">液态玻璃</cgo-button>
             <cgo-button variant="primary" icon="save">主要保存</cgo-button>
             <cgo-button variant="danger" icon="delete">危险删除</cgo-button>
             <cgo-button variant="info" pill icon="edit">胶囊编辑</cgo-button>
@@ -184,6 +207,6 @@
     </div>
 
     <!-- 仅引入打包后的核心 JS 文件 -->
-    <script type="module" src="./cgo-ui.js"></script>
+    <script type="module" src="./dist/cgo-ui.js"></script>
 </body>
 </html>

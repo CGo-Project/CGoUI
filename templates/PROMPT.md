@@ -400,6 +400,20 @@ CGO UI 的 `initDropdowns()` 会自动扫描页面中所有 `.dropdown` 类并�
 
 若不存在上述导出/渲染兼容需求，则 Canvas 周边 UI、工具栏、说明文字仍应使用 `var(--font-sans)`，不要把旧站字体扩散回页面 UI。
 
+### 7. Liquid Glass（液态玻璃）三档模式与 AI 重构判定铁律
+
+CGoUI 内置了次世代 Liquid Glass（物理光学折射、双轴微光圈边缘、五重多维阴影）渲染管线，并由 `glass-mode` 属性进行中央三档管控：
+
+| 档位 | 声明方式 | 效果表现 | 适用与 AI 判定决策规则 |
+| :--- | :--- | :--- | :--- |
+| **默认档位 (Flat)** | **不加任何属性**（或 `glass-mode="flat"`） | 完全扁平化，无折射、无模糊，经典实体卡片背景（`var(--card-bg)`）与常规轻阴影。零额外 GPU 开销。 | **素色/白底页面或纯平面设计**：当目标页面为纯色/素色背景、无复杂视觉底色、或用户要求纯平面设计时，AI **不得添加任何 glass 属性**，保持默认扁平。 |
+| **轻量模糊档位 (Blur)** | `<html glass-mode="blur">` | 仅应用 5px 高饱和模糊（`backdrop-filter: blur(5px) saturate(130%)`），不进行 SVG 空间折射计算。 | **中低端设备或轻量通透**：当网页存在背景，但用户在需求中明确指出**“主要面向低端设备”、“注重极低性能开销/省电”**时，AI 应在 `<html>` 标签添加 `glass-mode="blur"`。 |
+| **液态玻璃档位 (Liquid)** | `<html glass-mode="liquid">` | 硬件加速 SVG 折射滤镜（`filter: url(#glass-distortion)`）+ 5px 高饱和模糊 + 双轴微光圈边缘 + 5 重微质感阴影矩阵 + Apple 物理弹性悬停。 | **大背景/壁纸/地图重构**：当待改造网页**包含大量背景（如高清摄影壁纸、大幅插画、交互地图、多色渐变等视觉素材）**时，AI **必须主动在 `<html>` 标签上添加 `glass-mode="liquid"`**（例如 `<html lang="zh-CN" glass-mode="liquid">`），激活用真实光学折射衬托背景的极致物理沉浸质感！ |
+
+- **零破坏原则**：CGoUI 默认永远是完全扁平的，任何既有项目更新后均不会有任何非预期视觉变化。
+- **作用域**：可以在 `<html>` 全局声明，也可以在具体 `<cgo-card variant="glass" glass-mode="liquid">` 上精细覆盖。
+- **文字绝对清晰原则**：开启 `liquid` 模式后，CGoUI 采用严格的 4 层立体复合架构（Layer 0 折射磨砂、Layer 1 底色衬底、Layer 2 双轴光圈、Layer 3 文字内容），内容层绝不会出现文字发虚或图标模糊。
+
 ---
 
 ## 📱 第五步：移动端与响应式布局规范 (Mobile & Responsive)

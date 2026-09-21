@@ -40,6 +40,34 @@ export class CgoFloatingWindow extends LitElement {
             height: 100%;
             box-sizing: border-box;
         }
+        :host-context([glass-mode="liquid"]) .window,
+        :host-context([glass-mode="blur"]) .window,
+        :host-context([data-glass-mode="liquid"]) .window,
+        :host-context([data-glass-mode="blur"]) .window {
+            background: rgba(255, 255, 255, 0.80);
+            backdrop-filter: blur(14px) saturate(135%);
+            -webkit-backdrop-filter: blur(14px) saturate(135%);
+            border-color: var(--glass-border, rgba(255, 255, 255, 0.4));
+            box-shadow:
+                0 0 0 0.5px rgba(0, 0, 0, 0.06),
+                0 14px 34px -6px rgba(0, 38, 59, 0.14),
+                0 3px 8px -2px rgba(0, 38, 59, 0.06),
+                inset 0 1px 1px 0 rgba(255, 255, 255, 0.85);
+        }
+        :host-context([data-theme="dark"][glass-mode="liquid"]) .window,
+        :host-context([data-theme="dark"][glass-mode="blur"]) .window,
+        :host-context([data-theme="dark"][data-glass-mode="liquid"]) .window,
+        :host-context([data-theme="dark"][data-glass-mode="blur"]) .window {
+            background: rgba(28, 30, 32, 0.82);
+            backdrop-filter: blur(14px) saturate(135%);
+            -webkit-backdrop-filter: blur(14px) saturate(135%);
+            border-color: rgba(255, 255, 255, 0.1);
+            box-shadow:
+                0 0 0 0.5px rgba(255, 255, 255, 0.1),
+                0 18px 40px -6px rgba(0, 0, 0, 0.6),
+                0 4px 10px -2px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+        }
         :host([snapped]) .window {
             border-color: var(--primary-color, #00263b);
             box-shadow:
@@ -55,6 +83,20 @@ export class CgoFloatingWindow extends LitElement {
             border-bottom: 1px solid var(--border-color, #dee2e6);
             background: var(--card-bg, #fff);
             flex-shrink: 0;
+        }
+        :host-context([glass-mode="liquid"]) .header,
+        :host-context([glass-mode="blur"]) .header,
+        :host-context([data-glass-mode="liquid"]) .header,
+        :host-context([data-glass-mode="blur"]) .header {
+            background: rgba(255, 255, 255, 0.5);
+            border-bottom-color: rgba(0, 0, 0, 0.08);
+        }
+        :host-context([data-theme="dark"][glass-mode="liquid"]) .header,
+        :host-context([data-theme="dark"][glass-mode="blur"]) .header,
+        :host-context([data-theme="dark"][data-glass-mode="liquid"]) .header,
+        :host-context([data-theme="dark"][data-glass-mode="blur"]) .header {
+            background: rgba(35, 37, 40, 0.5);
+            border-bottom-color: rgba(255, 255, 255, 0.08);
         }
         .title-wrapper {
             display: flex;
