@@ -32,7 +32,7 @@ export class CgoCard extends LitElement {
         .glass,
         .liquid-glass {
             background: transparent;
-            border-color: var(--glass-border, rgba(255, 255, 255, 0.4));
+            border: none;
             box-shadow: var(--glass-shadow, 0 4px 20px rgba(0, 0, 0, 0.08));
             overflow: hidden;
             isolation: isolate;
@@ -123,6 +123,10 @@ export class CgoCard extends LitElement {
         }
 
         /* 组件级 glass-mode 精准重载 */
+        :host([glass-mode="liquid"]) .card,
+        :host([glass-mode="blur"]) .card {
+            border: none;
+        }
         :host([glass-mode="liquid"]) {
             --glass-refraction-filter: url(#glass-distortion);
             --glass-backdrop-blur: blur(5px) saturate(130%);

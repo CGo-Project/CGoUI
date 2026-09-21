@@ -86,14 +86,18 @@ export class CgoSideNav extends LitElement {
     static properties = {
         /** 当前激活项的索引（从 0 开始）。设置后自动高亮对应项。 */
         activeIndex: { type: Number, attribute: 'active-index' },
+        docked: { type: Boolean, reflect: true },
+        floating: { type: Boolean, reflect: true },
     };
 
     static styles = css`
         :host {
             /* ---- CSS 变量（可按需覆写） ---- */
-            --sidenav-width: 220px;
+            --sidenav-width: var(--cgo-nav-width, var(--sidebar-width, 280px));
             --sidenav-bg: var(--glass-bg, rgba(248, 249, 250, 0.85));
-            --sidenav-border: var(--glass-border, rgba(0, 0, 0, 0.08));
+            --sidenav-border: var(--border-color, rgba(0, 0, 0, 0.08));
+            --sidenav-radius: var(--header-floating-radius, 12px);
+            --sidenav-shadow: var(--header-floating-shadow, 0 4px 20px rgba(0, 0, 0, 0.12));
             --sidenav-item-gap: 4px;
             --sidenav-item-radius: 6px;
             --sidenav-item-px: 12px;
@@ -110,37 +114,84 @@ export class CgoSideNav extends LitElement {
             font-family: var(--font-sans, system-ui, -apple-system, 'Noto Sans SC', sans-serif);
         }
 
-        /* ===== 外层容器 ===== */
+        /* ===== 外层容器 (普通版标题栏模式默认直角 docked) ===== */
         .sidenav {
             display: flex;
             flex-direction: column;
             width: var(--sidenav-width);
             height: 100%;
             background: var(--sidenav-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(14px) saturate(135%);
+            -webkit-backdrop-filter: blur(14px) saturate(135%);
+            border-radius: 0;
+            border-top: none;
+            border-bottom: none;
+            border-left: none;
             border-right: 1px solid var(--sidenav-border);
+            box-shadow: none;
             box-sizing: border-box;
             transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             overflow: hidden;
         }
 
-        :host-context([glass-mode="liquid"]) .sidenav,
-        :host-context([glass-mode="blur"]) .sidenav,
-        :host-context([data-glass-mode="liquid"]) .sidenav,
-        :host-context([data-glass-mode="blur"]) .sidenav {
-            background: var(--glass-bg, rgba(248, 249, 250, 0.82));
-            backdrop-filter: blur(14px) saturate(135%);
-            -webkit-backdrop-filter: blur(14px) saturate(135%);
-            box-shadow: inset -1px 0 0 0 rgba(255, 255, 255, 0.6);
+        :host([docked]) .sidenav {
+            border-radius: 0 !important;
+            border-top: none;
+            border-bottom: none;
+            border-left: none;
+            border-right: 1px solid var(--sidenav-border) !important;
+            box-shadow: none !important;
         }
 
-        :host-context([data-theme="dark"][glass-mode="liquid"]) .sidenav,
-        :host-context([data-theme="dark"][glass-mode="blur"]) .sidenav,
-        :host-context([data-theme="dark"][data-glass-mode="liquid"]) .sidenav,
-        :host-context([data-theme="dark"][data-glass-mode="blur"]) .sidenav {
-            background: var(--glass-bg, rgba(31, 32, 34, 0.75));
-            box-shadow: inset -1px 0 0 0 rgba(255, 255, 255, 0.08);
+        /* 悬浮标题栏模式：导航栏外观与浮动菜单栏 / tool.html 卡片样式一致 */
+        :host([floating]) .sidenav,
+        :host-context([header-mode="floating"]) .sidenav,
+        :host-context([data-header-mode="floating"]) .sidenav {
+            border-radius: var(--header-floating-radius, 12px);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--header-floating-shadow, 0 4px 20px rgba(0, 0, 0, 0.18));
+            background-color: var(--header-bg);
+        }
+
+        :host([floating]:host-context([glass-mode="liquid"])) .sidenav,
+        :host([floating]:host-context([data-glass-mode="liquid"])) .sidenav,
+        :host([floating]:host-context([glass-mode="blur"])) .sidenav,
+        :host([floating]:host-context([data-glass-mode="blur"])) .sidenav,
+        :host-context([glass-mode="liquid"][header-mode="floating"]) .sidenav,
+        :host-context([data-glass-mode="liquid"][data-header-mode="floating"]) .sidenav,
+        :host-context([glass-mode="blur"][header-mode="floating"]) .sidenav,
+        :host-context([data-glass-mode="blur"][data-header-mode="floating"]) .sidenav {
+            background-color: var(--glass-bg);
+            backdrop-filter: var(--glass-backdrop-blur, blur(12px) saturate(140%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(12px) saturate(140%));
+            border: none;
+            box-shadow: var(--glass-shadow);
+        }
+
+        :host-context([data-theme="dark"]) .sidenav {
+            background: var(--sidenav-bg, var(--glass-bg, rgba(24, 25, 28, 0.85)));
+            border-color: var(--border-color);
+        }
+
+        :host([floating]:host-context([data-theme="dark"])) .sidenav,
+        :host-context([data-theme="dark"][header-mode="floating"]) .sidenav,
+        :host-context([data-theme="dark"][data-header-mode="floating"]) .sidenav {
+            background-color: var(--header-bg);
+            border: 1px solid var(--border-color);
+            box-shadow: var(--header-floating-shadow, 0 4px 20px rgba(0, 0, 0, 0.35));
+        }
+
+        :host([floating]:host-context([data-theme="dark"][glass-mode="liquid"])) .sidenav,
+        :host([floating]:host-context([data-theme="dark"][data-glass-mode="liquid"])) .sidenav,
+        :host([floating]:host-context([data-theme="dark"][glass-mode="blur"])) .sidenav,
+        :host([floating]:host-context([data-theme="dark"][data-glass-mode="blur"])) .sidenav,
+        :host-context([data-theme="dark"][glass-mode="liquid"][header-mode="floating"]) .sidenav,
+        :host-context([data-theme="dark"][data-glass-mode="liquid"][data-header-mode="floating"]) .sidenav,
+        :host-context([data-theme="dark"][glass-mode="blur"][header-mode="floating"]) .sidenav,
+        :host-context([data-theme="dark"][data-glass-mode="blur"][data-header-mode="floating"]) .sidenav {
+            background-color: var(--glass-bg);
+            border: none;
+            box-shadow: var(--glass-shadow);
         }
 
         /* ===== 用户简介区 ===== */
@@ -156,7 +207,7 @@ export class CgoSideNav extends LitElement {
         .sidenav-menu {
             flex: 1;
             overflow-y: auto;
-            padding: 24px 10px 10px;
+            padding: 12px 10px;
             display: flex;
             flex-direction: column;
             gap: var(--sidenav-item-gap);
@@ -281,14 +332,79 @@ export class CgoSideNav extends LitElement {
                 height: auto;
                 flex-direction: row;
                 align-items: center;
+                border-radius: 0;
+                border-top: none;
+                border-left: none;
                 border-right: none;
                 border-bottom: 1px solid var(--border-color, #dee2e6);
                 background: var(--card-bg, #fff);
+                box-shadow: none;
                 backdrop-filter: none;
                 -webkit-backdrop-filter: none;
                 padding: 0;
                 flex-shrink: 0;
             }
+
+            /* 移动端悬浮模式下：宽度与浮动菜单栏相同，外观采用浮动胶囊卡片样式 */
+            :host([floating]),
+            :host-context([header-mode="floating"]),
+            :host-context([data-header-mode="floating"]) {
+                display: block;
+                margin-left: calc(10px + env(safe-area-inset-left, 0px)) !important;
+                margin-right: calc(10px + env(safe-area-inset-right, 0px)) !important;
+                width: calc(100% - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)) !important;
+                max-width: calc(100% - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)) !important;
+                box-sizing: border-box;
+            }
+
+            :host([floating]) .sidenav,
+            :host-context([header-mode="floating"]) .sidenav,
+            :host-context([data-header-mode="floating"]) .sidenav {
+                width: 100%;
+                border-radius: var(--header-floating-radius, 12px);
+                border: 1px solid var(--border-color);
+                box-shadow: var(--header-floating-shadow, 0 4px 20px rgba(0, 0, 0, 0.18));
+                background-color: var(--header-bg);
+                backdrop-filter: blur(14px) saturate(135%);
+                -webkit-backdrop-filter: blur(14px) saturate(135%);
+            }
+
+            :host([floating]:host-context([glass-mode="liquid"])) .sidenav,
+            :host([floating]:host-context([data-glass-mode="liquid"])) .sidenav,
+            :host([floating]:host-context([glass-mode="blur"])) .sidenav,
+            :host([floating]:host-context([data-glass-mode="blur"])) .sidenav,
+            :host-context([glass-mode="liquid"][header-mode="floating"]) .sidenav,
+            :host-context([data-glass-mode="liquid"][data-header-mode="floating"]) .sidenav,
+            :host-context([glass-mode="blur"][header-mode="floating"]) .sidenav,
+            :host-context([data-glass-mode="blur"][data-header-mode="floating"]) .sidenav {
+                background-color: var(--glass-bg);
+                backdrop-filter: var(--glass-backdrop-blur, blur(12px) saturate(140%));
+                -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(12px) saturate(140%));
+                border: none;
+                box-shadow: var(--glass-shadow);
+            }
+
+            :host([floating]:host-context([data-theme="dark"])) .sidenav,
+            :host-context([data-theme="dark"][header-mode="floating"]) .sidenav,
+            :host-context([data-theme="dark"][data-header-mode="floating"]) .sidenav {
+                background-color: var(--header-bg);
+                border: 1px solid var(--border-color);
+                box-shadow: var(--header-floating-shadow, 0 4px 20px rgba(0, 0, 0, 0.35));
+            }
+
+            :host([floating]:host-context([data-theme="dark"][glass-mode="liquid"])) .sidenav,
+            :host([floating]:host-context([data-theme="dark"][data-glass-mode="liquid"])) .sidenav,
+            :host([floating]:host-context([data-theme="dark"][glass-mode="blur"])) .sidenav,
+            :host([floating]:host-context([data-theme="dark"][data-glass-mode="blur"])) .sidenav,
+            :host-context([data-theme="dark"][glass-mode="liquid"][header-mode="floating"]) .sidenav,
+            :host-context([data-theme="dark"][data-glass-mode="liquid"][data-header-mode="floating"]) .sidenav,
+            :host-context([data-theme="dark"][glass-mode="blur"][header-mode="floating"]) .sidenav,
+            :host-context([data-theme="dark"][data-glass-mode="blur"][data-header-mode="floating"]) .sidenav {
+                background-color: var(--glass-bg);
+                border: none;
+                box-shadow: var(--glass-shadow);
+            }
+
             .sidenav-user-brief,
             .sidenav-footer,
             .sidenav-heading {
@@ -350,7 +466,56 @@ export class CgoSideNav extends LitElement {
     constructor() {
         super();
         this.activeIndex = 0;
+        this.docked = false;
+        this.floating = false;
+        this._manualFloating = false;
         this._lastItemsLen = 0;
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        if (this.hasAttribute('floating')) {
+            this._manualFloating = true;
+        }
+        this._syncFloatingState = () => {
+            if (this.hasAttribute('docked')) {
+                if (this.hasAttribute('floating')) this.removeAttribute('floating');
+                return;
+            }
+            const rootHeaderMode =
+                document.documentElement.getAttribute('header-mode') ||
+                document.documentElement.getAttribute('data-header-mode') ||
+                document.body?.getAttribute('header-mode') ||
+                document.body?.getAttribute('data-header-mode');
+            const isFloating = rootHeaderMode === 'floating';
+            if (isFloating) {
+                if (!this.hasAttribute('floating')) this.setAttribute('floating', '');
+            } else if (!this._manualFloating) {
+                if (this.hasAttribute('floating')) this.removeAttribute('floating');
+            }
+        };
+        this._syncFloatingState();
+        if (typeof MutationObserver !== 'undefined') {
+            this._headerObserver = new MutationObserver(this._syncFloatingState);
+            this._headerObserver.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['header-mode', 'data-header-mode'],
+            });
+            if (document.body) {
+                this._headerObserver.observe(document.body, {
+                    attributes: true,
+                    attributeFilter: ['header-mode', 'data-header-mode'],
+                });
+            }
+        }
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        if (this._headerObserver) {
+            this._headerObserver.disconnect();
+            this._headerObserver = null;
+        }
     }
 
     /* ---- 获取所有 <cgo-nav-item> 子元素（不含 heading） ---- */

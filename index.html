@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" glass-mode="liquid" header-mode="floating">
+<html lang="zh-CN" glass-mode="liquid" header-mode="floating" bg-mode="gradient">
 
 <head>
     <meta charset="UTF-8">
@@ -46,15 +46,7 @@
         /* ===== 文档站布局 ===== */
         body {
             margin: 0;
-            background: radial-gradient(circle at 12% 18%, rgba(0, 96, 152, 0.08), transparent 45%),
-                        radial-gradient(circle at 88% 82%, rgba(0, 160, 233, 0.06), transparent 45%),
-                        var(--bg-color, #f8f9fa);
             min-height: 100vh;
-        }
-        [data-theme="dark"] body {
-            background: radial-gradient(circle at 12% 18%, rgba(0, 96, 152, 0.16), transparent 50%),
-                        radial-gradient(circle at 88% 82%, rgba(15, 35, 65, 0.4), transparent 50%),
-                        var(--bg-color, #0f1115);
         }
 
         .doc-shell {
@@ -64,32 +56,66 @@
             transition: height 0.25s ease;
         }
 
-        /* 悬浮菜单栏模式下的文档站布局自适应 */
+        /* 悬浮菜单栏模式下的文档站布局自适应（桌面端左右并排浮动架构） */
         :root[header-mode="floating"] .doc-shell,
         body[header-mode="floating"] .doc-shell {
             height: 100dvh;
         }
 
-        :root[header-mode="floating"] .doc-main,
-        body[header-mode="floating"] .doc-main {
-            padding-top: calc(env(safe-area-inset-top, 0px) + 88px);
-        }
-
         @media (min-width: 769px) {
+            :root[header-mode="floating"] .doc-shell,
+            body[header-mode="floating"] .doc-shell {
+                height: 100dvh;
+                padding: 0;
+                display: flex;
+            }
+
             :root[header-mode="floating"] cgo-side-nav,
             body[header-mode="floating"] cgo-side-nav {
-                padding-top: calc(env(safe-area-inset-top, 0px) + 80px);
+                height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 104px);
+                width: var(--cgo-nav-width, 280px);
+                flex-shrink: 0;
+                margin-top: calc(env(safe-area-inset-top, 0px) + 84px);
+                margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+                margin-left: calc(20px + env(safe-area-inset-left, 0px));
+                margin-right: 0;
+                padding-top: 0;
+                z-index: 1000;
+            }
+
+            :root[header-mode="floating"] .doc-main,
+            body[header-mode="floating"] .doc-main {
+                flex: 1;
+                min-width: 0;
+                height: 100dvh;
+                overflow-y: auto;
+                overscroll-behavior: contain;
                 box-sizing: border-box;
+                padding-top: calc(env(safe-area-inset-top, 0px) + 88px);
+                padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
+                padding-left: 24px;
+                padding-right: clamp(20px, 5vw, 64px);
             }
         }
+
         @media (max-width: 768px) {
             :root[header-mode="floating"] .doc-shell,
             body[header-mode="floating"] .doc-shell {
                 height: 100dvh;
+                display: flex;
+                flex-direction: column;
+                padding: 0;
             }
             :root[header-mode="floating"] cgo-side-nav,
             body[header-mode="floating"] cgo-side-nav {
                 margin-top: calc(env(safe-area-inset-top, 0px) + 72px);
+                margin-left: calc(10px + env(safe-area-inset-left, 0px));
+                margin-right: calc(10px + env(safe-area-inset-right, 0px));
+                width: calc(100% - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+                max-width: calc(100% - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+                flex-shrink: 0;
+                box-sizing: border-box;
+                z-index: 1000;
             }
             :root[header-mode="floating"] .doc-main,
             body[header-mode="floating"] .doc-main {
@@ -100,12 +126,8 @@
         /* 文档站侧边导航组件定制 */
         cgo-side-nav {
             flex-shrink: 0;
-            position: sticky;
-            top: 0;
             height: 100%;
-            --sidenav-width: 280px;
-            --sidenav-bg: var(--bg-color);
-            --sidenav-border: var(--border-color);
+            --sidenav-width: var(--cgo-nav-width, 280px);
             --sidenav-item-px: 16px;
             --sidenav-item-gap: 2px;
         }

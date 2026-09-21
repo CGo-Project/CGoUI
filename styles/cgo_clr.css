@@ -46,6 +46,8 @@
     --header-bg: #ffffff;
     --header-height: 60px;
     --footer-bg: #ffffff;
+    --cgo-floating-scrim-start: var(--bg-color, #f8f9fa);
+    --cgo-floating-scrim-end: rgba(248, 249, 250, 0);
 
     /* ── 次级按钮 (灰色系) ── */
     --btn-info-bg: #e9ecef;
@@ -90,6 +92,8 @@
 
     --header-bg: #1f2020;
     --footer-bg: #1f2020;
+    --cgo-floating-scrim-start: var(--bg-color, #1a1a1a);
+    --cgo-floating-scrim-end: rgba(26, 26, 26, 0);
 
     --btn-info-bg: #373838;
     --btn-info-text: #e5e8ea;
@@ -228,6 +232,23 @@
     --header-floating-mobile-height: 48px;
     --header-floating-radius: 12px;
     --header-floating-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+    --cgo-nav-width: 280px;
+
+    /* ══════════════════════════════════════════════════════
+       CGoUI 背景模式中央默认档位配置 (Single Source of Truth)
+       solid: 默认原版纯色背景（Zero-Regression 零变更保证，使用 --bg-color）
+       gradient: 轻微多维微质感径向双光源渐变背景，衬托玻璃态与沉浸式体验
+       ══════════════════════════════════════════════════════ */
+    --cgo-bg-default: solid;
+    --bg-gradient-light:
+        radial-gradient(circle at 12% 18%, rgba(0, 96, 152, 0.08), transparent 45%),
+        radial-gradient(circle at 88% 82%, rgba(0, 160, 233, 0.06), transparent 45%),
+        var(--bg-color, #f8f9fa);
+    --bg-gradient-dark:
+        radial-gradient(circle at 12% 18%, rgba(0, 96, 152, 0.16), transparent 50%),
+        radial-gradient(circle at 88% 82%, rgba(15, 35, 65, 0.40), transparent 50%),
+        var(--bg-color, #0f1115);
+    --bg-gradient: var(--bg-gradient-light);
 
     /* 物理光圈与缓动参数 */
     --lg-rim-lit: 0.95;
@@ -247,10 +268,11 @@
     --glass-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
     --glass-shadow-hover: 0 8px 28px rgba(0, 0, 0, 0.12);
     --lg-rim-display: none;
-    --sidebar-width: 220px;
+    --sidebar-width: 280px;
 }
 
 [data-theme='dark'] {
+    --bg-gradient: var(--bg-gradient-dark);
     --lg-rim-lit: 0.22;
     --lg-rim-dark: 0;
     --glass-bg: rgba(31, 32, 32, 0.6);
@@ -261,8 +283,11 @@
 
 @media (prefers-color-scheme: dark) {
     :root:not([data-theme='light']) {
+        --bg-gradient: var(--bg-gradient-dark);
         --lg-rim-lit: 0.22;
         --lg-rim-dark: 0;
+        --cgo-floating-scrim-start: var(--bg-color, #1a1a1a);
+        --cgo-floating-scrim-end: rgba(26, 26, 26, 0);
     }
 }
 

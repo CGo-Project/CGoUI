@@ -69,8 +69,8 @@ export class CgoModal extends LitElement {
         :host-context([glass-mode="blur"]) .dialog,
         :host-context([data-glass-mode="liquid"]) .dialog,
         :host-context([data-glass-mode="blur"]) .dialog {
+            border: none;
             background: rgba(255, 255, 255, 0.82);
-            border-color: var(--glass-border, rgba(255, 255, 255, 0.4));
             box-shadow:
                 0 0 0 0.5px rgba(0, 0, 0, 0.08),
                 0 20px 50px -10px rgba(0, 38, 59, 0.2),
@@ -81,8 +81,8 @@ export class CgoModal extends LitElement {
         :host-context([data-theme="dark"][glass-mode="blur"]) .dialog,
         :host-context([data-theme="dark"][data-glass-mode="liquid"]) .dialog,
         :host-context([data-theme="dark"][data-glass-mode="blur"]) .dialog {
+            border: none;
             background: rgba(28, 30, 32, 0.85);
-            border-color: rgba(255, 255, 255, 0.1);
             box-shadow:
                 0 0 0 0.5px rgba(255, 255, 255, 0.12),
                 0 24px 60px -10px rgba(0, 0, 0, 0.7),

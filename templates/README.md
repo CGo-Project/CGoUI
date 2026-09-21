@@ -68,10 +68,12 @@ body (flex-direction: column; overflow: hidden;)
     </div>
 </main>
 ```
-> **顶栏模式切换提示**：
-> - 页面默认采用经典吸顶顶栏（`classic`）；
-> - 若希望直接启用新版悬浮菜单栏，可在 `<html>` 标签上声明 `header-mode="floating"`（如 `<html lang="zh-CN" header-mode="floating">`）；
-> - 用户也可通过 `<cgo-header-toggle>` 按钮在运行时自主切换，状态将自动记忆到本地。
+> **页面模式与顶栏模式切换提示**：
+> - 页面默认采用经典吸顶顶栏（`classic`）与纯色底色背景（`solid`，零破坏兼容）；
+> - **悬浮双岛菜单栏**：可在 `<html>` 标签上声明 `header-mode="floating"`（如 `<html lang="zh-CN" header-mode="floating">`）；用户也可通过 `<cgo-header-toggle>` 按钮在运行时自主切换，状态自动记忆到本地；
+> - **悬浮顶栏遮罩渐变**：悬浮模式下顶部自动注入贯通背景色遮罩渐变（视窗顶部至顶栏底部，跟随深色/浅色模式背景色渐变至透明，z层级位于正文与悬浮顶栏之间），正文滚动至顶栏背后时平滑融入背景，普通版标题栏不添加渐变；
+> - **导航栏（左侧面板）联动**：悬浮模式下外观与浮动菜单栏及 `tool.html` 卡片一致（移动端宽度自动与浮动菜单栏对齐，非全宽贯通）；普通版标题栏模式下圆角自动归零（`border-radius: 0`）；
+> - **微光渐变背景**：可在 `<html>` 标签上声明 `bg-mode="gradient"`（如 `<html lang="zh-CN" bg-mode="gradient">`），CGoUI 自动应用视口固定（`fixed`）的标准双角微光径向渐变，严禁在页面内随意硬编码渐变。
 
 
 ---
@@ -162,6 +164,9 @@ body (min-height: 100vh; overflow-y: auto;)
 
 | 类别 | 推荐 Class / Web Component | 说明 |
 | :--- | :--- | :--- |
+| **页面模式属性** | `<html bg-mode="gradient\|solid">` | 背景渲染模式（默认 solid 纯色，gradient 为固定微光双角径向渐变） |
+| **顶栏模式属性** | `<html header-mode="floating\|classic">` | 顶栏形态（默认 classic 吸顶，floating 为双岛屿悬浮栏） |
+| **毛玻璃模式属性** | `<html glass-mode="liquid\|blur\|flat">` | 毛玻璃质感（默认 flat，blur 为磨砂，liquid 为次世代液态光学玻璃） |
 | **顶部栏** | `<header class="tool-header">` | 统一顶栏样式 |
 | **三段式布局** | `.header-left`, `.header-center`, `.header-right` | Header 三段浮动/Flex 对齐 |
 | **应用标题** | `.app-title` | Header 内部应用标题文本样式 |

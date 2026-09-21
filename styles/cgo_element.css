@@ -1073,7 +1073,7 @@ body[data-glass-mode='blur'] .text-dialog {
     background: rgba(255, 255, 255, 0.82);
     backdrop-filter: blur(16px) saturate(140%);
     -webkit-backdrop-filter: blur(16px) saturate(140%);
-    border-color: var(--glass-border, rgba(255, 255, 255, 0.4));
+    border: none;
     box-shadow:
         0 0 0 0.5px rgba(0, 0, 0, 0.08),
         0 20px 50px -10px rgba(0, 38, 59, 0.2),
@@ -1108,7 +1108,7 @@ body[data-glass-mode='blur'] .text-dialog {
     background: rgba(28, 30, 32, 0.85);
     backdrop-filter: blur(16px) saturate(140%);
     -webkit-backdrop-filter: blur(16px) saturate(140%);
-    border-color: rgba(255, 255, 255, 0.1);
+    border: none;
     box-shadow:
         0 0 0 0.5px rgba(255, 255, 255, 0.12),
         0 24px 60px -10px rgba(0, 0, 0, 0.7),
@@ -1418,7 +1418,7 @@ body[data-glass-mode='blur'] .dropdown-content {
     background: rgba(255, 255, 255, 0.85);
     backdrop-filter: blur(16px) saturate(150%);
     -webkit-backdrop-filter: blur(16px) saturate(150%);
-    border-color: var(--glass-border, rgba(255, 255, 255, 0.4));
+    border: none;
     box-shadow:
         0 0 0 0.5px rgba(0, 0, 0, 0.06),
         0 16px 36px -6px rgba(0, 38, 59, 0.15),
@@ -1437,7 +1437,7 @@ body[data-glass-mode='blur'] .dropdown-content {
     background: rgba(28, 30, 32, 0.85);
     backdrop-filter: blur(16px) saturate(150%);
     -webkit-backdrop-filter: blur(16px) saturate(150%);
-    border-color: rgba(255, 255, 255, 0.1);
+    border: none;
     box-shadow:
         0 0 0 0.5px rgba(255, 255, 255, 0.1),
         0 20px 42px -6px rgba(0, 0, 0, 0.65),

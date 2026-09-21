@@ -564,6 +564,36 @@ export function setDefaultHeaderMode(mode) {
     document.documentElement.style.setProperty('--cgo-header-default', mode);
 }
 
+/* ───────── 背景模式（纯色 Solid vs 渐变 Gradient） ───────── */
+
+export function setBgMode(mode) {
+    if (typeof document === 'undefined') return 'solid';
+    const normalized = mode === 'gradient' ? 'gradient' : 'solid';
+    if (normalized === 'gradient') {
+        document.documentElement.setAttribute('bg-mode', 'gradient');
+    } else {
+        document.documentElement.setAttribute('bg-mode', 'solid');
+    }
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('cgo-bg-mode-change', { detail: { mode: normalized } }));
+    }
+    return normalized;
+}
+
+export function getBgMode() {
+    if (typeof document === 'undefined') return 'solid';
+    return (
+        document.documentElement.getAttribute('bg-mode') ||
+        getComputedStyle(document.documentElement).getPropertyValue('--cgo-bg-default')?.trim() ||
+        'solid'
+    );
+}
+
+export function setDefaultBgMode(mode) {
+    if (typeof document === 'undefined') return;
+    document.documentElement.style.setProperty('--cgo-bg-default', mode);
+}
+
 export function initTheme() {
     if (_inited) return;
     _inited = true;

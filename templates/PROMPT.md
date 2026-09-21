@@ -447,6 +447,50 @@ CGoUI 支持将经典三段式顶栏无缝升级为脱离文档流的「双岛�
   ```
 - **切换开关 `<cgo-header-toggle>`**：允许用户在运行时随时点击切换吸顶/悬浮形态，持久化至 `localStorage`。
 - **与 Liquid Glass 自动联动**：当同时开启 `glass-mode="liquid"` 时，悬浮双岛自动激活次世代光学折射与柔和边缘微光。
+- **悬浮模式顶部遮罩渐变标准 (Scrim Gradient)**：
+  - **触发条件**：悬浮标题栏模式（`header-mode="floating"`）下自动激活；**普通吸顶标题栏模式严禁添加渐变**。
+  - **几何与范围**：顶部对齐视窗顶部（`top: 0`），底部对齐悬浮标题栏底部（桌面端 `safe-area-top + 72px`，移动端 `safe-area-top + 64px`），左右贯通全宽（`width: 100%`）。
+  - **色彩与渐变**：顶部为深色/浅色模式对应的页面背景颜色（100% 不透明度），底部自然衰减为 0% 全透明（亮色模式下以 `var(--bg-color, #f8f9fa)` 渐变至透明，暗色模式下以 `var(--bg-color, #1a1a1a)` 渐变至透明），使正文内容向上滚动时自然融入背景。
+  - **层级规范 (Z-Index Hierarchy)**：正文内容（z < 900） < 顶部遮罩渐变（z: 900） < 悬浮标题栏与左侧导航面板（z: 1000）。正文向上滚动时自然淡出渐隐于顶栏后方，彻底避免正文在悬浮栏上方露底打架。
+- **导航栏（导航列表 / 左侧面板 `<cgo-side-nav>`）与顶栏联动标准**：
+  - **外观一致性**：悬浮模式下，导航栏（左侧面板）外观与浮动菜单栏及 `tool.html` 琉璃卡片保持完全一致（统一 `border-radius: 12px` 与浮动光影；在 liquid / blur 玻璃态下为纯净光学折射底色与 `--glass-shadow` 无杂乱硬边框）。
+  - **移动端宽度规范**：移动版导航栏宽度从铺满贯通改为与浮动菜单栏相同（左右保留 `10px + safe-area` 边距，`width: calc(100% - 20px - safe-area)`）。
+  - **普通版标题栏圆角归零规范**：切换至普通吸顶标题栏模式时，导航栏（左侧面板）圆角必须为 0（`border-radius: 0`），与视窗边缘及顶栏平整吸附对接。
+
+### 9. 页面背景模式规范 (Background Modes & Gradient Specification)
+
+CGoUI 支持通过页面属性 `bg-mode` 规范化控制页面全局背景，并在 `styles/cgo_clr.css` 与 `styles/cgo_ui.css` 中建立了统一的设计标准。**严禁在各业务页面或内联样式中随意硬编码 body 背景渐变**。
+
+| 模式 | 声明方式 | 视觉表现 | 适用与 AI 决策规则 |
+| :--- | :--- | :--- | :--- |
+| **纯色底色模式 (Solid)** | **不加任何属性**（或 `<html bg-mode="solid">`） | 默认纯色背景，直接承载 `var(--bg-color)`。亮色下为纯净底色，暗色下为沉浸深灰。 | **默认基线（零破坏兼容）**：常规后台管理系统、紧凑数据表格、表单录入等页面，默认维持纯色底色。 |
+| **轻微渐变背景 (Gradient)** | `<html bg-mode="gradient">`（或 `<body bg-mode="gradient">`） | 采用标准的视口固定（`background-attachment: fixed`）双角微光径向渐变，在左上与右下角注入微弱的环境光漫反射，营造高级现代光感。 | **品牌门户/展示页/仪表盘/液态玻璃页面**：文档站首页、沉浸式工具页（如 Map/Web Tools）、开启 `glass-mode="liquid"` 的高质感页面，推荐显式声明 `bg-mode="gradient"`。 |
+
+- **标准渐变色彩数学模型 (Dual-Corner Lighting Formula)**：
+  - **设计原理**：采用双角非对称光晕结构——左上角注入主品牌冷蓝光（12% 18%），右下角注入辅助青蓝光/深空氛围暗光（88% 82%），中间自然衰减过渡并与基底 `var(--bg-color)` 融合。
+  - **亮色模式下的 Token (`--bg-gradient-light`)**：
+    ```css
+    radial-gradient(circle at 12% 18%, rgba(0, 96, 152, 0.08), transparent 45%),
+    radial-gradient(circle at 88% 82%, rgba(0, 160, 233, 0.06), transparent 45%),
+    var(--bg-color, #f8f9fa)
+    ```
+  - **暗色模式下的 Token (`--bg-gradient-dark`)**：
+    ```css
+    radial-gradient(circle at 12% 18%, rgba(0, 96, 152, 0.16), transparent 50%),
+    radial-gradient(circle at 88% 82%, rgba(15, 35, 65, 0.40), transparent 50%),
+    var(--bg-color, #0f1115)
+    ```
+  - **CSS 变量分发**：全局暴露 `var(--bg-gradient)`，在暗色主题或深色偏好下自动无缝映射到 `--bg-gradient-dark`。
+- **页面视口固定规则 (`background-attachment: fixed`)**：
+  当开启 `bg-mode="gradient"` 时，CSS 规范自动赋予 `background-attachment: fixed`，使渐变光晕始终锚定在视口四周，避免页面长滚动时背景被拉长变形或滚动丢失。
+- **JS 控制 API (CGoUI Theme Engine)**：
+  ```javascript
+  // 运行时读取当前背景模式
+  const mode = CGO.theme.getBgMode(); // 'solid' | 'gradient'
+
+  // 动态切换背景模式
+  CGO.theme.setBgMode('gradient'); // 或 'solid'
+  ```
 
 ---
 
@@ -500,7 +544,7 @@ CGoUI 支持将经典三段式顶栏无缝升级为脱离文档流的「双岛�
 | 数据表格 | `<cgo-table>` 或 `<table class="modern-table">` | — | — |
 | 工具提示 | `<cgo-tooltip>` | — | — |
 | 加载态 | `<cgo-spinner>` | — | — |
-| 侧边导航 | `<cgo-side-nav>` + `<cgo-nav-item>` | — | `cgo-nav-change` |
+| 侧边导航 | `<cgo-side-nav>` + `<cgo-nav-item>` | `active-index` `docked`（默认桌面端为同宽浮动卡片） | `cgo-nav-change` |
 | 浮动窗口 | `<cgo-floating-window>` | — | `cgo-drag` `cgo-dragstart` `cgo-dragend` `cgo-minimize` `cgo-close` |
 | 通知卡片 | `<cgo-notice-card>` | — | `cgo-notice-close` `cgo-notice-action` |
 | 通知中心 | `<cgo-notice-center>` | — | `cgo-notice-clear` `cgo-notice-mute-toggle` `cgo-notice-action` |
