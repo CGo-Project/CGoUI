@@ -141,6 +141,8 @@ export class CgoSideNav extends LitElement {
             border-radius: inherit;
             backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
             -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
+            -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
             filter: var(--glass-refraction-filter, url(#glass-distortion));
             overflow: hidden;
             pointer-events: none;
@@ -199,16 +201,24 @@ export class CgoSideNav extends LitElement {
             transition: opacity 0.25s cubic-bezier(0.32, 0.72, 0, 1);
         }
 
-        :host([docked]) .sidenav {
+        :host([docked]) .sidenav,
+        :host(:not([floating])) .sidenav,
+        :host-context([header-mode="classic"]) .sidenav,
+        :host-context([data-header-mode="classic"]) .sidenav,
+        :host-context(:root:not([header-mode="floating"])) .sidenav {
             border-radius: 0 !important;
-            border-top: none;
-            border-bottom: none;
-            border-left: none;
-            border-right: 1px solid var(--sidenav-border) !important;
+            border-top: none !important;
+            border-bottom: none !important;
+            border-left: none !important;
+            border-right: 1px solid var(--sidenav-border, var(--border-color)) !important;
             box-shadow: none !important;
         }
-        :host([docked]) .sidenav::before {
-            display: none;
+        :host([docked]) .sidenav::before,
+        :host(:not([floating])) .sidenav::before,
+        :host-context([header-mode="classic"]) .sidenav::before,
+        :host-context([data-header-mode="classic"]) .sidenav::before,
+        :host-context(:root:not([header-mode="floating"])) .sidenav::before {
+            display: none !important;
         }
 
         /* Layer 3: 内部元素保证绝对锐利清晰 */
@@ -378,6 +388,21 @@ export class CgoSideNav extends LitElement {
                 box-sizing: border-box;
             }
 
+            /* 移动端普通吸顶模式下：铺满顶栏下方，直角吸附对接 */
+            :host(:not([floating])) .sidenav,
+            :host-context([header-mode="classic"]) .sidenav,
+            :host-context([data-header-mode="classic"]) .sidenav,
+            :host-context(:root:not([header-mode="floating"])) .sidenav {
+                border-radius: 0 !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                border-right: none !important;
+                border-bottom: 1px solid var(--sidenav-border, var(--border-color)) !important;
+                box-shadow: none !important;
+            }
+
             .sidenav-user-brief,
             .sidenav-footer,
             .sidenav-heading {
@@ -471,6 +496,9 @@ export class CgoSideNav extends LitElement {
             }
         };
         this._syncFloatingState();
+        if (typeof window !== 'undefined') {
+            window.addEventListener('cgo-header-mode-change', this._syncFloatingState);
+        }
         if (typeof MutationObserver !== 'undefined') {
             this._headerObserver = new MutationObserver(this._syncFloatingState);
             this._headerObserver.observe(document.documentElement, {
@@ -488,6 +516,9 @@ export class CgoSideNav extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
+        if (typeof window !== 'undefined' && this._syncFloatingState) {
+            window.removeEventListener('cgo-header-mode-change', this._syncFloatingState);
+        }
         if (this._headerObserver) {
             this._headerObserver.disconnect();
             this._headerObserver = null;

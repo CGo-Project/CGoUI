@@ -520,6 +520,8 @@
             border-radius: inherit;
             backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
             -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
+            -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
             filter: var(--glass-refraction-filter, url(#glass-distortion));
             pointer-events: none;
             overflow: hidden;
@@ -625,6 +627,8 @@
             border-radius: inherit;
             backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
             -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
+            -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
             filter: var(--glass-refraction-filter, url(#glass-distortion));
             pointer-events: none;
             overflow: hidden;
@@ -849,7 +853,7 @@
                     <fePointLight x="-200" y="-200" z="300" />
                 </feSpecularLighting>
                 <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
-                <feDisplacementMap in="SourceGraphic" in2="softMap" scale="100" xChannelSelector="R" yChannelSelector="G" />
+                <feDisplacementMap in="SourceGraphic" in2="softMap" scale="20" xChannelSelector="R" yChannelSelector="G" />
             </filter>
         </defs>
     </svg>

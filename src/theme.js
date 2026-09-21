@@ -454,7 +454,7 @@ export function injectLiquidGlassFilter() {
                     <fePointLight x="-200" y="-200" z="300" />
                 </feSpecularLighting>
                 <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
-                <feDisplacementMap in="SourceGraphic" in2="softMap" scale="100" xChannelSelector="R" yChannelSelector="G" />
+                <feDisplacementMap in="SourceGraphic" in2="softMap" scale="20" xChannelSelector="R" yChannelSelector="G" />
             </filter>
         </defs>
     `;
@@ -484,11 +484,11 @@ export function setGlassMode(mode) {
 }
 
 export function getGlassMode() {
-    if (typeof document === 'undefined') return 'flat';
+    if (typeof document === 'undefined') return 'liquid';
     return (
         document.documentElement.getAttribute('glass-mode') ||
         getComputedStyle(document.documentElement).getPropertyValue('--cgo-glass-default')?.trim() ||
-        'flat'
+        'liquid'
     );
 }
 

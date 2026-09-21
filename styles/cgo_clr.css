@@ -217,10 +217,9 @@
 :root {
     /* ══════════════════════════════════════════════════════
        CGoUI 玻璃系统中央默认档位配置 (Single Source of Truth)
-       当前：flat（完全扁平化，零变更保证）
-       未来版本若需将全库默认改为折射或模糊，仅需在此修改为 liquid 或 blur，全网自动同步变更！
+       当前：liquid（默认启用物理折射液态玻璃）
        ══════════════════════════════════════════════════════ */
-    --cgo-glass-default: flat;
+    --cgo-glass-default: liquid;
 
     /* ══════════════════════════════════════════════════════
        CGoUI 顶栏模式中央默认档位配置 (Single Source of Truth)
@@ -263,6 +262,8 @@
     --glass-refraction-filter: url(#glass-distortion);
     --glass-backdrop-blur: blur(5px) saturate(130%);
     --glass-backdrop-blur-surface: blur(14px) saturate(135%);
+    --glass-backdrop-filter: blur(5px) saturate(130%) url(#glass-distortion);
+    --glass-backdrop-filter-surface: blur(14px) saturate(135%) url(#glass-distortion);
     --glass-bg: rgba(255, 255, 255, 0.60);
     --glass-bg-hover: rgba(255, 255, 255, 0.68);
     --glass-border: rgba(255, 255, 255, 0.40);
@@ -335,6 +336,8 @@ body[data-glass-mode='blur'],
     --glass-refraction-filter: none;
     --glass-backdrop-blur: blur(5px) saturate(130%);
     --glass-backdrop-blur-surface: blur(14px) saturate(135%);
+    --glass-backdrop-filter: blur(5px) saturate(130%);
+    --glass-backdrop-filter-surface: blur(14px) saturate(135%);
     --glass-bg: rgba(255, 255, 255, 0.60);
     --glass-bg-hover: rgba(255, 255, 255, 0.68);
     --glass-border: rgba(255, 255, 255, 0.40);
@@ -362,6 +365,8 @@ body[data-glass-mode='liquid'],
     --glass-refraction-filter: url(#glass-distortion);
     --glass-backdrop-blur: blur(5px) saturate(130%);
     --glass-backdrop-blur-surface: blur(14px) saturate(135%);
+    --glass-backdrop-filter: blur(5px) saturate(130%) url(#glass-distortion);
+    --glass-backdrop-filter-surface: blur(14px) saturate(135%) url(#glass-distortion);
     --glass-bg: rgba(255, 255, 255, 0.60);
     --glass-bg-hover: rgba(255, 255, 255, 0.68);
     --glass-border: rgba(255, 255, 255, 0.40);
@@ -454,6 +459,8 @@ body[data-glass-mode='none'],
     --glass-refraction-filter: none;
     --glass-backdrop-blur: none;
     --glass-backdrop-blur-surface: none;
+    --glass-backdrop-filter: none;
+    --glass-backdrop-filter-surface: none;
     --glass-bg: var(--card-bg, #ffffff);
     --glass-border: var(--border-color, #dee2e6);
     --glass-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06));
