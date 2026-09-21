@@ -40,6 +40,7 @@
         cgo-icon:not(:defined),
         cgo-button:not(:defined),
         cgo-theme-toggle:not(:defined),
+        cgo-header-toggle:not(:defined),
         cgo-tabs:not(:defined) {
             display: inline-flex;
             visibility: visible;
@@ -284,49 +285,60 @@
         <defs>
             <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%">
                 <feTurbulence type="fractalNoise" baseFrequency="0.025 0.025" numOctaves="1" result="noise" />
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="12" xChannelSelector="R" yChannelSelector="G" />
             </filter>
         </defs>
     </svg>
 
-    <!-- ==================== 顶部菜单栏 Header ==================== -->
+    <!-- ==================== 顶部菜单栏 Header (双岛/胶囊自适应布局) ==================== -->
     <header class="tool-header">
-        <!-- 1. 左侧：导航按钮 + Logo + 标题 -->
-        <div class="header-left">
-            <button class="btn btn-info" onclick="history.back()" title="返回上一页">
-                <cgo-icon name="back"></cgo-icon>
-                <span>返回</span>
-            </button>
-            <cgo-icon name="design" size="24" class="header-logo"></cgo-icon>
-            <span class="app-title">规范介绍与视觉系统</span>
-        </div>
-
-        <!-- 2. 中间：选项卡 Tabs (分栏/视图导航) -->
-        <div class="header-center">
-            <nav class="header-tabs">
-                <a href="#overview" class="tab-item active">特性概览</a>
-                <a href="#features" class="tab-item">视觉系统</a>
-                <a href="#evolution" class="tab-item">规范演进</a>
-                <a href="#resources" class="tab-item">资料下载</a>
-            </nav>
-        </div>
-
-        <!-- 3. 右侧：选项与主题控制 -->
-        <div class="header-right">
-            <!-- 主题切换组件 -->
-            <cgo-theme-toggle></cgo-theme-toggle>
-
-            <!-- 更多下拉菜单 -->
-            <div class="dropdown options-dropdown">
-                <button id="options-btn" class="btn btn-info dropbtn" title="更多">
-                    <cgo-icon name="menu"></cgo-icon>
-                    <span>更多</span>
+        <div class="header-island header-island-left">
+            <!-- 1. 左侧：导航按钮 + Logo + 标题 -->
+            <div class="header-left">
+                <button class="btn btn-info" onclick="history.back()" title="返回上一页">
+                    <cgo-icon name="back"></cgo-icon>
+                    <span>返回</span>
                 </button>
-                <div class="dropdown-content">
-                    <a href="javascript:void(0)" id="help-btn">
-                        <cgo-icon name="help"></cgo-icon>
-                        <span>帮助与说明</span>
-                    </a>
+                <cgo-icon name="design" size="24" class="header-logo"></cgo-icon>
+                <span class="app-title">规范介绍与视觉系统</span>
+            </div>
+            <div class="header-island-divider" aria-hidden="true"></div>
+            <!-- 2. 中间：选项卡 Tabs (分栏/视图导航) -->
+            <div class="header-center">
+                <nav class="header-tabs">
+                    <a href="#overview" class="tab-item active">特性概览</a>
+                    <a href="#features" class="tab-item">视觉系统</a>
+                    <a href="#evolution" class="tab-item">规范演进</a>
+                    <a href="#resources" class="tab-item">资料下载</a>
+                </nav>
+            </div>
+        </div>
+
+        <div class="header-island header-island-right">
+            <!-- 3. 右侧：选项与主题控制 -->
+            <div class="header-right">
+                <!-- 顶栏模式切换组件 -->
+                <cgo-header-toggle></cgo-header-toggle>
+
+                <!-- 主题切换组件 -->
+                <cgo-theme-toggle></cgo-theme-toggle>
+
+                <!-- 更多下拉菜单 -->
+                <div class="dropdown options-dropdown">
+                    <button id="options-btn" class="btn btn-info dropbtn" title="更多">
+                        <cgo-icon name="menu"></cgo-icon>
+                        <span>更多</span>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="javascript:void(0)" onclick="window.CGO && window.CGO.toggleHeaderMode && window.CGO.toggleHeaderMode()">
+                            <cgo-icon name="unpin-angle"></cgo-icon>
+                            <span>切换顶栏模式 (悬浮/吸顶)</span>
+                        </a>
+                        <a href="javascript:void(0)" id="help-btn">
+                            <cgo-icon name="help"></cgo-icon>
+                            <span>帮助与说明</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

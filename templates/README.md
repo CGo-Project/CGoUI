@@ -23,10 +23,13 @@
 ### 2. 页面结构 (DOM Tree)
 ```text
 body (flex-direction: column; overflow: hidden;)
-├── header.tool-header (三段式固定菜单栏)
-│   ├── .header-left (左侧：返回按钮、仪表盘/主页按钮)
-│   ├── .header-center (中间：Logo/Icon + 应用标题 app-title)
-│   └── .header-right (右侧：导出下拉菜单、cgo-theme-toggle、更多/选项下拉菜单)
+├── header.tool-header (三段式/双岛屿自适应菜单栏)
+│   ├── .header-island.header-island-left (左侧浮岛，桌面端浮动居左，移动端穿透)
+│   │   ├── .header-left (左侧按钮：返回、仪表盘/主页)
+│   │   ├── .header-island-divider (垂直细分割线)
+│   │   └── .header-center (Logo/Icon + 应用标题 app-title)
+│   └── .header-island.header-island-right (右侧浮岛，桌面端浮动居右，移动端穿透)
+│       └── .header-right (导出下拉菜单、cgo-header-toggle 顶栏切换、cgo-theme-toggle、更多菜单)
 └── main.tool-container (下方主工作区)
     ├── .tool-card (工具栏 / 操作控制面板)
     └── .table-container (数据表格 / 工作面板，支持粘性表头与粘性首列)
@@ -35,22 +38,28 @@ body (flex-direction: column; overflow: hidden;)
 ### 3. HTML 骨架代码片段
 ```html
 <header class="tool-header">
-    <div class="header-left">
-        <button class="btn btn-info" onclick="history.back()"><cgo-icon name="back"></cgo-icon><span>返回</span></button>
-        <a href="../index.html" class="btn btn-primary"><cgo-icon name="home-dots"></cgo-icon><span>仪表盘</span></a>
-    </div>
-    <div class="header-center">
-        <cgo-icon name="design" size="24" class="header-logo"></cgo-icon>
-        <span class="app-title">工具页面标题</span>
-    </div>
-    <div class="header-right">
-        <div class="dropdown">
-            <button class="btn btn-info dropbtn"><cgo-icon name="download"></cgo-icon><span>导出</span></button>
-            <div class="dropdown-content">
-                <a href="javascript:void(0)" id="export-btn"><span>导出文件</span></a>
-            </div>
+    <div class="header-island header-island-left">
+        <div class="header-left">
+            <button class="btn btn-info" onclick="history.back()"><cgo-icon name="back"></cgo-icon><span>返回</span></button>
+            <a href="../index.html" class="btn btn-primary"><cgo-icon name="home-dots"></cgo-icon><span>仪表盘</span></a>
         </div>
-        <cgo-theme-toggle></cgo-theme-toggle>
+        <div class="header-island-divider" aria-hidden="true"></div>
+        <div class="header-center">
+            <cgo-icon name="design" size="24" class="header-logo"></cgo-icon>
+            <span class="app-title">工具页面标题</span>
+        </div>
+    </div>
+    <div class="header-island header-island-right">
+        <div class="header-right">
+            <div class="dropdown">
+                <button class="btn btn-info dropbtn"><cgo-icon name="download"></cgo-icon><span>导出</span></button>
+                <div class="dropdown-content">
+                    <a href="javascript:void(0)" id="export-btn"><span>导出文件</span></a>
+                </div>
+            </div>
+            <cgo-header-toggle></cgo-header-toggle>
+            <cgo-theme-toggle></cgo-theme-toggle>
+        </div>
     </div>
 </header>
 <main class="tool-container">
@@ -59,6 +68,11 @@ body (flex-direction: column; overflow: hidden;)
     </div>
 </main>
 ```
+> **顶栏模式切换提示**：
+> - 页面默认采用经典吸顶顶栏（`classic`）；
+> - 若希望直接启用新版悬浮菜单栏，可在 `<html>` 标签上声明 `header-mode="floating"`（如 `<html lang="zh-CN" header-mode="floating">`）；
+> - 用户也可通过 `<cgo-header-toggle>` 按钮在运行时自主切换，状态将自动记忆到本地。
+
 
 ---
 

@@ -414,6 +414,40 @@ CGoUI 内置了次世代 Liquid Glass（物理光学折射、双轴微光圈边�
 - **作用域**：可以在 `<html>` 全局声明，也可以在具体 `<cgo-card variant="glass" glass-mode="liquid">` 上精细覆盖。
 - **文字绝对清晰原则**：开启 `liquid` 模式后，CGoUI 采用严格的 4 层立体复合架构（Layer 0 折射磨砂、Layer 1 底色衬底、Layer 2 双轴光圈、Layer 3 文字内容），内容层绝不会出现文字发虚或图标模糊。
 
+### 8. 悬浮菜单栏 (Floating Island Header) 与双岛屿架构规范
+
+CGoUI 支持将经典三段式顶栏无缝升级为脱离文档流的「双岛屿浮动菜单栏」（参考 CGo-Web-Tools/map 实践）：
+
+| 模式 | 声明方式 | 效果表现 | 适用与 AI 决策规则 |
+| :--- | :--- | :--- | :--- |
+| **经典原版吸顶模式 (Classic)** | **不加任何属性**（或 `header-mode="classic"`） | 吸顶固定导航栏（`sticky top: 0`），背景与底边框贴合全宽。默认状态，100% 零破坏兼容。 | **默认基线**：常规桌面工具页、表单、后台管理系统，维持原版紧凑吸顶顶栏。 |
+| **悬浮双岛菜单栏 (Floating)** | `<html header-mode="floating">` | 桌面端呈现左右双岛屿（左岛：返回+仪表盘+分割线+Logo标题；右岛：操作+切换器）；移动端自适应折叠为单胶囊浮栏。 | **现代化沉浸式应用**：地图可视化、高清壁纸、Liquid Glass 背景、沉浸式画布界面等，必须主动在 `<html>` 添加 `header-mode="floating"`。 |
+
+- **双岛 DOM 骨架规范**：
+  ```html
+  <header class="tool-header">
+    <div class="header-island header-island-left">
+      <div class="header-left">
+        <button class="btn btn-info" onclick="history.back()"><cgo-icon name="back"></cgo-icon><span>返回</span></button>
+        <a href="../index.html" class="btn btn-primary"><cgo-icon name="home-dots"></cgo-icon><span>仪表盘</span></a>
+      </div>
+      <div class="header-island-divider" aria-hidden="true"></div>
+      <div class="header-center">
+        <cgo-icon name="design" size="24" class="header-logo"></cgo-icon>
+        <span class="app-title">页面标题</span>
+      </div>
+    </div>
+    <div class="header-island header-island-right">
+      <div class="header-right">
+        <cgo-header-toggle></cgo-header-toggle>
+        <cgo-theme-toggle></cgo-theme-toggle>
+      </div>
+    </div>
+  </header>
+  ```
+- **切换开关 `<cgo-header-toggle>`**：允许用户在运行时随时点击切换吸顶/悬浮形态，持久化至 `localStorage`。
+- **与 Liquid Glass 自动联动**：当同时开启 `glass-mode="liquid"` 时，悬浮双岛自动激活次世代光学折射与柔和边缘微光。
+
 ---
 
 ## 📱 第五步：移动端与响应式布局规范 (Mobile & Responsive)
@@ -438,18 +472,19 @@ CGoUI 内置了次世代 Liquid Glass（物理光学折射、双轴微光圈边�
 
 | 类别 | 类名 | 来源 |
 | :--- | :--- | :--- |
-| **库内置**（引入四件套即生效） | `.tool-header` `.header-left` `.header-center` `.header-right` `.app-title` `.tool-container` `.tool-card` `.article-content` `.modern-table` `.disclaimer` `.table-container` `.tab-item` `.btn` `.btn-primary` `.btn-info` `.btn-full` `.dropdown` `.dropdown-content` `.line-tag` `.line-bg` | `styles/*.css` |
+| **库内置**（引入四件套即生效） | `.tool-header` `.header-island` `.header-island-left` `.header-island-right` `.header-island-divider` `.header-left` `.header-center` `.header-right` `.app-title` `.tool-container` `.tool-card` `.article-content` `.modern-table` `.disclaimer` `.table-container` `.tab-item` `.btn` `.btn-primary` `.btn-info` `.btn-full` `.dropdown` `.dropdown-content` `.line-tag` `.line-bg` | `styles/*.css` |
 | **模板自带，库里没有** | `.header-tabs` `.hero-split` `.hero-media` `.hero-content` `.hero-actions` `.content-section` `.content-group` `.content-image` `.content-text` | 仅存在于 `templates/info_template.html` 的 `<style>` 内 |
 
 > **⚠️ 铁律**：使用第二类（Hero / 交错图文 / Header Tabs）版式时，**必须把 `info_template.html` 中对应的 `<style>` 规则一并复制进目标页面的私有 CSS**。只写类名不带样式，页面会退化成无样式的裸块。
 
-### 2. 组件映射表（**全部 29 个已注册组件，此表之外的标签一律不存在**）
+### 2. 组件映射表（**全部 30 个已注册组件，此表之外的标签一律不存在**）
 
 | 原始 DOM / 功能 | 替换为 CGO UI 组件 | 关键属性 | 事件 |
 | :--- | :--- | :--- | :--- |
 | 按钮 | `<cgo-button>` | `variant="primary\|info\|danger\|ghost"` `size="sm\|md"` `icon="..."` `icon-only` | 原生 `click` |
 | 图标 | `<cgo-icon>` | `name="..."` `size="24"` | — |
 | 主题切换 | `<cgo-theme-toggle>` | — | 自管理 |
+| 顶栏模式切换 | `<cgo-header-toggle>` | — | 自管理（切换悬浮与吸顶） |
 | 输入框 | `<cgo-input>` | `label` `value` `placeholder` `type` `hint` `state` `disabled` | `cgo-input`（`detail.value`） |
 | 通用卡片 | `<cgo-card>` | `variant` `title` | — |
 | 徽标 | `<cgo-badge>` | `variant="primary\|success\|danger\|warning\|info\|muted"` `subsystem` `pill` | — |

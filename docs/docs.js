@@ -877,6 +877,52 @@ ${AVATAR_COLORS.map((color, i) => `<button class="avatar-color-copy" data-copy-c
         methods: [['window.ToolTheme.applyTheme(theme)', `编程式应用主题，theme 为 'light'|'dark'`]],
     },
     {
+        id: 'header-toggle',
+        tag: 'cgo-header-toggle',
+        title: '顶栏模式切换 Header Toggle',
+        icon: 'unpin-angle',
+        desc: '点击在经典吸顶顶栏（classic，默认原版）与新版悬浮双岛/单胶囊菜单栏（floating）之间切换，长按 800ms 恢复默认吸顶模式。自动持久化到 localStorage 并联动所有切换器。',
+        examples: [
+            {
+                title: '基础组件展示',
+                code: `<div style="display:flex;gap:12px;align-items:center;">
+  <cgo-header-toggle></cgo-header-toggle>
+  <span style="font-size:13px;color:var(--text-light);">← 点击此按钮可即时切换全站菜单栏的悬浮/吸顶样式</span>
+</div>`,
+            },
+            {
+                title: '双岛屿悬浮顶栏 DOM 结构示例 (Floating Island Header)',
+                code: `<header class="tool-header">
+  <div class="header-island header-island-left">
+    <div class="header-left">
+      <button class="btn btn-info"><cgo-icon name="back"></cgo-icon><span>返回</span></button>
+      <a href="../index.html" class="btn btn-primary"><cgo-icon name="home-dots"></cgo-icon><span>仪表盘</span></a>
+    </div>
+    <div class="header-island-divider" aria-hidden="true"></div>
+    <div class="header-center">
+      <cgo-icon name="design" size="24" class="header-logo"></cgo-icon>
+      <span class="app-title">工具页面标题</span>
+    </div>
+  </div>
+  <div class="header-island header-island-right">
+    <div class="header-right">
+      <cgo-header-toggle></cgo-header-toggle>
+      <cgo-theme-toggle></cgo-theme-toggle>
+    </div>
+  </div>
+</header>`,
+            },
+        ],
+        props: [['storage-key', 'string', `''`, '自定义 localStorage 键（隔离不同工具与页面的顶栏模式）']],
+        slots: [],
+        events: [['cgo-header-mode-change', '切换模式时在 window 上派发，detail.mode 为 "floating" | "classic"']],
+        methods: [
+            ['CGO.theme.setHeaderMode(mode)', `编程式应用顶栏模式，mode 为 'floating'|'classic'`],
+            ['CGO.theme.getHeaderMode()', `获取当前顶栏模式，返回 'floating'|'classic'`],
+            ['CGO.theme.toggleHeaderMode()', `在 'floating' 与 'classic' 之间切换`],
+        ],
+    },
+    {
         id: 'admin-select',
         tag: 'cgo-admin-select',
         title: '管理台选项 Admin Select',

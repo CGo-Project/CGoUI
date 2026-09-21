@@ -25,6 +25,7 @@ export { CgoAvatar } from './components/avatar.js';
 export { CgoChatBubble } from './components/chat-bubble.js';
 export { CgoCaptcha, generateCaptcha } from './components/captcha.js';
 export { CgoThemeToggle } from './components/theme-toggle.js';
+export { CgoHeaderToggle } from './components/header-toggle.js';
 
 export { CgoSideNav, CgoNavItem } from './components/side-nav.js';
 export { CgoToolbarSelect } from './components/toolbar-select.js';

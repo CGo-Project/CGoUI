@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" glass-mode="liquid">
+<html lang="zh-CN" glass-mode="liquid" header-mode="floating">
 
 <head>
     <meta charset="UTF-8">
@@ -8,11 +8,13 @@
     <meta name="description" content="CGoUI 工具类页面模板 Demo">
     <title>工具类页面模板 - CGoUI Demo</title>
 
-    <!-- ===== 0. 防闪烁主题脚本（Anti-Flicker，必须最先注入）===== -->
+    <!-- ===== 0. 防闪烁主题与顶栏模式脚本（Anti-Flicker，必须最先注入）===== -->
     <script>
       (function() {
         var t = localStorage.getItem('app-theme');
         document.documentElement.setAttribute('data-theme', t || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        var hm = localStorage.getItem('root_cgo_header_mode') || localStorage.getItem('cgo_header_mode');
+        if (hm) document.documentElement.setAttribute('header-mode', hm);
       })();
     </script>
 
@@ -40,6 +42,7 @@
         cgo-icon:not(:defined),
         cgo-button:not(:defined),
         cgo-theme-toggle:not(:defined),
+        cgo-header-toggle:not(:defined),
         cgo-tabs:not(:defined) {
             display: inline-flex;
             visibility: visible;
@@ -165,65 +168,76 @@
         <defs>
             <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%">
                 <feTurbulence type="fractalNoise" baseFrequency="0.025 0.025" numOctaves="1" result="noise" />
-                <feDisplacementMap in="SourceGraphic" in2="noise" scale="6" xChannelSelector="R" yChannelSelector="G" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="12" xChannelSelector="R" yChannelSelector="G" />
             </filter>
         </defs>
     </svg>
 
-    <!-- ==================== 顶部菜单栏 Header (三段式布局) ==================== -->
+    <!-- ==================== 顶部菜单栏 Header (双岛/胶囊自适应布局) ==================== -->
     <header class="tool-header">
-        <!-- 1. 左侧：导航按钮区 -->
-        <div class="header-left">
-            <button class="btn btn-info" onclick="history.back()" title="返回上一页">
-                <cgo-icon name="back"></cgo-icon>
-                <span>返回</span>
-            </button>
-            <a href="../index.html" class="btn btn-primary" title="前往仪表盘">
-                <cgo-icon name="home-dots"></cgo-icon>
-                <span>仪表盘</span>
-            </a>
-        </div>
-
-        <!-- 2. 中间：图标 + 应用标题 -->
-        <div class="header-center">
-            <cgo-icon name="design" size="24" class="header-logo"></cgo-icon>
-            <span class="app-title">示例工具工作台</span>
-        </div>
-
-        <!-- 3. 右侧：选项与功能按钮区 -->
-        <div class="header-right">
-            <!-- 导出下拉菜单 -->
-            <div class="dropdown">
-                <button class="btn btn-info dropbtn">
-                    <cgo-icon name="download"></cgo-icon>
-                    <span>导出</span>
+        <div class="header-island header-island-left">
+            <!-- 1. 左侧：导航按钮区 -->
+            <div class="header-left">
+                <button class="btn btn-info" onclick="history.back()" title="返回上一页">
+                    <cgo-icon name="back"></cgo-icon>
+                    <span>返回</span>
                 </button>
-                <div class="dropdown-content">
-                    <a href="javascript:void(0)" id="export-img">
-                        <cgo-icon name="image"></cgo-icon>
-                        <span>导出图片 (PNG/JPG)</span>
-                    </a>
-                    <a href="javascript:void(0)" id="export-json">
-                        <cgo-icon name="code"></cgo-icon>
-                        <span>导出数据 (JSON)</span>
-                    </a>
-                </div>
+                <a href="../index.html" class="btn btn-primary" title="前往仪表盘">
+                    <cgo-icon name="home-dots"></cgo-icon>
+                    <span>仪表盘</span>
+                </a>
             </div>
+            <div class="header-island-divider" aria-hidden="true"></div>
+            <!-- 2. 中间：图标 + 应用标题 -->
+            <div class="header-center">
+                <cgo-icon name="design" size="24" class="header-logo"></cgo-icon>
+                <span class="app-title">示例工具工作台</span>
+            </div>
+        </div>
 
-            <!-- 主题切换组件 -->
-            <cgo-theme-toggle></cgo-theme-toggle>
+        <div class="header-island header-island-right">
+            <!-- 3. 右侧：选项与功能按钮区 -->
+            <div class="header-right">
+                <!-- 导出下拉菜单 -->
+                <div class="dropdown">
+                    <button class="btn btn-info dropbtn">
+                        <cgo-icon name="download"></cgo-icon>
+                        <span>导出</span>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="javascript:void(0)" id="export-img">
+                            <cgo-icon name="image"></cgo-icon>
+                            <span>导出图片 (PNG/JPG)</span>
+                        </a>
+                        <a href="javascript:void(0)" id="export-json">
+                            <cgo-icon name="code"></cgo-icon>
+                            <span>导出数据 (JSON)</span>
+                        </a>
+                    </div>
+                </div>
 
-            <!-- 更多下拉菜单 -->
-            <div class="dropdown options-dropdown">
-                <button id="options-btn" class="btn btn-info dropbtn" title="更多">
-                    <cgo-icon name="menu"></cgo-icon>
-                    <span>更多</span>
-                </button>
-                <div class="dropdown-content">
-                    <a href="javascript:void(0)" id="help-btn">
-                        <cgo-icon name="help"></cgo-icon>
-                        <span>帮助与设置</span>
-                    </a>
+                <!-- 顶栏模式切换组件 -->
+                <cgo-header-toggle></cgo-header-toggle>
+
+                <!-- 主题切换组件 -->
+                <cgo-theme-toggle></cgo-theme-toggle>
+
+                <!-- 更多下拉菜单 -->
+                <div class="dropdown options-dropdown">
+                    <button id="options-btn" class="btn btn-info dropbtn" title="更多">
+                        <cgo-icon name="menu"></cgo-icon>
+                        <span>更多</span>
+                    </button>
+                    <div class="dropdown-content">
+                        <a href="javascript:void(0)" onclick="window.CGO && window.CGO.toggleHeaderMode && window.CGO.toggleHeaderMode()">
+                            <cgo-icon name="unpin-angle"></cgo-icon>
+                            <span>切换顶栏模式 (悬浮/吸顶)</span>
+                        </a>
+                        <a href="javascript:void(0)" id="help-btn">
+                            <cgo-icon name="help"></cgo-icon>
+                            <span>帮助与设置</span>
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>

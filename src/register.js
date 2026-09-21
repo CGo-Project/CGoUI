@@ -25,6 +25,7 @@ import './components/tabs.js';
 import './components/avatar.js';
 import './components/chat-bubble.js';
 import './components/theme-toggle.js';
+import './components/header-toggle.js';
 import './components/side-nav.js';
 import './components/toolbar-select.js';
 import './components/notice-card.js';

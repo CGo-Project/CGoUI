@@ -7,10 +7,10 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const reactEntry = await import(resolve(ROOT, 'dist/cgo-ui-react.js'));
 const themeEntry = await import(resolve(ROOT, 'dist/theme.js'));
 
-if (!reactEntry.CgoButton || !reactEntry.CgoIcon || !reactEntry.buildSvg) {
+if (!reactEntry.CgoButton || !reactEntry.CgoIcon || !reactEntry.CgoHeaderToggle || !reactEntry.buildSvg) {
     throw new Error('React bundle 缺少核心导出');
 }
-if (typeof themeEntry.applyTheme !== 'function' || typeof themeEntry.generateThemePalette !== 'function') {
+if (typeof themeEntry.applyTheme !== 'function' || typeof themeEntry.setHeaderMode !== 'function' || typeof themeEntry.generateThemePalette !== 'function') {
     throw new Error('theme bundle 缺少核心导出');
 }
 const svg = reactEntry.buildSvg('check', { size: 16 });

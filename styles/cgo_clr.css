@@ -218,6 +218,17 @@
        ══════════════════════════════════════════════════════ */
     --cgo-glass-default: flat;
 
+    /* ══════════════════════════════════════════════════════
+       CGoUI 顶栏模式中央默认档位配置 (Single Source of Truth)
+       classic: 默认原版经典吸顶顶栏（Zero-Regression 零变更保证）
+       floating: 新版脱离文档流的双岛屿/单胶囊悬浮菜单栏
+       ══════════════════════════════════════════════════════ */
+    --cgo-header-default: classic;
+    --header-floating-height: 52px;
+    --header-floating-mobile-height: 48px;
+    --header-floating-radius: 12px;
+    --header-floating-shadow: 0 4px 20px rgba(0, 0, 0, 0.18);
+
     /* 物理光圈与缓动参数 */
     --lg-rim-lit: 0.95;
     --lg-rim-dark: 0.04;
