@@ -179,7 +179,7 @@ const COMPONENTS = [
         tag: 'cgo-icon',
         title: '图标 Icon',
         icon: 'layer',
-        desc: '自包含 SVG 图标组件，数据来自共享图标注册表（95 个）。支持三种颜色模式：自适应界面颜色（默认）、固定颜色、品牌渐变色。',
+        desc: '自包含 SVG 图标组件，数据来自共享图标注册表（共 158 个核心图标）。支持三种颜色模式：自适应界面颜色（默认）、固定颜色、品牌渐变色。',
         examples: [
             {
                 title: '基础用法与尺寸',
@@ -1312,7 +1312,7 @@ const GROUPS = [
     },
     {
         title: '专项 Specials',
-        items: [{ id: 'metro', label: '北京线路色', icon: 'bjsubway', render: renderMetro }],
+        items: [{ id: 'metro', label: '北京线路色', icon: 'beijing', render: renderMetro }],
     },
     {
         title: '指南 Guide',
@@ -1392,17 +1392,157 @@ function renderComponent(meta) {
     `;
 }
 
-/* ============ 图标网格 ============ */
+/* ============ 图标分类定义与网格 ============ */
+const ICON_ALIASES = new Set(['open-link', 'plus', 'bell']);
+
+const ICON_CATEGORIES = [
+    {
+        name: '通用导航与方向',
+        en: 'Navigation & Directions',
+        icons: [
+            'back', 'forward', 'home', 'home-dots', 'external', 'menu',
+            'arrow-up', 'arrow-down', 'arrow-left', 'arrow-right',
+            'chevron-up', 'chevron-down', 'chevron-left', 'chevron-right',
+            'expand-more', 'expand-less', 'unfold', 'more-vert', 'more-horiz',
+            'vi-way'
+        ],
+    },
+    {
+        name: '基础操作与状态',
+        en: 'Common Actions & States',
+        icons: [
+            'add', 'addone', 'edit', 'delete', 'save', 'copy', 'close', 'refresh', 'undo', 'redo', 'reverse',
+            'search', 'filter', 'sort', 'eye',
+            'check', 'check-circle', 'warning', 'error', 'error-outline', 'info', 'help',
+            'pin', 'pin-angle', 'unpin-angle',
+            'drag', 'tag', 'bookmark', 'star', 'star-outline'
+        ],
+    },
+    {
+        name: '文件与数据交换',
+        en: 'Files & Export',
+        icons: [
+            'file', 'folder', 'upload', 'download',
+            'export-img', 'export-svg', 'export-json', 'export-zip', 'export-pdf'
+        ],
+    },
+    {
+        name: '系统、账户与安全',
+        en: 'System & Security',
+        icons: [
+            'settings', 'admin', 'user', 'login', 'logout',
+            'lock', 'unlock', 'key', 'notification',
+            'fullscn', 'fullscn-exit', 'zoom-in', 'zoom-out', 'zoom-reset'
+        ],
+    },
+    {
+        name: '界面容器与设计',
+        en: 'Layout & Design',
+        icons: [
+            'card', 'tabs', 'table', 'view-grid', 'view-list', 'window',
+            'layer', 'palette', 'design', 'drunk', 'vi-text', 'vi-clss',
+            'sparkle', 'sun', 'moon', 'flip-h', 'flip-v'
+        ],
+    },
+    {
+        name: '图表与多媒体',
+        en: 'Charts & Media',
+        icons: [
+            'bar-chart', 'pie-chart', 'compare',
+            'camera', 'image', 'play', 'pause', 'speaker', 'light',
+            'chat', 'chat-bubble', 'mail', 'send', 'share',
+            'plugin', 'preset', 'puzzle', 'code', 'link',
+            'touch', 'loading', 'time', 'calendar'
+        ],
+    },
+    {
+        name: '公共交通与出行',
+        en: 'Transit & Vehicles',
+        icons: [
+            'train', 'crh', 'subrail', 'railway', 'bus', 'monorail', 'tram', 'plane', 'ticket', 'gate',
+            'location', 'map', 'route', 'transfer', 'world',
+            'vi-line', 'vi-nbr', 'vi-oth', 'vi-sub'
+        ],
+    },
+    {
+        name: '车站导向与爱心关怀',
+        en: 'Station Facilities & Passenger Care',
+        icons: [
+            'aed', 'elevator', 'escalator', 'stairs', 'counter', 'toilet', 'luggage', 'security', 'noentry', 'police',
+            'baby', 'stroller', 'elder', 'pregnant',
+            'walk', 'tourist', 'payment', 'vi-stn'
+        ],
+    },
+    {
+        name: '城市轨道交通标志',
+        en: 'City Metro Marks',
+        icons: [
+            'beijing', 'changchun', 'dalian', 'fuzhou', 'hefei', 'qingdao', 'shanghai', 'shenyang'
+        ],
+    },
+];
+
 function renderIconGrid() {
-    const names = window.CGO && window.CGO.iconList ? window.CGO.iconList() : [];
-    const cells = names
-        .map(
-            (n) => `<div class="icon-cell" data-icon-name="${n}" title="点击复制 <cgo-icon name='${n}'>">
-        <cgo-icon name="${n}" size="24"></cgo-icon><span>${n}</span>
-    </div>`
-        )
-        .join('');
-    return `<h2 class="doc-h2">全图标列表（点击复制）</h2><div class="icon-grid">${cells}</div>`;
+    const rawList = window.CGO && window.CGO.iconList ? window.CGO.iconList() : [];
+    // 过滤别名，只展示标准本名
+    const validNames = new Set(rawList.filter((n) => !ICON_ALIASES.has(n)));
+    const totalCount = validNames.size;
+
+    const assigned = new Set();
+    const sectionsHtml = ICON_CATEGORIES.map((cat) => {
+        const availableIcons = cat.icons.filter((name) => validNames.has(name));
+        availableIcons.forEach((name) => assigned.add(name));
+        if (availableIcons.length === 0) return '';
+
+        const cells = availableIcons
+            .map(
+                (n) => `<div class="icon-cell" data-icon-name="${n}" title="点击复制 <cgo-icon name='${n}'>">
+            <cgo-icon name="${n}" size="24"></cgo-icon><span>${n}</span>
+        </div>`
+            )
+            .join('');
+
+        return `
+            <div class="icon-category-section" style="margin-top:28px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-color);padding-bottom:6px;margin-bottom:12px;">
+                    <h3 style="margin:0;font-size:15px;font-weight:600;color:var(--text-main);">${cat.name} <span style="font-size:12px;font-weight:normal;color:var(--text-light);margin-left:6px;">${cat.en}</span></h3>
+                    <span style="font-size:12px;color:var(--text-light);background:var(--btn-info-bg);padding:2px 8px;border-radius:10px;">${availableIcons.length}</span>
+                </div>
+                <div class="icon-grid">${cells}</div>
+            </div>`;
+    }).join('');
+
+    // 兜底未收录进分类的新图标
+    const remainingIcons = [...validNames].filter((n) => !assigned.has(n));
+    let remainingHtml = '';
+    if (remainingIcons.length > 0) {
+        const cells = remainingIcons
+            .map(
+                (n) => `<div class="icon-cell" data-icon-name="${n}" title="点击复制 <cgo-icon name='${n}'>">
+            <cgo-icon name="${n}" size="24"></cgo-icon><span>${n}</span>
+        </div>`
+            )
+            .join('');
+        remainingHtml = `
+            <div class="icon-category-section" style="margin-top:28px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border-color);padding-bottom:6px;margin-bottom:12px;">
+                    <h3 style="margin:0;font-size:15px;font-weight:600;color:var(--text-main);">其他图标 <span style="font-size:12px;font-weight:normal;color:var(--text-light);margin-left:6px;">Other Icons</span></h3>
+                    <span style="font-size:12px;color:var(--text-light);background:var(--btn-info-bg);padding:2px 8px;border-radius:10px;">${remainingIcons.length}</span>
+                </div>
+                <div class="icon-grid">${cells}</div>
+            </div>`;
+    }
+
+    return `
+        <h2 class="doc-h2" style="display:flex;align-items:center;justify-content:space-between;margin-top:36px;">
+            <span>全图标分类一览（共 ${totalCount} 个 · 点击复制）</span>
+        </h2>
+        <p style="font-size:13px;color:var(--text-light);margin-top:-6px;margin-bottom:16px;">
+            点击任意图标卡片可直接复制 <code>&lt;cgo-icon name="..."&gt;&lt;/cgo-icon&gt;</code> 代码。别名（如 <code>plus</code>、<code>bell</code>、<code>open-link</code>）已自动合并。
+        </p>
+        ${sectionsHtml}
+        ${remainingHtml}
+    `;
 }
 
 /* ============ 渲染：基础页 ============ */
@@ -1676,7 +1816,7 @@ function renderMetro() {
         </button>`
     ).join('');
 
-    return `<h1 class="doc-h1"><cgo-icon name="bjsubway" size="28"></cgo-icon> 北京线路色</h1>
+    return `<h1 class="doc-h1"><cgo-icon name="beijing" size="28"></cgo-icon> 北京线路色</h1>
         <p class="doc-lead">北京地铁各线路官方标志色与优化色。通过 CSS 变量 <code>--line-color-X</code> 全局映射，支持<strong>标准官方色</strong>与<strong>优化色</strong>一键切换。点击卡片复制变量用法。</p>
 
         <div id="metro-palette-box" data-color-palette="screen">
