@@ -2,6 +2,7 @@ import { ICONS as INTERNAL_ICONS } from '../icons/icons.js';
 import {
     configureGlobalShim,
     installGlobalShim as installLegacyGlobalShim,
+    initImgIconWrappers,
 } from './cgo-global.js';
 
 const REMOVED_ICON_NAMES = ['bjsubway'];
@@ -16,4 +17,5 @@ export function installGlobalShim(global) {
     return installLegacyGlobalShim(global);
 }
 
-export { configureGlobalShim };
+export { configureGlobalShim, initImgIconWrappers };
+
