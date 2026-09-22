@@ -406,6 +406,7 @@ export function installGlobalShim(global = window) {
     CGO.setDefaultHeaderMode = setDefaultHeaderMode;
     CGO.setHeaderModeStorageKey = setHeaderModeStorageKey;
     CGO.getHeaderModeStorageKey = getHeaderModeStorageKey;
+    CGO.initImgIconWrappers = initImgIconWrappers;
     global.CGO = CGO;
 
     // 兼容 cgo_theme.js 暴露的 window.ToolTheme
@@ -418,15 +419,61 @@ export function installGlobalShim(global = window) {
     global.ToolTheme.setThemeColorStorageKey = setThemeColorStorageKey;
     global.ToolTheme.getThemeColorStorageKey = getThemeColorStorageKey;
 
-    // 旧版自动行为：DOM 就绪后渲染 data-icon、初始化旧 .dropdown
+    // 旧版自动行为：DOM 就绪后渲染 data-icon、初始化旧 .dropdown、绑定图片渐进加载
     const autorun = () => {
         renderIcons();
         initDropdowns(document);
         bindLegacyThemeButton();
+        initImgIconWrappers(document);
     };
+    initImgIconWrappers(document);
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', autorun);
     } else {
         autorun();
     }
 }
+
+/**
+ * 自动处理 .img-icon-wrapper 内部 img 的加载状态。
+ * 当图片加载完成（或命中本地缓存）时自动添加 .loaded 类并隐藏 .icon-placeholder 占位符。
+ */
+export function initImgIconWrappers(root = document) {
+    if (typeof window === 'undefined' || !root) return;
+    const markLoaded = (wrapper, img) => {
+        wrapper.classList.add('loaded');
+        if (img) img.classList.add('loaded');
+    };
+    const bindWrapper = (wrapper) => {
+        if (!wrapper || wrapper.classList.contains('loaded')) return;
+        const img = wrapper.querySelector('img');
+        if (!img) return;
+        if (img.complete && img.naturalWidth !== 0) {
+            markLoaded(wrapper, img);
+        } else {
+            img.addEventListener('load', () => markLoaded(wrapper, img), { once: true });
+            img.addEventListener('error', () => markLoaded(wrapper, img), { once: true });
+        }
+    };
+
+    root.querySelectorAll('.img-icon-wrapper').forEach(bindWrapper);
+
+    if (typeof MutationObserver !== 'undefined' && root === document && !document._cgoImgIconObserver) {
+        document._cgoImgIconObserver = true;
+        const observer = new MutationObserver((mutations) => {
+            for (const mutation of mutations) {
+                for (const node of mutation.addedNodes) {
+                    if (node.nodeType === 1) {
+                        if (node.matches && node.matches('.img-icon-wrapper')) {
+                            bindWrapper(node);
+                        } else if (node.querySelectorAll) {
+                            node.querySelectorAll('.img-icon-wrapper').forEach(bindWrapper);
+                        }
+                    }
+                }
+            }
+        });
+        observer.observe(document.documentElement || document.body, { childList: true, subtree: true });
+    }
+}
+
