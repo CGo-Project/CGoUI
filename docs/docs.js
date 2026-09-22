@@ -403,7 +403,7 @@ CGO.icon("edit", { colorMode: "brand" });`,
                 code: `<cgo-button variant="primary"
   onclick="this.nextElementSibling.show()">打开弹窗</cgo-button>
 <cgo-modal title="普通功能对话框" max-width="760px">
-  <p style="color:var(--text-light);margin:0 0 26px;">这是一个普通的配置或数据编辑对话框。在移动端（宽度 <= 600px）下，它将自动切换为底置的抽屉式拉出浮层。</p>
+  <p style="color:var(--text-light);margin:0 0 26px;">这是一个普通的配置或数据编辑对话框。在移动端（宽度 <= 640px）下，它将自动切换为底置的抽屉式拉出浮层。</p>
   <div class="form-group">
     <label>配置项名称</label>
     <input class="form-control" type="text">
@@ -877,6 +877,52 @@ ${AVATAR_COLORS.map((color, i) => `<button class="avatar-color-copy" data-copy-c
         methods: [['window.ToolTheme.applyTheme(theme)', `编程式应用主题，theme 为 'light'|'dark'`]],
     },
     {
+        id: 'header-toggle',
+        tag: 'cgo-header-toggle',
+        title: '顶栏模式切换 Header Toggle',
+        icon: 'unpin-angle',
+        desc: '点击在经典吸顶顶栏（classic，默认原版）与新版悬浮双岛/单胶囊菜单栏（floating）之间切换，长按 800ms 恢复默认吸顶模式。自动持久化到 localStorage 并联动所有切换器。',
+        examples: [
+            {
+                title: '基础组件展示',
+                code: `<div style="display:flex;gap:12px;align-items:center;">
+  <cgo-header-toggle></cgo-header-toggle>
+  <span style="font-size:13px;color:var(--text-light);">← 点击此按钮可即时切换全站菜单栏的悬浮/吸顶样式</span>
+</div>`,
+            },
+            {
+                title: '双岛屿悬浮顶栏 DOM 结构示例 (Floating Island Header)',
+                code: `<header class="tool-header">
+  <div class="header-island header-island-left">
+    <div class="header-left">
+      <button class="btn btn-info"><cgo-icon name="back"></cgo-icon><span>返回</span></button>
+      <a href="../index.html" class="btn btn-primary"><cgo-icon name="home-dots"></cgo-icon><span>仪表盘</span></a>
+    </div>
+    <div class="header-island-divider" aria-hidden="true"></div>
+    <div class="header-center">
+      <cgo-icon name="design" size="24" class="header-logo"></cgo-icon>
+      <span class="app-title">工具页面标题</span>
+    </div>
+  </div>
+  <div class="header-island header-island-right">
+    <div class="header-right">
+      <cgo-header-toggle></cgo-header-toggle>
+      <cgo-theme-toggle></cgo-theme-toggle>
+    </div>
+  </div>
+</header>`,
+            },
+        ],
+        props: [['storage-key', 'string', `''`, '自定义 localStorage 键（隔离不同工具与页面的顶栏模式）']],
+        slots: [],
+        events: [['cgo-header-mode-change', '切换模式时在 window 上派发，detail.mode 为 "floating" | "classic"']],
+        methods: [
+            ['CGO.theme.setHeaderMode(mode)', `编程式应用顶栏模式，mode 为 'floating'|'classic'`],
+            ['CGO.theme.getHeaderMode()', `获取当前顶栏模式，返回 'floating'|'classic'`],
+            ['CGO.theme.toggleHeaderMode()', `在 'floating' 与 'classic' 之间切换`],
+        ],
+    },
+    {
         id: 'admin-select',
         tag: 'cgo-admin-select',
         title: '管理台选项 Admin Select',
@@ -1160,12 +1206,13 @@ const SHADOW_TOKENS = ['--shadow-xs', '--shadow-sm', '--shadow-md', '--shadow-lg
 
 /* ============ 渲染：欢迎页 ============ */
 function renderWelcome() {
-    return `<h1 class="doc-h1"><img src="./design.png" alt="Logo" style="width: 28px; height: 28px;"> Central Go 前端视觉库 <span class="doc-tag">2.0</span></h1>
-        <p class="doc-lead">专为「面向大众提供可靠服务的网站」和「在线数字效率工具套件」打造的轻量级 Web Components 组件库。<br>更新日期：2026-08-06</p>
+    return `<h1 class="doc-h1"><img src="./design.png" alt="Logo" style="width: 28px; height: 28px;"> Central Go 前端视觉库 <span class="doc-tag">2.1alpha</span></h1>
+        <p class="doc-lead">专为「面向大众提供可靠服务的网站」和「在线数字效率工具套件」打造的轻量级 Web Components 组件库。新版本测试中<br>更新日期：2026-09-21</p>
 
         <!-- NPM 发布信息 Banner -->
-        <div style="margin-bottom: 24px; padding: 16px 20px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; box-shadow: var(--shadow-xs);">
-            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+        <div class="glass-card" style="margin-bottom: 24px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+            <div class="liquid-glass-effect" aria-hidden="true"></div>
+            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; position: relative; z-index: 3;">
                 <cgo-badge variant="primary" pill style="font-size: 13px;">NPM 官方包</cgo-badge>
                 <a href="https://www.npmjs.com/package/@centralgo/cgo-ui" target="_blank" rel="noopener noreferrer" style="color: var(--primary-color); font-weight: 700; font-family: var(--font-mono); font-size: 14px; text-decoration: none; display: inline-flex; align-items: center; gap: 4px;">
                     @centralgo/cgo-ui
@@ -1173,7 +1220,7 @@ function renderWelcome() {
                 </a>
                 <code style="font-family: var(--font-mono); font-size: 13px; color: var(--text-main); background: var(--help-code-bg); padding: 4px 10px; border-radius: var(--radius-xs); border: 1px solid var(--border-color);">npm install @centralgo/cgo-ui</code>
             </div>
-            <a href="#/usage" class="btn btn-primary btn-sm" style="text-decoration: none; margin: 0;">
+            <a href="#/usage" class="btn btn-primary btn-sm" style="text-decoration: none; margin: 0; position: relative; z-index: 3;">
                 <cgo-icon name="vi-way" size="14"></cgo-icon>
                 查看完整部署教程
             </a>
@@ -1182,7 +1229,8 @@ function renderWelcome() {
         <!-- 独立 Demo 预览 Card Group -->
         <h2 class="doc-h2">独立 Demo 预览与接入测试</h2>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-bottom:24px;">
-            <div style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:20px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--shadow-xs);">
+            <div class="glass-card" style="margin-bottom:0;padding:20px;display:flex;flex-direction:column;justify-content:space-between;">
+                <div class="liquid-glass-effect" aria-hidden="true"></div>
                 <div>
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                         <cgo-icon name="code" size="20" style="color:var(--primary-color);"></cgo-icon>
@@ -1195,7 +1243,8 @@ function renderWelcome() {
                     打开 CDN Demo 页面
                 </a>
             </div>
-            <div style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:20px;display:flex;flex-direction:column;justify-content:space-between;box-shadow:var(--shadow-xs);">
+            <div class="glass-card" style="margin-bottom:0;padding:20px;display:flex;flex-direction:column;justify-content:space-between;">
+                <div class="liquid-glass-effect" aria-hidden="true"></div>
                 <div>
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                         <cgo-icon name="code" size="20" style="color:var(--primary-color);"></cgo-icon>
@@ -1220,42 +1269,48 @@ function renderWelcome() {
 
         <h2 class="doc-h2">核心特点</h2>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:24px;">
-            <div style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:20px;">
+            <div class="glass-card" style="margin-bottom:0;padding:20px;">
+                <div class="liquid-glass-effect" aria-hidden="true"></div>
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                     <cgo-icon name="layer" size="22"></cgo-icon>
                     <strong style="font-size:15px;">零依赖 Web Components</strong>
                 </div>
                 <p style="color:var(--text-light);font-size:13px;line-height:1.6;margin:0;">基于 Lit 构建的标准 Web Components，无需框架即可在任何 HTML 页面使用。完全兼容 React、Vue 等主流框架。</p>
             </div>
-            <div style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:20px;">
+            <div class="glass-card" style="margin-bottom:0;padding:20px;">
+                <div class="liquid-glass-effect" aria-hidden="true"></div>
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                     <cgo-icon name="download" size="22"></cgo-icon>
                     <strong style="font-size:15px;">NPM & CDN 多种部署方案</strong>
                 </div>
                 <p style="color:var(--text-light);font-size:13px;line-height:1.6;margin:0;">支持通过 NPM 命令 <code>npm i @centralgo/cgo-ui</code> 部署，或通过 jsDelivr CDN 链接直接插入 <code>&lt;script&gt;</code> 快速加载。</p>
             </div>
-            <div style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:20px;">
+            <div class="glass-card" style="margin-bottom:0;padding:20px;">
+                <div class="liquid-glass-effect" aria-hidden="true"></div>
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                     <cgo-icon name="sun" size="22"></cgo-icon>
                     <strong style="font-size:15px;">自适应尺寸与明暗主题</strong>
                 </div>
                 <p style="color:var(--text-light);font-size:13px;line-height:1.6;margin:0;">所有组件自动适配亮色与暗色主题，支持跟随系统、手动切换。适配桌面端与移动端，不同尺寸屏幕自动调整布局。</p>
             </div>
-            <div style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:20px;">
+            <div class="glass-card" style="margin-bottom:0;padding:20px;">
+                <div class="liquid-glass-effect" aria-hidden="true"></div>
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                     <cgo-icon name="palette" size="22"></cgo-icon>
                     <strong style="font-size:15px;">完整的配色体系</strong>
                 </div>
                 <p style="color:var(--text-light);font-size:13px;line-height:1.6;margin:0;">CSS 变量驱动的设计变量系统，包含品牌色、语义色、北京地铁 28+ 条线路色及多子系统品牌渐变色。</p>
             </div>
-            <div style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:20px;">
+            <div class="glass-card" style="margin-bottom:0;padding:20px;">
+                <div class="liquid-glass-effect" aria-hidden="true"></div>
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                     <cgo-icon name="touch" size="22"></cgo-icon>
                     <strong style="font-size:15px;">丰富的组件库</strong>
                 </div>
                 <p style="color:var(--text-light);font-size:13px;line-height:1.6;margin:0;">按钮、表单、表格、弹窗、Toast、侧边导航、聊天气泡、验证码等数十个实用组件，开箱即用。</p>
             </div>
-            <div style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:20px;">
+            <div class="glass-card" style="margin-bottom:0;padding:20px;">
+                <div class="liquid-glass-effect" aria-hidden="true"></div>
                 <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
                     <cgo-icon name="train" size="22"></cgo-icon>
                     <strong style="font-size:15px;">地铁线路色系统</strong>
@@ -1265,14 +1320,17 @@ function renderWelcome() {
         </div>
 
         <h2 class="doc-h2">部署概览</h2>
-        <div style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:20px;margin-bottom:24px;">
-            <p style="color:var(--text-main);font-size:14px;line-height:1.8;margin:0 0 12px;">
-                CGoUI 提供 <strong>NPM 包安装</strong> 与 <strong>CDN 静态引入</strong> 两种部署途径：
-            </p>
-            <ul style="color:var(--text-light);font-size:13px;line-height:1.8;margin:0;padding-left:20px;">
-                <li><strong>NPM 部署（推荐）：</strong>在工程中执行 <code>npm install @centralgo/cgo-ui</code>，对于 React / Next.js 项目可直接从 <code>@centralgo/cgo-ui/react</code> 导入使用。详细教程见 <a href="#/usage" style="color:var(--primary-color);">快速接入指南</a>。</li>
-                <li><strong>CDN 部署：</strong>在 HTML 中插入固定版本的 <code>&lt;script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.1.0/dist/cgo-ui.js"&gt;&lt;/script&gt;</code>，无需任何打包工具即可在浏览器使用组件。</li>
-            </ul>
+        <div class="glass-card" style="padding:20px;margin-bottom:24px;">
+            <div class="liquid-glass-effect" aria-hidden="true"></div>
+            <div style="position:relative;z-index:3;">
+                <p style="color:var(--text-main);font-size:14px;line-height:1.8;margin:0 0 12px;">
+                    CGoUI 提供 <strong>NPM 包安装</strong> 与 <strong>CDN 静态引入</strong> 两种部署途径：
+                </p>
+                <ul style="color:var(--text-light);font-size:13px;line-height:1.8;margin:0;padding-left:20px;">
+                    <li><strong>NPM 部署（推荐）：</strong>在工程中执行 <code>npm install @centralgo/cgo-ui</code>，对于 React / Next.js 项目可直接从 <code>@centralgo/cgo-ui/react</code> 导入使用。详细教程见 <a href="#/usage" style="color:var(--primary-color);">快速接入指南</a>。</li>
+                    <li><strong>CDN 部署：</strong>在 HTML 中插入固定版本的 <code>&lt;script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.1.0/dist/cgo-ui.js"&gt;&lt;/script&gt;</code>，无需任何打包工具即可在浏览器使用组件。</li>
+                </ul>
+            </div>
         </div>
 
         <h2 class="doc-h2">开源协议</h2>
@@ -1596,70 +1654,78 @@ function renderCustomTheme() {
     return `<h1 class="doc-h1"><cgo-icon name="sparkle" size="28"></cgo-icon> 自定义主题色</h1>
         <p class="doc-lead">在网页中声明一个新颜色作为主题色，CGoUI 会根据算法自动推导生成全套 8 种衍生颜色（Primary、Primary Hover、Dark Primary/Hover、同色系 Text Main、暗色极浅 Text Main、Text Light 及暗色 Text Light），并覆盖按钮与各类视觉元素。生成后支持手动微调与一键恢复深蓝默认色。</p>
 
-        <div style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-lg);padding:24px;margin-bottom:28px;box-shadow:var(--shadow-sm);">
-            <h2 class="doc-h2" style="margin-top:0;">1. 选择主题色 (Color Wheel)</h2>
-            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
-                <div style="display:inline-flex;align-items:center;gap:10px;background:var(--bg-color);padding:8px 14px;border:1px solid var(--border-color);border-radius:var(--radius-md);">
-                    <input type="color" id="theme-color-picker" value="${defaultColor}" style="width:36px;height:36px;border:none;border-radius:6px;cursor:pointer;background:transparent;padding:0;">
-                    <input type="text" id="theme-color-hex" value="${defaultColor}" style="font-family:var(--font-mono);font-size:14px;width:90px;padding:6px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--card-bg);color:var(--text-main);">
+        <div class="glass-card" style="padding:24px;margin-bottom:28px;">
+            <div class="liquid-glass-effect" aria-hidden="true"></div>
+            <div style="position:relative;z-index:3;">
+                <h2 class="doc-h2" style="margin-top:0;">1. 选择主题色 (Color Wheel)</h2>
+                <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:20px;">
+                    <div style="display:inline-flex;align-items:center;gap:10px;background:var(--bg-color);padding:8px 14px;border:1px solid var(--border-color);border-radius:var(--radius-md);">
+                        <input type="color" id="theme-color-picker" value="${defaultColor}" style="width:36px;height:36px;border:none;border-radius:6px;cursor:pointer;background:transparent;padding:0;">
+                        <input type="text" id="theme-color-hex" value="${defaultColor}" style="font-family:var(--font-mono);font-size:14px;width:90px;padding:6px 8px;border:1px solid var(--border-color);border-radius:4px;background:var(--card-bg);color:var(--text-main);">
+                    </div>
+                    
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                        <span style="font-size:13px;color:var(--text-light);font-weight:500;">预设快选：</span>
+                        <button class="theme-preset-btn" data-color="#10b981" style="background:#10b981;width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #ccc;cursor:pointer;" title="翡翠绿 #10b981"></button>
+                        <button class="theme-preset-btn" data-color="#8a4de6" style="background:#8a4de6;width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #ccc;cursor:pointer;" title="梦幻紫 #8a4de6"></button>
+                        <button class="theme-preset-btn" data-color="#f97316" style="background:#f97316;width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #ccc;cursor:pointer;" title="活力橙 #f97316"></button>
+                        <button class="theme-preset-btn" data-color="#25d3ff" style="background:#25d3ff;width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #ccc;cursor:pointer;" title="湖水青 #25d3ff"></button>
+                        <button class="theme-preset-btn" data-color="#c74341" style="background:#c74341;width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #ccc;cursor:pointer;" title="珊瑚红 #c74341"></button>
+                    </div>
+
+                    <cgo-button id="theme-reset-btn" variant="info" icon="refresh">恢复默认深蓝</cgo-button>
                 </div>
+
+                <h2 class="doc-h2">2. 自动生成与衍生色微调 (Derived Colors Tuning)</h2>
+                <p style="font-size:13px;color:var(--text-light);margin-bottom:12px;">算法自动推导出的 8 种衍生颜色如下。你可以直接在下方输入框修改 Hex 颜色进行手动微调：</p>
                 
-                <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                    <span style="font-size:13px;color:var(--text-light);font-weight:500;">预设快选：</span>
-                    <button class="theme-preset-btn" data-color="#10b981" style="background:#10b981;width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #ccc;cursor:pointer;" title="翡翠绿 #10b981"></button>
-                    <button class="theme-preset-btn" data-color="#8a4de6" style="background:#8a4de6;width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #ccc;cursor:pointer;" title="梦幻紫 #8a4de6"></button>
-                    <button class="theme-preset-btn" data-color="#f97316" style="background:#f97316;width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #ccc;cursor:pointer;" title="活力橙 #f97316"></button>
-                    <button class="theme-preset-btn" data-color="#25d3ff" style="background:#25d3ff;width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #ccc;cursor:pointer;" title="湖水青 #25d3ff"></button>
-                    <button class="theme-preset-btn" data-color="#c74341" style="background:#c74341;width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px #ccc;cursor:pointer;" title="珊瑚红 #c74341"></button>
+                <div id="derived-colors-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:24px;">
+                    <!-- 动态由 JS 填充 -->
                 </div>
 
-                <cgo-button id="theme-reset-btn" variant="info" icon="refresh">恢复默认深蓝</cgo-button>
-            </div>
+                <h2 class="doc-h2">3. 主要元素实时预览 (Live Element Preview)</h2>
+                <div class="glass-card" style="padding:24px;margin-bottom:24px;">
+                    <div class="liquid-glass-effect" aria-hidden="true"></div>
+                    <div style="position:relative;z-index:3;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border-color);">
+                            <span style="font-size:14px;font-weight:700;color:var(--text-main);">元素试用画布</span>
+                            <cgo-theme-toggle></cgo-theme-toggle>
+                        </div>
+                        
+                        <div style="display:flex;flex-direction:column;gap:18px;">
+                            <div>
+                                <div style="font-size:12px;color:var(--text-light);margin-bottom:8px;font-weight:600;">按钮控件 (Primary Colors Coverage)</div>
+                                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+                                    <cgo-button variant="primary" icon="save">主要按钮</cgo-button>
+                                    <cgo-button variant="ghost" icon="edit">幽灵按钮</cgo-button>
+                                    <cgo-button pill variant="primary" icon="check">胶囊主要按钮</cgo-button>
+                                    <button class="btn btn-primary"><cgo-icon name="send"></cgo-icon> CSS .btn-primary</button>
+                                </div>
+                            </div>
 
-            <h2 class="doc-h2">2. 自动生成与衍生色微调 (Derived Colors Tuning)</h2>
-            <p style="font-size:13px;color:var(--text-light);margin-bottom:12px;">算法自动推导出的 8 种衍生颜色如下。你可以直接在下方输入框修改 Hex 颜色进行手动微调：</p>
-            
-            <div id="derived-colors-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:24px;">
-                <!-- 动态由 JS 填充 -->
-            </div>
+                            <div>
+                                <div style="font-size:12px;color:var(--text-light);margin-bottom:8px;font-weight:600;">文本与排版 (Text Main & Text Light)</div>
+                                <div class="glass-card" style="padding:14px;margin-bottom:0;">
+                                    <div class="liquid-glass-effect" aria-hidden="true"></div>
+                                    <div style="position:relative;z-index:3;">
+                                        <h3 style="margin:0 0 6px;font-size:16px;color:var(--text-main);">同色系主标题文字 (--text-main)</h3>
+                                        <p style="margin:0;font-size:13px;color:var(--text-light);">这是基于主题色生成的同色系辅助说明文字 (--text-light)，明度适中且柔和，呈现出和谐的视觉统一感。</p>
+                                    </div>
+                                </div>
+                            </div>
 
-            <h2 class="doc-h2">3. 主要元素实时预览 (Live Element Preview)</h2>
-            <div style="background:var(--bg-color);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:24px;margin-bottom:24px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border-color);">
-                    <span style="font-size:14px;font-weight:700;color:var(--text-main);">元素试用画布</span>
-                    <cgo-theme-toggle></cgo-theme-toggle>
-                </div>
-                
-                <div style="display:flex;flex-direction:column;gap:18px;">
-                    <div>
-                        <div style="font-size:12px;color:var(--text-light);margin-bottom:8px;font-weight:600;">按钮控件 (Primary Colors Coverage)</div>
-                        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-                            <cgo-button variant="primary" icon="save">主要按钮</cgo-button>
-                            <cgo-button variant="ghost" icon="edit">幽灵按钮</cgo-button>
-                            <cgo-button pill variant="primary" icon="check">胶囊主要按钮</cgo-button>
-                            <button class="btn btn-primary"><cgo-icon name="send"></cgo-icon> CSS .btn-primary</button>
+                            <div>
+                                <div style="font-size:12px;color:var(--text-light);margin-bottom:8px;font-weight:600;">卡片与组件 (Card & Badge)</div>
+                                <cgo-card header="主题色卡片示例" icon="sparkle" style="max-width:440px;">
+                                    这里是卡片内部内容，包含了 <cgo-badge variant="primary">主题 Badge</cgo-badge> 标签与相关控件。
+                                </cgo-card>
+                            </div>
                         </div>
                     </div>
-
-                    <div>
-                        <div style="font-size:12px;color:var(--text-light);margin-bottom:8px;font-weight:600;">文本与排版 (Text Main & Text Light)</div>
-                        <div style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-sm);padding:14px;">
-                            <h3 style="margin:0 0 6px;font-size:16px;color:var(--text-main);">同色系主标题文字 (--text-main)</h3>
-                            <p style="margin:0;font-size:13px;color:var(--text-light);">这是基于主题色生成的同色系辅助说明文字 (--text-light)，明度适中且柔和，呈现出和谐的视觉统一感。</p>
-                        </div>
-                    </div>
-
-                    <div>
-                        <div style="font-size:12px;color:var(--text-light);margin-bottom:8px;font-weight:600;">卡片与组件 (Card & Badge)</div>
-                        <cgo-card header="主题色卡片示例" icon="sparkle" style="max-width:440px;">
-                            这里是卡片内部内容，包含了 <cgo-badge variant="primary">主题 Badge</cgo-badge> 标签与相关控件。
-                        </cgo-card>
-                    </div>
                 </div>
-            </div>
 
-            <h2 class="doc-h2">4. 代码示例 (Usage Example)</h2>
-            ${codeBlock(`// 1. 声明新的主题色（根据算法自动生成 7 种衍生颜色）
+                <h2 class="doc-h2">4. 代码示例 (Usage Example)</h2>
+                ${codeBlock(`// 1. 声明新的主题色（根据算法自动生成 7 种衍生颜色）
 CGO.theme.setThemeColor('#10b981');
 
 // 2. 声明主题色并进行手动微调
@@ -1670,6 +1736,7 @@ CGO.theme.setThemeColor('#10b981', {
 
 // 3. 恢复默认深蓝色配色
 CGO.theme.resetThemeColor();`)}
+            </div>
         </div>`;
 }
 
@@ -1698,9 +1765,10 @@ function initCustomThemeInteractions(root) {
         grid.innerHTML = DERIVED_FIELDS.map(f => {
             const val = palette[f.key] || '#000000';
             return `
-            <div style="background:var(--card-bg);border:1px solid var(--border-color);border-radius:var(--radius-md);padding:10px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow-xs);">
-                <div style="width:36px;height:36px;border-radius:6px;background:${val};border:1px solid rgba(0,0,0,0.1);flex-shrink:0;"></div>
-                <div style="flex:1;min-width:0;">
+            <div class="glass-card" style="padding:10px;display:flex;align-items:center;gap:10px;margin-bottom:0;">
+                <div class="liquid-glass-effect" aria-hidden="true"></div>
+                <div style="width:36px;height:36px;border-radius:6px;background:${val};border:1px solid rgba(0,0,0,0.1);flex-shrink:0;position:relative;z-index:3;"></div>
+                <div style="flex:1;min-width:0;position:relative;z-index:3;">
                     <div style="font-size:11px;color:var(--text-light);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.label}</div>
                     <input type="text" data-derived-key="${f.key}" value="${val}" style="font-family:var(--font-mono);font-size:12px;width:100%;padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-color);color:var(--text-main);box-sizing:border-box;">
                 </div>
@@ -2102,13 +2170,16 @@ function renderTypography() {
     return `<h1 class="doc-h1"><cgo-icon name="vi-oth" size="28"></cgo-icon> 字体排版</h1>
         <p class="doc-lead">主字体 <code>Noto Sans SC</code>，英文字体 <code>Arimo</code>，等宽字体用于代码块。</p>
         <div class="preview-box">
-            <div style="font-size:28px;font-weight:800;margin-bottom:4px;">标题 H1 · 28px Bold</div>
-            <div style="font-size:22px;font-weight:700;margin-bottom:4px;">标题 H2 · 22px Bold</div>
-            <div style="font-size:18px;font-weight:600;margin-bottom:4px;">标题 H3 · 18px SemiBold</div>
-            <div style="font-size:15px;margin-bottom:4px;">正文 Body · 15px Regular — 北京地铁线路图工具套件，供 CGo 工作室使用</div>
-            <div style="font-size:13px;color:var(--text-light);">辅助文字 Caption · 13px — Secondary text used for descriptions and hints</div>
-            <div style="font-size:11px;color:var(--text-light);margin-top:4px;">极小文字 · 11px — badge, label, meta info</div>
-            <div style="font-family:var(--font-mono);font-size:12px;margin-top:12px;background:var(--help-code-bg);padding:8px 12px;border-radius:6px;">等宽字体 · JetBrains Mono — const version = "1.0.0";</div>
+            <div class="liquid-glass-effect" aria-hidden="true"></div>
+            <div style="position:relative;z-index:3;">
+                <div style="font-size:28px;font-weight:800;margin-bottom:4px;">标题 H1 · 28px Bold</div>
+                <div style="font-size:22px;font-weight:700;margin-bottom:4px;">标题 H2 · 22px Bold</div>
+                <div style="font-size:18px;font-weight:600;margin-bottom:4px;">标题 H3 · 18px SemiBold</div>
+                <div style="font-size:15px;margin-bottom:4px;">正文 Body · 15px Regular — 北京地铁线路图工具套件，供 CGo 工作室使用</div>
+                <div style="font-size:13px;color:var(--text-light);">辅助文字 Caption · 13px — Secondary text used for descriptions and hints</div>
+                <div style="font-size:11px;color:var(--text-light);margin-top:4px;">极小文字 · 11px — badge, label, meta info</div>
+                <div style="font-family:var(--font-mono);font-size:12px;margin-top:12px;background:var(--help-code-bg);padding:8px 12px;border-radius:6px;">等宽字体 · JetBrains Mono — const version = "1.0.0";</div>
+            </div>
         </div>`;
 }
 
@@ -2204,7 +2275,7 @@ const nextConfig = {
 </body>
 </html>`;
 
-const monorepoBuild = `# 源码位于独立 CGoUI 仓库
+    const monorepoBuild = `# 源码位于独立 CGoUI 仓库
 cd CGoUI
 npm run build`;
 
@@ -2345,6 +2416,21 @@ function initLegacyInteractions(root) {
 
     if (window.CGO && window.CGO.initDropdowns) window.CGO.initDropdowns(root);
     initCustomThemeInteractions(root);
+    injectLiquidGlassToCards(root);
+}
+
+/* ============ 自动为卡片注入液态玻璃物理折射层 ============ */
+function injectLiquidGlassToCards(container) {
+    if (!container) return;
+    const cards = container.querySelectorAll('.glass-card, .tool-card, .compare-card, .preview-box');
+    cards.forEach((card) => {
+        if (!card.querySelector(':scope > .liquid-glass-effect') && !card.querySelector(':scope > .glass-refraction')) {
+            const effect = document.createElement('div');
+            effect.className = 'liquid-glass-effect';
+            effect.setAttribute('aria-hidden', 'true');
+            card.prepend(effect);
+        }
+    });
 }
 
 /* ============ 侧栏 + 移动端下拉 ============ */
@@ -2393,6 +2479,8 @@ async function route() {
 
     if (page.render) main.innerHTML = page.render();
     else if (page.comp) main.innerHTML = renderComponent(page.comp);
+
+    injectLiquidGlassToCards(main);
 
     // 注入后渲染旧式 <i data-icon> 图标（路由内容是动态插入的，需手动触发）
     if (window.CGO && window.CGO.renderIcons) window.CGO.renderIcons(main);

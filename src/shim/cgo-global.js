@@ -23,6 +23,12 @@ import {
     setGlassMode,
     getGlassMode,
     setDefaultGlassMode,
+    setHeaderMode,
+    getHeaderMode,
+    toggleHeaderMode,
+    setDefaultHeaderMode,
+    setHeaderModeStorageKey,
+    getHeaderModeStorageKey,
 } from '../theme.js';
 
 const DEFAULT_SHIM_CONFIG = Object.freeze({
@@ -377,6 +383,12 @@ export function installGlobalShim(global = window) {
         getGlassMode,
         setDefaultGlassMode,
         injectLiquidGlassFilter,
+        setHeaderMode,
+        getHeaderMode,
+        toggleHeaderMode,
+        setDefaultHeaderMode,
+        setHeaderModeStorageKey,
+        getHeaderModeStorageKey,
     };
     CGO.setThemeColor = setThemeColor;
     CGO.resetThemeColor = resetThemeColor;
@@ -388,6 +400,12 @@ export function installGlobalShim(global = window) {
     CGO.getGlassMode = getGlassMode;
     CGO.setDefaultGlassMode = setDefaultGlassMode;
     CGO.injectLiquidGlassFilter = injectLiquidGlassFilter;
+    CGO.setHeaderMode = setHeaderMode;
+    CGO.getHeaderMode = getHeaderMode;
+    CGO.toggleHeaderMode = toggleHeaderMode;
+    CGO.setDefaultHeaderMode = setDefaultHeaderMode;
+    CGO.setHeaderModeStorageKey = setHeaderModeStorageKey;
+    CGO.getHeaderModeStorageKey = getHeaderModeStorageKey;
     global.CGO = CGO;
 
     // 兼容 cgo_theme.js 暴露的 window.ToolTheme

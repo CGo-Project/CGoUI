@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import './icon.js';
+import { injectLiquidGlassFilter } from '../theme.js';
 
 /**
  * <cgo-nav-item>
@@ -56,8 +57,8 @@ if (typeof window !== 'undefined' && window.customElements) {
  * <cgo-side-nav>
  *
  * 自适应侧边导航组件。
- * - 电脑端（>768px）：纵向侧边栏导航，带磨砂玻璃背景
- * - 移动端（≤768px）：水平滚动胶囊选项卡
+ * - 电脑端（>640px）：纵向侧边栏导航，带磨砂玻璃背景
+ * - 移动端（≤640px）：水平滚动胶囊选项卡
  *
  * 子元素: <cgo-nav-item>
  *
@@ -86,14 +87,18 @@ export class CgoSideNav extends LitElement {
     static properties = {
         /** 当前激活项的索引（从 0 开始）。设置后自动高亮对应项。 */
         activeIndex: { type: Number, attribute: 'active-index' },
+        docked: { type: Boolean, reflect: true },
+        floating: { type: Boolean, reflect: true },
     };
 
     static styles = css`
         :host {
             /* ---- CSS 变量（可按需覆写） ---- */
-            --sidenav-width: 220px;
+            --sidenav-width: var(--cgo-nav-width, var(--sidebar-width, 280px));
             --sidenav-bg: var(--glass-bg, rgba(248, 249, 250, 0.85));
-            --sidenav-border: var(--glass-border, rgba(0, 0, 0, 0.08));
+            --sidenav-border: var(--border-color, rgba(0, 0, 0, 0.08));
+            --sidenav-radius: var(--header-floating-radius, 12px);
+            --sidenav-shadow: var(--header-floating-shadow, 0 4px 20px rgba(0, 0, 0, 0.12));
             --sidenav-item-gap: 4px;
             --sidenav-item-radius: 6px;
             --sidenav-item-px: 12px;
@@ -110,37 +115,118 @@ export class CgoSideNav extends LitElement {
             font-family: var(--font-sans, system-ui, -apple-system, 'Noto Sans SC', sans-serif);
         }
 
-        /* ===== 外层容器 ===== */
+        /* ===== 外层容器 (统一为 tool.html 液态玻璃规格) ===== */
         .sidenav {
             display: flex;
             flex-direction: column;
             width: var(--sidenav-width);
             height: 100%;
-            background: var(--sidenav-bg);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            border-right: 1px solid var(--sidenav-border);
+            background: transparent;
+            border: none;
+            border-radius: var(--sidenav-radius, 12px);
+            box-shadow: var(--glass-shadow);
             box-sizing: border-box;
-            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
             overflow: hidden;
+            isolation: isolate;
+            transition: transform var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1)),
+                        box-shadow var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1));
         }
 
-        :host-context([glass-mode="liquid"]) .sidenav,
-        :host-context([glass-mode="blur"]) .sidenav,
-        :host-context([data-glass-mode="liquid"]) .sidenav,
-        :host-context([data-glass-mode="blur"]) .sidenav {
-            background: var(--glass-bg, rgba(248, 249, 250, 0.82));
-            backdrop-filter: blur(14px) saturate(135%);
-            -webkit-backdrop-filter: blur(14px) saturate(135%);
-            box-shadow: inset -1px 0 0 0 rgba(255, 255, 255, 0.6);
+        /* Layer 0: 折射磨砂层 (完全对齐 tool.html) */
+        .liquid-glass-effect {
+            position: absolute;
+            z-index: 0;
+            inset: 0;
+            border-radius: inherit;
+            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
+            -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
+            filter: var(--glass-refraction-filter, url(#glass-distortion));
+            overflow: hidden;
+            pointer-events: none;
+            isolation: isolate;
         }
 
-        :host-context([data-theme="dark"][glass-mode="liquid"]) .sidenav,
-        :host-context([data-theme="dark"][glass-mode="blur"]) .sidenav,
-        :host-context([data-theme="dark"][data-glass-mode="liquid"]) .sidenav,
-        :host-context([data-theme="dark"][data-glass-mode="blur"]) .sidenav {
-            background: var(--glass-bg, rgba(31, 32, 34, 0.75));
-            box-shadow: inset -1px 0 0 0 rgba(255, 255, 255, 0.08);
+        /* Layer 1: Tint 半透明衬底层 (完全对齐 tool.html: 亮色 0.60, 暗色 0.60) */
+        .sidenav::after {
+            content: "";
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            border-radius: inherit;
+            background: var(--glass-bg, rgba(255, 255, 255, 0.60));
+            pointer-events: none;
+            transition: background-color 0.25s ease;
+        }
+
+        :host-context([data-theme="dark"]) .sidenav::after,
+        :host-context([data-theme="dark"]:root) .sidenav::after {
+            background: var(--glass-bg, rgba(31, 32, 34, 0.60));
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :host-context(:root:not([data-theme="light"])) .sidenav::after {
+                background: var(--glass-bg, rgba(31, 32, 34, 0.60));
+            }
+        }
+
+        /* Layer 2: 双轴微光圈层 (完全对齐 tool.html 极简微边框) */
+        .sidenav::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background:
+                linear-gradient(to right,
+                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 0,
+                    rgba(0, 0, 0, 0) var(--lg-rim-side, 4px),
+                    rgba(0, 0, 0, 0) calc(100% - var(--lg-rim-side, 4px)),
+                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 100%),
+                linear-gradient(to bottom,
+                    rgba(255, 255, 255, var(--lg-rim-lit, 0.95)) 0,
+                    rgba(255, 255, 255, var(--lg-rim-lit, 0.95)) var(--lg-rim-hold, 1px),
+                    rgba(255, 255, 255, 0) var(--lg-rim-fade, 12px),
+                    rgba(255, 255, 255, 0) calc(100% - var(--lg-rim-fade, 12px)),
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.4)) calc(100% - var(--lg-rim-hold, 1px)),
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.4)) 100%);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 2;
+            transition: opacity 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+
+        :host([docked]) .sidenav,
+        :host(:not([floating])) .sidenav,
+        :host-context([header-mode="classic"]) .sidenav,
+        :host-context([data-header-mode="classic"]) .sidenav,
+        :host-context(:root:not([header-mode="floating"])) .sidenav {
+            border-radius: 0 !important;
+            border-top: none !important;
+            border-bottom: none !important;
+            border-left: none !important;
+            border-right: 1px solid var(--sidenav-border, var(--border-color)) !important;
+            box-shadow: none !important;
+        }
+        :host([docked]) .sidenav::before,
+        :host(:not([floating])) .sidenav::before,
+        :host-context([header-mode="classic"]) .sidenav::before,
+        :host-context([data-header-mode="classic"]) .sidenav::before,
+        :host-context(:root:not([header-mode="floating"])) .sidenav::before {
+            display: none !important;
+        }
+
+        /* Layer 3: 内部元素保证绝对锐利清晰 */
+        .sidenav-user-brief,
+        .sidenav-menu,
+        .sidenav-footer {
+            position: relative;
+            z-index: 3;
         }
 
         /* ===== 用户简介区 ===== */
@@ -156,7 +242,7 @@ export class CgoSideNav extends LitElement {
         .sidenav-menu {
             flex: 1;
             overflow-y: auto;
-            padding: 24px 10px 10px;
+            padding: 12px 10px;
             display: flex;
             flex-direction: column;
             gap: var(--sidenav-item-gap);
@@ -273,22 +359,50 @@ export class CgoSideNav extends LitElement {
         }
 
         /* ============================================
-           响应式：≤820px 切换为顶部胶囊选项卡
+           响应式：≤640px 切换为顶部胶囊选项卡
            ============================================ */
-        @media (max-width: 820px) {
+        @media (max-width: 640px) {
             .sidenav {
                 width: 100%;
                 height: auto;
                 flex-direction: row;
                 align-items: center;
-                border-right: none;
-                border-bottom: 1px solid var(--border-color, #dee2e6);
-                background: var(--card-bg, #fff);
-                backdrop-filter: none;
-                -webkit-backdrop-filter: none;
+                border-radius: var(--header-floating-radius, 12px);
+                border: none;
+                background: transparent;
+                box-shadow: var(--glass-shadow);
                 padding: 0;
                 flex-shrink: 0;
+                box-sizing: border-box;
             }
+
+            /* 移动端悬浮模式下：宽度与浮动菜单栏相同，外观采用浮动胶囊卡片样式 */
+            :host([floating]),
+            :host-context([header-mode="floating"]),
+            :host-context([data-header-mode="floating"]) {
+                display: block;
+                margin-left: calc(10px + env(safe-area-inset-left, 0px)) !important;
+                margin-right: calc(10px + env(safe-area-inset-right, 0px)) !important;
+                width: calc(100% - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)) !important;
+                max-width: calc(100% - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px)) !important;
+                box-sizing: border-box;
+            }
+
+            /* 移动端普通吸顶模式下：铺满顶栏下方，直角吸附对接 */
+            :host(:not([floating])) .sidenav,
+            :host-context([header-mode="classic"]) .sidenav,
+            :host-context([data-header-mode="classic"]) .sidenav,
+            :host-context(:root:not([header-mode="floating"])) .sidenav {
+                border-radius: 0 !important;
+                margin-left: 0 !important;
+                margin-right: 0 !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                border-right: none !important;
+                border-bottom: 1px solid var(--sidenav-border, var(--border-color)) !important;
+                box-shadow: none !important;
+            }
+
             .sidenav-user-brief,
             .sidenav-footer,
             .sidenav-heading {
@@ -303,6 +417,8 @@ export class CgoSideNav extends LitElement {
                 -webkit-overflow-scrolling: touch;
                 gap: 8px;
                 scrollbar-width: none;
+                position: relative;
+                z-index: 3;
             }
             .sidenav-menu::-webkit-scrollbar {
                 display: none;
@@ -350,7 +466,63 @@ export class CgoSideNav extends LitElement {
     constructor() {
         super();
         this.activeIndex = 0;
+        this.docked = false;
+        this.floating = false;
+        this._manualFloating = false;
         this._lastItemsLen = 0;
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        injectLiquidGlassFilter();
+        if (this.hasAttribute('floating')) {
+            this._manualFloating = true;
+        }
+        this._syncFloatingState = () => {
+            if (this.hasAttribute('docked')) {
+                if (this.hasAttribute('floating')) this.removeAttribute('floating');
+                return;
+            }
+            const rootHeaderMode =
+                document.documentElement.getAttribute('header-mode') ||
+                document.documentElement.getAttribute('data-header-mode') ||
+                document.body?.getAttribute('header-mode') ||
+                document.body?.getAttribute('data-header-mode');
+            const isFloating = rootHeaderMode === 'floating';
+            if (isFloating) {
+                if (!this.hasAttribute('floating')) this.setAttribute('floating', '');
+            } else if (!this._manualFloating) {
+                if (this.hasAttribute('floating')) this.removeAttribute('floating');
+            }
+        };
+        this._syncFloatingState();
+        if (typeof window !== 'undefined') {
+            window.addEventListener('cgo-header-mode-change', this._syncFloatingState);
+        }
+        if (typeof MutationObserver !== 'undefined') {
+            this._headerObserver = new MutationObserver(this._syncFloatingState);
+            this._headerObserver.observe(document.documentElement, {
+                attributes: true,
+                attributeFilter: ['header-mode', 'data-header-mode'],
+            });
+            if (document.body) {
+                this._headerObserver.observe(document.body, {
+                    attributes: true,
+                    attributeFilter: ['header-mode', 'data-header-mode'],
+                });
+            }
+        }
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        if (typeof window !== 'undefined' && this._syncFloatingState) {
+            window.removeEventListener('cgo-header-mode-change', this._syncFloatingState);
+        }
+        if (this._headerObserver) {
+            this._headerObserver.disconnect();
+            this._headerObserver = null;
+        }
     }
 
     /* ---- 获取所有 <cgo-nav-item> 子元素（不含 heading） ---- */
@@ -479,6 +651,7 @@ export class CgoSideNav extends LitElement {
 
         return html`
             <div class="sidenav">
+                <div class="liquid-glass-effect" aria-hidden="true"></div>
                 ${this._hasSlot('user-brief')
                     ? html`
                           <div class="sidenav-user-brief">

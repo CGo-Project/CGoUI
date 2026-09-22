@@ -47,10 +47,10 @@ export class CgoDropdown extends LitElement {
         :host-context([glass-mode="blur"]) .menu,
         :host-context([data-glass-mode="liquid"]) .menu,
         :host-context([data-glass-mode="blur"]) .menu {
+            border: none;
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(16px) saturate(150%);
             -webkit-backdrop-filter: blur(16px) saturate(150%);
-            border-color: var(--glass-border, rgba(255, 255, 255, 0.4));
             box-shadow:
                 0 0 0 0.5px rgba(0, 0, 0, 0.06),
                 0 16px 36px -6px rgba(0, 38, 59, 0.15),
@@ -61,10 +61,10 @@ export class CgoDropdown extends LitElement {
         :host-context([data-theme="dark"][glass-mode="blur"]) .menu,
         :host-context([data-theme="dark"][data-glass-mode="liquid"]) .menu,
         :host-context([data-theme="dark"][data-glass-mode="blur"]) .menu {
+            border: none;
             background: rgba(28, 30, 32, 0.85);
             backdrop-filter: blur(16px) saturate(150%);
             -webkit-backdrop-filter: blur(16px) saturate(150%);
-            border-color: rgba(255, 255, 255, 0.1);
             box-shadow:
                 0 0 0 0.5px rgba(255, 255, 255, 0.1),
                 0 20px 42px -6px rgba(0, 0, 0, 0.65),

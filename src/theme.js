@@ -454,7 +454,7 @@ export function injectLiquidGlassFilter() {
                     <fePointLight x="-200" y="-200" z="300" />
                 </feSpecularLighting>
                 <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
-                <feDisplacementMap in="SourceGraphic" in2="softMap" scale="100" xChannelSelector="R" yChannelSelector="G" />
+                <feDisplacementMap in="SourceGraphic" in2="softMap" scale="20" xChannelSelector="R" yChannelSelector="G" />
             </filter>
         </defs>
     `;
@@ -484,17 +484,114 @@ export function setGlassMode(mode) {
 }
 
 export function getGlassMode() {
-    if (typeof document === 'undefined') return 'flat';
+    if (typeof document === 'undefined') return 'liquid';
     return (
         document.documentElement.getAttribute('glass-mode') ||
         getComputedStyle(document.documentElement).getPropertyValue('--cgo-glass-default')?.trim() ||
-        'flat'
+        'liquid'
     );
 }
 
 export function setDefaultGlassMode(mode) {
     if (typeof document === 'undefined') return;
     document.documentElement.style.setProperty('--cgo-glass-default', mode);
+}
+
+/* ───────── 顶栏模式（吸顶 Classic vs 悬浮 Floating） ───────── */
+
+export function autoHeaderModeStorageKey() {
+    let prefix = '';
+    try {
+        if (typeof window !== 'undefined' && window.location && window.location.pathname) {
+            const path = window.location.pathname;
+            const normalized = path
+                .replace(/\.html$/, '')
+                .replace(/\/index$/, '')
+                .replace(/^\//, '')
+                .replace(/\/$/, '');
+            prefix = normalized ? normalized.replace(/[^a-zA-Z0-9_-]/g, '_') + '_' : 'root_';
+        }
+    } catch (e) {}
+    return prefix + 'cgo_header_mode';
+}
+
+let _headerModeStorageKey = autoHeaderModeStorageKey();
+
+export function setHeaderModeStorageKey(key) {
+    if (key) _headerModeStorageKey = key;
+}
+
+export function getHeaderModeStorageKey() {
+    return _headerModeStorageKey;
+}
+
+export function setHeaderMode(mode) {
+    if (typeof document === 'undefined') return;
+    const normalized = mode === 'floating' ? 'floating' : 'classic';
+    if (normalized === 'floating') {
+        document.documentElement.setAttribute('header-mode', 'floating');
+    } else {
+        document.documentElement.setAttribute('header-mode', 'classic');
+    }
+    try {
+        localStorage.setItem(_headerModeStorageKey, normalized);
+    } catch (e) {}
+    // 通知所有 cgo-header-toggle 组件同步状态
+    document.querySelectorAll('cgo-header-toggle').forEach((el) => el._sync && el._sync(normalized));
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('cgo-header-mode-change', { detail: { mode: normalized } }));
+    }
+    return normalized;
+}
+
+export function getHeaderMode() {
+    if (typeof document === 'undefined') return 'classic';
+    return (
+        document.documentElement.getAttribute('header-mode') ||
+        getComputedStyle(document.documentElement).getPropertyValue('--cgo-header-default')?.trim() ||
+        'classic'
+    );
+}
+
+export function toggleHeaderMode() {
+    const next = getHeaderMode() === 'floating' ? 'classic' : 'floating';
+    setHeaderMode(next);
+    return next;
+}
+
+export function setDefaultHeaderMode(mode) {
+    if (typeof document === 'undefined') return;
+    document.documentElement.style.setProperty('--cgo-header-default', mode);
+}
+
+/* ───────── 背景模式（纯色 Solid vs 渐变 Gradient） ───────── */
+
+export function setBgMode(mode) {
+    if (typeof document === 'undefined') return 'solid';
+    const normalized = mode === 'gradient' ? 'gradient' : 'solid';
+    if (normalized === 'gradient') {
+        document.documentElement.setAttribute('bg-mode', 'gradient');
+    } else {
+        document.documentElement.setAttribute('bg-mode', 'solid');
+    }
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('cgo-bg-mode-change', { detail: { mode: normalized } }));
+    }
+    return normalized;
+}
+
+export function getBgMode() {
+    if (typeof document === 'undefined') return 'solid';
+    return (
+        document.documentElement.getAttribute('bg-mode') ||
+        getComputedStyle(document.documentElement).getPropertyValue('--cgo-bg-default')?.trim() ||
+        'solid'
+    );
+}
+
+export function setDefaultBgMode(mode) {
+    if (typeof document === 'undefined') return;
+    document.documentElement.style.setProperty('--cgo-bg-default', mode);
 }
 
 export function initTheme() {
@@ -532,6 +629,19 @@ export function initTheme() {
             const parsed = JSON.parse(savedColorConfig);
             if (parsed && parsed.baseColor) {
                 setThemeColor(parsed.baseColor, parsed.overrides || {});
+            }
+        }
+    } catch (e) {}
+
+    // 恢复本地存储的顶栏模式（按页面/应用隔离键），若本地无记录则遵循 HTML 声明或默认 classic
+    try {
+        const savedHeaderMode = localStorage.getItem(_headerModeStorageKey);
+        if (savedHeaderMode) {
+            setHeaderMode(savedHeaderMode);
+        } else {
+            const current = getHeaderMode();
+            if (current) {
+                document.querySelectorAll('cgo-header-toggle').forEach((el) => el._sync && el._sync(current));
             }
         }
     } catch (e) {}
