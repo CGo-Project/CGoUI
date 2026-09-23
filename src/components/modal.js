@@ -25,7 +25,7 @@ export class CgoModal extends LitElement {
             position: fixed;
             inset: 0;
             background: rgba(0, 0, 0, 0.45);
-            z-index: 9000;
+            z-index: 99990;
             backdrop-filter: blur(4px);
             -webkit-backdrop-filter: blur(4px);
             animation: overlayIn 0.2s ease;
@@ -55,7 +55,7 @@ export class CgoModal extends LitElement {
             border: 1px solid var(--border-color, #dee2e6);
             border-radius: var(--radius-lg, 12px);
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
-            z-index: 9001;
+            z-index: 100000;
             width: min(560px, 92dvw);
             max-height: 90dvh;
             overflow: hidden;

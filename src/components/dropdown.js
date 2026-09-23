@@ -43,33 +43,9 @@ export class CgoDropdown extends LitElement {
             overflow: hidden;
             animation: dropdownIn 0.15s ease;
         }
-        :host-context([glass-mode="liquid"]) .menu,
-        :host-context([glass-mode="blur"]) .menu,
-        :host-context([data-glass-mode="liquid"]) .menu,
-        :host-context([data-glass-mode="blur"]) .menu {
-            border: none;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(16px) saturate(150%);
-            -webkit-backdrop-filter: blur(16px) saturate(150%);
-            box-shadow:
-                0 0 0 0.5px rgba(0, 0, 0, 0.06),
-                0 16px 36px -6px rgba(0, 38, 59, 0.15),
-                0 4px 10px -2px rgba(0, 38, 59, 0.08),
-                inset 0 1px 1px 0 rgba(255, 255, 255, 0.85);
-        }
-        :host-context([data-theme="dark"][glass-mode="liquid"]) .menu,
-        :host-context([data-theme="dark"][glass-mode="blur"]) .menu,
-        :host-context([data-theme="dark"][data-glass-mode="liquid"]) .menu,
-        :host-context([data-theme="dark"][data-glass-mode="blur"]) .menu {
-            border: none;
-            background: rgba(28, 30, 32, 0.85);
-            backdrop-filter: blur(16px) saturate(150%);
-            -webkit-backdrop-filter: blur(16px) saturate(150%);
-            box-shadow:
-                0 0 0 0.5px rgba(255, 255, 255, 0.1),
-                0 20px 42px -6px rgba(0, 0, 0, 0.65),
-                0 6px 12px -2px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.16);
+        :host-context([data-theme="dark"]) .menu {
+            background: var(--card-bg, #1f2020);
+            border-color: var(--border-color, #383a3c);
         }
         :host([align='left']) .menu {
             right: auto;

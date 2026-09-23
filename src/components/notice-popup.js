@@ -15,7 +15,7 @@ export class CgoNoticePopup extends LitElement {
     static styles = css`
         :host {
             position: fixed;
-            z-index: 10010;
+            z-index: 100100;
             display: flex;
             flex-direction: column;
             gap: 10px;
