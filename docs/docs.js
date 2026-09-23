@@ -1393,7 +1393,7 @@ function renderComponent(meta) {
 }
 
 /* ============ 图标分类定义与网格 ============ */
-const ICON_ALIASES = new Set(['open-link', 'plus', 'bell']);
+const ICON_ALIASES = new Set(['open-link', 'plus', 'bell', 'xianggang', 'taibei', 'gaoxiong', 'haerbin', 'xi-an']);
 
 const ICON_CATEGORIES = [
     {
@@ -1477,7 +1477,12 @@ const ICON_CATEGORIES = [
         name: '城市轨道交通标志',
         en: 'City Metro Marks',
         icons: [
-            'beijing', 'changchun', 'dalian', 'fuzhou', 'hefei', 'qingdao', 'shanghai', 'shenyang'
+            'beijing', 'changchun', 'dalian', 'fuzhou', 'hefei', 'qingdao', 'shanghai', 'shenyang',
+            'changsha', 'changzhou', 'chengdu', 'chongqing', 'dongguan', 'foshan', 'guangzhou', 'guiyang',
+            'hangzhou', 'harbin', 'hongkong', 'jinan', 'kaohsiung', 'kunming', 'lanzhou', 'nanchang',
+            'nanjing', 'nanning', 'nantong', 'ningbo', 'shijiazhuang', 'shenzhen', 'suzhou', 'taipei',
+            'taiyuan', 'taoyuan', 'tianjin', 'wenzhou', 'wuhan', 'wuhu', 'wuxi', 'xiamen',
+            'xian', 'zhengzhou'
         ],
     },
 ];
