@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
     <meta name="description" content="CGoUI 介绍类页面模板 Demo">
     <title>介绍类页面模板 - CGoUI Demo</title>
@@ -290,9 +290,12 @@
         </defs>
     </svg>
 
+    <!-- 移动端顶部状态栏/信号栏实色安全区保护层：遮挡页面滚动穿透内容 -->
+    <div class="mobile-status-bar-fill" aria-hidden="true"></div>
+
     <!-- ==================== 顶部菜单栏 Header (双岛/胶囊自适应布局) ==================== -->
     <header class="tool-header">
-        <div class="header-island header-island-left">
+        <div class="header-island header-island-left glass-surface">
             <!-- 1. 左侧：导航按钮 + Logo + 标题 -->
             <div class="header-left">
                 <button class="btn btn-info" onclick="history.back()" title="返回上一页">
@@ -314,7 +317,7 @@
             </div>
         </div>
 
-        <div class="header-island header-island-right">
+        <div class="header-island header-island-right glass-surface">
             <!-- 3. 右侧：选项与主题控制 -->
             <div class="header-right">
                 <!-- 顶栏模式切换组件 -->
@@ -392,8 +395,8 @@
 
         </section>
 
-        <!-- 3. 文章/规则梳理区 -->
-        <section id="evolution" class="tool-card article-content">
+        <!-- 3. 文章/规则梳理区 (Tier B 底板) -->
+        <section id="evolution" class="tool-card article-content glass-panel">
             <h2 class="page-title" style="margin-top: 0;">规则演进与标准对照</h2>
             <p class="page-subtitle" style="color: var(--text-light, #666); margin-bottom: 20px;">历史版本对比与核心规则归纳表</p>
 

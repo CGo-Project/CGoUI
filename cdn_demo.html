@@ -2,7 +2,7 @@
 <html lang="zh-CN" glass-mode="liquid">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>CGoUI CDN 极简接入 Demo</title>
     <link rel="icon" href="./design.png">
     <link rel="apple-touch-icon" href="./design2.png">
@@ -87,6 +87,27 @@
             overflow-x: auto;
             color: var(--text-main, #333);
         }
+        /* 移动端/异形屏顶部状态栏与信号栏保护层 */
+        .mobile-status-bar-fill {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: calc(constant(safe-area-inset-top, 0px) + 16px);
+            height: calc(env(safe-area-inset-top, 0px) + 16px);
+            background: linear-gradient(
+                to bottom,
+                var(--theme-bg, var(--bg-color, #f8f9fa)) constant(safe-area-inset-top, 0px),
+                transparent calc(constant(safe-area-inset-top, 0px) + 16px)
+            );
+            background: linear-gradient(
+                to bottom,
+                var(--theme-bg, var(--bg-color, #f8f9fa)) env(safe-area-inset-top, 0px),
+                transparent calc(env(safe-area-inset-top, 0px) + 16px)
+            );
+            z-index: 50001;
+            pointer-events: none;
+        }
     </style>
 </head>
 <body>
@@ -99,6 +120,9 @@
             </filter>
         </defs>
     </svg>
+
+    <!-- 移动端顶部状态栏/信号栏实色安全区保护层：遮挡页面滚动穿透内容 -->
+    <div class="mobile-status-bar-fill" aria-hidden="true"></div>
 
     <div class="demo-card">
         <div class="header-bar" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--primary-color, #00263b); padding-bottom: 15px; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">

@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
     <meta name="description" content="CGoUI 工具类页面模板 Demo">
     <title>工具类页面模板 - CGoUI Demo</title>
@@ -173,9 +173,12 @@
         </defs>
     </svg>
 
+    <!-- 移动端顶部状态栏/信号栏实色安全区保护层：遮挡页面滚动穿透内容 -->
+    <div class="mobile-status-bar-fill" aria-hidden="true"></div>
+
     <!-- ==================== 顶部菜单栏 Header (双岛/胶囊自适应布局) ==================== -->
     <header class="tool-header">
-        <div class="header-island header-island-left">
+        <div class="header-island header-island-left glass-surface">
             <!-- 1. 左侧：导航按钮区 -->
             <div class="header-left">
                 <button class="btn btn-info" onclick="history.back()" title="返回上一页">
@@ -195,7 +198,7 @@
             </div>
         </div>
 
-        <div class="header-island header-island-right">
+        <div class="header-island header-island-right glass-surface">
             <!-- 3. 右侧：选项与功能按钮区 -->
             <div class="header-right">
                 <!-- 导出下拉菜单 -->
@@ -246,8 +249,8 @@
     <!-- ==================== 下方工作区 Main ==================== -->
     <main class="tool-container">
 
-        <!-- 工具栏 / 操作面板 -->
-        <div class="tool-card" style="margin-bottom: 16px; padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+        <!-- 工具栏 / 操作面板 (Tier B 底板) -->
+        <div class="tool-card glass-panel" style="margin-bottom: 16px; padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
             <span style="font-weight: 600; font-size: 14px;">工作区工具栏：</span>
             <cgo-button variant="glass" icon="sparkle" size="sm">液态玻璃</cgo-button>
             <cgo-button variant="primary" icon="add" size="sm">新增项目</cgo-button>

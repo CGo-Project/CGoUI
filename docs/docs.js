@@ -265,10 +265,33 @@ CGO.icon("edit", { colorMode: "brand" });`,
   </cgo-card>
 </div>`,
             },
+            {
+                title: '液态玻璃三档卡片分类规范 (Tier A 可交互 / Tier B 不可交互底板 / Tier C 不可交互强调)',
+                code: `<div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));">
+  <!-- Tier A: 可交互入口卡片 (0.60 -> hover 0.68 + 上移4px) -->
+  <div class="glass-card interactive" style="padding: 16px; border-radius: 12px; cursor: pointer;">
+    <strong>Tier A: 可交互卡片 (.glass-card / .tool-item)</strong>
+    <p style="margin: 8px 0 0; font-size: 13px;">中低不透明度，悬停时产生弹性位移与高亮反馈，用于按钮与工具卡片。</p>
+  </div>
+
+  <!-- Tier B: 不可交互底板 (0.82 固定，零 hover 动效) -->
+  <div class="glass-panel" style="padding: 16px; border-radius: 12px;">
+    <strong>Tier B: 不可交互底板 (.glass-panel)</strong>
+    <p style="margin: 8px 0 0; font-size: 13px;">高不透明度，零 hover 反应，用于正文分栏、工作台、承载复杂图表与表单。</p>
+  </div>
+
+  <!-- Tier C: 不可交互强调板 (0.72 固定，零 hover 动效) -->
+  <div class="glass-surface" style="padding: 16px; border-radius: 12px;">
+    <strong>Tier C: 不可交互强调表面 (.glass-surface / .header-island)</strong>
+    <p style="margin: 8px 0 0; font-size: 13px;">中不透明度，全双轴微光圈，零 hover 反应，用于悬浮标题栏双岛与重点承载板。</p>
+  </div>
+</div>`,
+            },
         ],
         props: [
             ['variant', `standard | glass | info | danger`, 'standard', '卡片视觉类型'],
             ['glass-mode', `liquid | blur | flat`, '（继承全局默认 flat）', '玻璃模式档位：liquid(折射+模糊) / blur(仅模糊) / flat(完全扁平)'],
+            ['tier', `A (.tool-item) | B (.glass-panel) | C (.glass-surface)`, '—', '液态玻璃卡片分类分档：Tier A 可交互 / Tier B 不可交互底板 / Tier C 不可交互强调表面'],
             ['title', 'string', `''`, '卡片标题'],
         ],
         slots: [['(默认)', '卡片正文']],
@@ -892,7 +915,10 @@ ${AVATAR_COLORS.map((color, i) => `<button class="avatar-color-copy" data-copy-c
             },
             {
                 title: '双岛屿悬浮顶栏 DOM 结构示例 (Floating Island Header)',
-                code: `<header class="tool-header">
+                code: `<!-- 移动端顶部状态栏/信号栏实色安全区保护层 -->
+<div class="mobile-status-bar-fill" aria-hidden="true"></div>
+
+<header class="tool-header">
   <div class="header-island header-island-left">
     <div class="header-left">
       <button class="btn btn-info"><cgo-icon name="back"></cgo-icon><span>返回</span></button>

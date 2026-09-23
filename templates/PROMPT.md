@@ -414,6 +414,24 @@ CGoUI 内置了次世代 Liquid Glass（物理光学折射、双轴微光圈边�
 - **作用域**：可以在 `<html>` 全局声明，也可以在具体 `<cgo-card variant="glass" glass-mode="liquid">` 上精细覆盖。
 - **文字绝对清晰原则**：开启 `liquid` 模式后，CGoUI 采用严格的 4 层立体复合架构（Layer 0 折射磨砂、Layer 1 底色衬底、Layer 2 双轴光圈、Layer 3 文字内容），内容层绝不会出现文字发虚或图标模糊。
 
+### 7.1 液态玻璃卡片三档规范 (Glass Card Tier System)
+
+CGoUI 对所有液态玻璃卡片建立了严格的 3 档分级体系，彻底解决层叠混用、透明度失准及鼠标悬停异常抖动的问题。AI 在进行页面重构与卡片设计时，**必须严格按以下三档归类，严禁跨档混用**：
+
+| 档位 | 类名 / 标签 | 语义与定位 | 透明度 (Layer 1) | 交互反馈 (Hover) | 典型使用场景 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Tier A** | `.tool-item`<br>`.glass-card` | **可交互卡片**（操作入口） | 中低（`0.60` → hover `0.68`） | ✅ 高亮增亮 + 上移 `translateY(-4px)` + 阴影扩散 | 工具网格列表项、功能链接卡片、类似于含详细信息的立体按钮 |
+| **Tier B** | `.glass-panel`<br>`section.tool-card` | **不可交互底板**（布局分栏） | 高（`0.82` 固定） | ❌ **完全禁止**（零位移、零颜色变化、零高亮反应） | 正文各版块分栏、长文阅读容器、主工作台、承载文字/图表/按钮的背景底板 |
+| **Tier C** | `.glass-surface`<br>`.header-island` | **不可交互强调板**（浮动表面） | 中（`0.72` 固定） | ❌ **完全禁止**（零位移、零颜色变化、零高亮反应） | 浮动双岛标题栏、底部悬浮操作胶囊、仪表盘顶层状态区、Hero 容器 |
+
+- **Tier A 规范**：Layer 0 为 `blur(5px) saturate(130%) url(#glass-distortion)`，鼠标悬停时产生弹性位移与微光增强；
+- **Tier B 规范**：Layer 0 为 `blur(14px) saturate(135%) url(#glass-distortion)`，顶边微光圈弱化，内部任意交互元素（输入框、按钮）不被底板 hover 干扰；
+- **Tier C 规范**：Layer 0 为 `blur(14px) saturate(135%) url(#glass-distortion)`，具备全双轴微光圈，与悬浮岛屿顶栏完全保持一致视觉折射深度；
+- **防多层边框与重影冲突铁律**：CGoUI 玻璃卡片均自带 Layer 2（`::before`）双轴微光圈轮廓。**严禁在玻璃卡片上声明实体 CSS 边框（如 `border: 1px solid ...`）**，否则实体边框将导致微光圈内缩，在圆角处形成极不协调的「双层套圈重影边框」；接入时实体 `border` 必须显式为 `none`，背景必须为 `transparent`；
+- **防面板套娃与多层重合铁律**：严禁在一个 `glass-panel` 或 `glass-surface` 内部再嵌套另一个同向同等边框的面板底板，坚决杜绝「俄罗斯套娃」、「一层套一层」、「多层面板重合」导致的透明度相乘发黑与边框沟槽。主要工作区仅保留一层最外层 Tier B 底板，内部子区域仅使用无边框透明布局或极弱纯色衬底（`background: rgba(120, 120, 120, 0.05); border: none;`）；
+- **移动端 640px 唯一断点规范**：所有卡片 Grid、双岛菜单栏折叠、边距收敛必须统一定义在 `@media (max-width: 640px)`，严禁分散出现 768px、992px 等不一致断点；
+- **标题栏自适应保留原则**：若被改造的原始页面本身没有标题栏或无导航概念，AI 严禁强行增加浮动标题栏或顶部背景渐变遮罩。
+
 ### 8. 悬浮菜单栏 (Floating Island Header) 与双岛屿架构规范
 
 CGoUI 支持将经典三段式顶栏无缝升级为脱离文档流的「双岛屿浮动菜单栏」（参考 CGo-Web-Tools/map 实践）：
@@ -455,7 +473,11 @@ CGoUI 支持将经典三段式顶栏无缝升级为脱离文档流的「双岛�
 - **导航栏（导航列表 / 左侧面板 `<cgo-side-nav>`）与顶栏联动标准**：
   - **外观一致性**：悬浮模式下，导航栏（左侧面板）外观与浮动菜单栏及 `tool.html` 琉璃卡片保持完全一致（统一 `border-radius: 12px` 与浮动光影；在 liquid / blur 玻璃态下为纯净光学折射底色与 `--glass-shadow` 无杂乱硬边框）。
   - **移动端宽度规范**：移动版导航栏宽度从铺满贯通改为与浮动菜单栏相同（左右保留 `10px + safe-area` 边距，`width: calc(100% - 20px - safe-area)`）。
-  - **普通版标题栏圆角归零规范**：切换至普通吸顶标题栏模式时，导航栏（左侧面板）圆角必须为 0（`border-radius: 0`），与视窗边缘及顶栏平整吸附对接。
+  - **移动端/异形屏顶部状态栏与信号栏保护层规范 (Anti-Penetration Status Bar Fill)**：
+  - **触发条件与结构**：所有页面（尤其包含悬浮顶栏或启用移动安全区沉浸的页面），需在 `<meta name="viewport">` 声明 `viewport-fit=cover`，并在 `<body>` 顶层插入保护层：`<div class="mobile-status-bar-fill" aria-hidden="true"></div>`。
+  - **设计目标**：彻底解决移动端（iPhone 灵动岛、刘海屏及安卓挖孔屏）在页面向上滚动时，正文内容/卡片边框/按钮穿透到顶部系统状态栏（时间、电量、WiFi与信号标识）导致的视觉重叠与污染。
+  - **视觉实现**：`safe-area-inset-top` 系统状态栏高度内采用 `var(--theme-bg, var(--bg-color))` 实色完全填满；下方延伸 `16px` 柔和渐变淡出至透明，使正文滚动至顶栏上方时自然融化消失。
+  - **层级与交互**：`z-index: 50001`，配合 `pointer-events: none` 保证点击与滑动手势穿透零阻隔。
 
 ### 9. 页面背景模式规范 (Background Modes & Gradient Specification)
 
