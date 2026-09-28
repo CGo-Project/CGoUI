@@ -1568,7 +1568,7 @@ const ICON_CATEGORIES = [
         name: '车站导向与爱心关怀',
         en: 'Station Facilities & Passenger Care',
         icons: [
-            'aed', 'elevator', 'escalator', 'stairs', 'counter', 'toilet', 'luggage', 'security', 'noentry', 'police',
+            'aed', 'elevator', 'escalator', 'stairs', 'a11yclimber', 'a11yplatform', 'counter', 'toilet', 'a11ytoilet', 'luggage', 'security', 'noentry', 'police',
             'baby', 'stroller', 'elder', 'pregnant',
             'walk', 'tourist', 'payment', 'vi-stn'
         ],
