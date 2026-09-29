@@ -1493,7 +1493,7 @@ function renderComponent(meta) {
 }
 
 /* ============ 图标分类定义与网格 ============ */
-const ICON_ALIASES = new Set(['open-link', 'plus', 'bell', 'xianggang', 'taibei', 'gaoxiong', 'haerbin', 'xi-an']);
+const ICON_ALIASES = new Set(['open-link', 'plus', 'bell', 'xianggang', 'taibei', 'gaoxiong', 'haerbin', 'xi-an', 'escalator-down', 'escalator-up']);
 
 const ICON_CATEGORIES = [
     {
@@ -1568,7 +1568,7 @@ const ICON_CATEGORIES = [
         name: '车站导向与爱心关怀',
         en: 'Station Facilities & Passenger Care',
         icons: [
-            'aed', 'elevator', 'escalator', 'stairs', 'a11yclimber', 'a11yplatform', 'counter', 'toilet', 'a11ytoilet', 'luggage', 'security', 'noentry', 'police',
+            'aed', 'elevator', 'escalator', 'escup', 'escdown', 'stairs', 'a11yclimber', 'a11yplatform', 'counter', 'toilet', 'a11ytoilet', 'luggage', 'security', 'noentry', 'police',
             'baby', 'stroller', 'elder', 'pregnant',
             'walk', 'tourist', 'payment', 'vi-stn'
         ],
