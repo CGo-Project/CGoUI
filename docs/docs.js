@@ -1393,7 +1393,7 @@ function renderComponent(meta) {
 }
 
 /* ============ 图标分类定义与网格 ============ */
-const ICON_ALIASES = new Set(['open-link', 'plus', 'bell', 'xianggang', 'taibei', 'gaoxiong', 'haerbin', 'xi-an']);
+const ICON_ALIASES = new Set(['open-link', 'plus', 'bell', 'xianggang', 'taibei', 'gaoxiong', 'haerbin', 'xi-an', 'arrival', 'departure']);
 
 const ICON_CATEGORIES = [
     {
@@ -1460,6 +1460,7 @@ const ICON_CATEGORIES = [
         en: 'Transit & Vehicles',
         icons: [
             'train', 'crh', 'subrail', 'railway', 'bus', 'monorail', 'tram', 'plane', 'ticket', 'gate',
+            'arrive', 'depart',
             'location', 'map', 'route', 'transfer', 'world',
             'vi-line', 'vi-nbr', 'vi-oth', 'vi-sub'
         ],
