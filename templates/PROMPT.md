@@ -633,7 +633,7 @@ cgo-dropdown::part(menu) {
 2. **禁止虚构**：绝对不能使用 `trash-bin`、`user-avatar`、`chart-line`、`tool`、`phone`、`wechat` 等未在白名单中的名字。
 3. **Emoji 降级机制**：若白名单中无法精确定位语义相近图标，**必须直接降级使用标准 Emoji 字符**（如 `🚀`、`💡`、`🔧`、`📌`、`✨`），严禁传入不存在的 `name`。
 
-### 📜 CGO UI 官方图标合法名称白名单（共 138 项，与 `src/icons/icons.js` 逐项核对）
+### 📜 CGO UI 官方图标合法名称白名单（共 139 项，与 `src/icons/icons.js` 逐项核对）
 
 - **导航**：`back`, `forward`, `home`, `home-dots`, `external`, `menu`
 - **主题**：`sun`, `moon`
@@ -647,14 +647,14 @@ cgo-dropdown::part(menu) {
 - **地图与导向**：`location`, `map`, `route`, `transfer`, `train`, `gate`
 - **通讯与社交**：`chat`, `chat-bubble`, `send`, `mail`
 - **数据与分析**：`bar-chart`, `pie-chart`, `table`, `compare`
-- **媒体与扩展**：`image`, `camera`, `play`, `pause`, `plugin`, `bookmark`, `share`, `preset`, `puzzle`
+- **媒体与扩展**：`image`, `camera`, `play`, `pause`, `speaker`, `light`
 - **其他通用**：`star`, `star-outline`, `link`, `code`, `layer`, `sparkle`, `tag`, `palette`, `design`, `eye`, `loading`, `tabs`, `touch`, `window`, `pin-angle`, `unpin-angle`
-- **业务补充**：`calendar`, `payment`, `subrail`, `ticket`, `time`, `a11yclimber`, `a11yplatform`, `a11ytoilet`, `escup`, `escdown`, `arrive`, `depart`
+- **业务补充**：`calendar`, `payment`, `subrail`, `ticket`, `time`, `a11yclimber`, `a11yplatform`, `a11ytoilet`, `escup`, `escdown`, `arrive`, `depart`, `north`
 - **设计工作室 (Vitool)**：`vi-clss`, `vi-line`, `vi-nbr`, `vi-oth`, `vi-stn`, `vi-sub`, `vi-text`, `vi-way`
 - **品牌标识**：`bjsubway`
-- **合法别名**：`open-link`（= `external`）, `plus`（= `add`）, `bell`（= `notification`）, `escalator-down`（= `escdown`）, `escalator-up`（= `escup`）, `arrival`（= `arrive`）, `departure`（= `depart`）
+- **合法别名**：`open-link`（= `external`）, `plus`（= `add`）, `bell`（= `notification`）, `escalator-down`（= `escdown`）, `escalator-up`（= `escup`）, `arrival`（= `arrive`）, `departure`（= `depart`）, `compass`（= `north`）
 
-> **轨交类站点改造速查**：票务 → `ticket`、时刻/首末车 → `time`、日历/运营日 → `calendar`、支付/一卡通 → `payment`、市郊铁路 → `subrail`、闸机 → `gate`、换乘 → `transfer`、线路图 → `map`/`route`、列车 → `train`、到发/进出站 → `arrive` / `depart`、扶梯/上行/下行 → `escalator` / `escup` / `escdown`、无障碍/爬楼/升降/卫生间 → `a11yclimber` / `a11yplatform` / `a11ytoilet` / `touch`。
+> **轨交类站点改造速查**：票务 → `ticket`、时刻/首末车 → `time`、日历/运营日 → `calendar`、支付/一卡通 → `payment`、市郊铁路 → `subrail`、闸机 → `gate`、换乘 → `transfer`、线路图 → `map`/`route`、列车 → `train`、到发/进出站 → `arrive` / `depart`、指北/朝向/罗盘 → `north` / `compass`、扶梯/上行/下行 → `escalator` / `escup` / `escdown`、无障碍/爬楼/升降/卫生间 → `a11yclimber` / `a11yplatform` / `a11ytoilet` / `touch`。
 
 ---
 
