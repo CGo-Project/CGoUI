@@ -68,6 +68,7 @@
   },
   "scripts": {
     "build": "node scripts/build.mjs",
+    "build:site": "node scripts/build-site.mjs",
     "dev": "node scripts/build.mjs --watch",
     "docs": "vite --open /index.html",
     "clean": "node scripts/clean.mjs",

@@ -1,6 +1,7 @@
 .git/
 .github/
 docs/
+site/
 legacy/
 examples/
 scripts/

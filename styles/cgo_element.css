@@ -612,6 +612,109 @@ a:hover {
     height: 32px;
 }
 
+/* ── 图标与图片渐进加载占位容器体系 ── */
+.img-icon-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.header-logo-wrapper {
+    height: 32px;
+    width: 32px;
+    margin-right: 8px;
+}
+
+.header-logo-wrapper .header-logo {
+    height: 32px;
+    width: 32px;
+    object-fit: contain;
+}
+
+.tool-icon-wrapper {
+    width: 60px;
+    height: 60px;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+/* 占位 Sparkle 图标 */
+.icon-placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: var(--primary-color, #0070f3);
+    opacity: 0.85;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    animation: cgoSparklePulse 1.5s infinite ease-in-out;
+    pointer-events: none;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-logo-wrapper .icon-placeholder {
+    font-size: 20px;
+    --cgo-icon-size: 20px;
+}
+
+.tool-icon-wrapper .icon-placeholder {
+    font-size: 32px;
+    --cgo-icon-size: 32px;
+}
+
+@keyframes cgoSparklePulse {
+    0%,
+    100% {
+        opacity: 0.35;
+        transform: translate(-50%, -50%) scale(0.9);
+    }
+    50% {
+        opacity: 0.95;
+        transform: translate(-50%, -50%) scale(1.1);
+    }
+}
+
+/* 图像加载前的过渡与淡入 */
+.img-icon-wrapper img {
+    opacity: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    position: relative;
+    z-index: 2;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background-color: transparent;
+    padding: 0;
+}
+
+/* 兼容多重 loaded 标记：wrapper 级、img 级或其父级 */
+.img-icon-wrapper.loaded img,
+.img-icon-wrapper img.loaded,
+.img-icon-wrapper:has(img.loaded) img {
+    opacity: 1;
+}
+
+/* 无占位符时直接保证图片可见，避免因缺乏 js 导致纯静态页面图片不显示 */
+.img-icon-wrapper:not(:has(.icon-placeholder)) img {
+    opacity: 1;
+}
+
+.img-icon-wrapper.loaded .icon-placeholder,
+.img-icon-wrapper:has(img.loaded) .icon-placeholder,
+.img-icon-wrapper:has(.loaded) .icon-placeholder,
+.img-icon-wrapper img.loaded + .icon-placeholder,
+.img-icon-wrapper img.loaded ~ .icon-placeholder {
+    opacity: 0 !important;
+    animation: none !important;
+    visibility: hidden !important;
+    display: none !important;
+}
+
 /* =====================================================
    §5  输入框 / 表单 (Forms)
    ===================================================== */

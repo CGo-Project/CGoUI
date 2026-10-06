@@ -534,12 +534,12 @@ cgo-dropdown::part(menu) {
 - **数据与分析**：`bar-chart`, `pie-chart`, `table`, `compare`
 - **媒体与扩展**：`image`, `camera`, `play`, `pause`, `plugin`, `bookmark`, `share`, `preset`, `puzzle`
 - **其他通用**：`star`, `star-outline`, `link`, `code`, `layer`, `sparkle`, `tag`, `palette`, `design`, `eye`, `loading`, `tabs`, `touch`, `window`, `pin-angle`, `unpin-angle`
-- **业务补充**：`calendar`, `payment`, `subrail`, `ticket`, `time`, `a11yclimber`, `a11yplatform`, `a11ytoilet`, `arrive`, `depart`
+- **业务补充**：`calendar`, `payment`, `subrail`, `ticket`, `time`, `a11yclimber`, `a11yplatform`, `a11ytoilet`, `escup`, `escdown`, `arrive`, `depart`
 - **设计工作室 (Vitool)**：`vi-clss`, `vi-line`, `vi-nbr`, `vi-oth`, `vi-stn`, `vi-sub`, `vi-text`, `vi-way`
 - **品牌标识**：`bjsubway`
-- **合法别名**：`open-link`（= `external`）, `plus`（= `add`）, `bell`（= `notification`）, `arrival`（= `arrive`）, `departure`（= `depart`）
+- **合法别名**：`open-link`（= `external`）, `plus`（= `add`）, `bell`（= `notification`）, `escalator-down`（= `escdown`）, `escalator-up`（= `escup`）, `arrival`（= `arrive`）, `departure`（= `depart`）
 
-> **轨交类站点改造速查**：票务 → `ticket`、时刻/首末车 → `time`、日历/运营日 → `calendar`、支付/一卡通 → `payment`、市郊铁路 → `subrail`、闸机 → `gate`、换乘 → `transfer`、线路图 → `map`/`route`、列车 → `train`、到发/进出站 → `arrive` / `depart`、无障碍/爬楼/升降/卫生间 → `a11yclimber` / `a11yplatform` / `a11ytoilet` / `touch`。
+> **轨交类站点改造速查**：票务 → `ticket`、时刻/首末车 → `time`、日历/运营日 → `calendar`、支付/一卡通 → `payment`、市郊铁路 → `subrail`、闸机 → `gate`、换乘 → `transfer`、线路图 → `map`/`route`、列车 → `train`、到发/进出站 → `arrive` / `depart`、扶梯/上行/下行 → `escalator` / `escup` / `escdown`、无障碍/爬楼/升降/卫生间 → `a11yclimber` / `a11yplatform` / `a11ytoilet` / `touch`。
 
 ---
 
