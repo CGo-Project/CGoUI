@@ -19,8 +19,8 @@ description: >-
 | 目标项目 | 前端架构体系 | CGoUI 消费模式 | 核心分发路径 | 缓存与生效机制 |
 | :--- | :--- | :--- | :--- | :--- |
 | **CGoUI** (上游源头) | Lit 3 + Vite 6 + 原生 Web Components | 核心编译源头 | `dist/`, `styles/`, `site/` | `npm run build && npm test && npm run check` |
-| **CGo-OpenMap** | 纯静态 ESM + PWA Service Worker | 原生 ESM 模块 (`cgo-ui.js`) + 4 份标准 CSS | `core/cgo-ui.js`<br>`css/cgo_*.css` | 刷新全站 HTML `?v=YYMMDD.HHMM` 查询串；递增 `sw.js` 的 `CACHE_NAME` |
-| **CGo-Web-Tools** | Vite 多页面套件 + 历史扁平兼容双轨 | `cgoui/` 展示目录 + 扁平兼容文件 + `node_modules` 本地包 | `cgoui/*`<br>`node_modules/@centralgo/cgo-ui` | 执行 `npm run sync:cgo-ui` 与 `npm run build:ui`；自动刷新 HTML 查询参数 |
+| **CGo-OpenMap** | 纯静态 ESM + PWA Service Worker | 原生 ESM 模块 (`cgo-ui.js`) + 4 份标准 CSS | `core/cgo-ui.js`<br>`css/cgo_*.css` | 刷新全站 HTML `?v=yymmdd.hhmmss` 查询串；递增 `sw.js` 的 `CACHE_NAME` |
+| **CGo-Web-Tools** | Vite 多页面套件 + 历史扁平兼容双轨 | `cgoui/` 展示目录 + 扁平兼容文件 + `node_modules` 本地包 | `cgoui/*`<br>`node_modules/@centralgo/cgo-ui` | 执行 `npm run sync:cgo-ui` 与 `npm run build:ui`；自动刷新 HTML 查询参数为 `?v=yymmdd.hhmmss` |
 | **CGo-Web-Tools/map** | Next.js 16 (App Router) + React 19 + TypeScript | `@centralgo/cgo-ui/react` 封装层 + CSS Variables | `map/node_modules/@centralgo/cgo-ui` | 运行 `map/scripts/ensure-cgo-ui-cache.mjs`，比对包内容 SHA-256 签名并清理 Next 开发缓存 |
 | **F_Space_Class** | Next.js 15 (App Router) + Tailwind CSS + React 19 | `public/cgoui/` 静态提供 + Web Components | `web/public/cgoui/cgo-ui.js`<br>`web/public/cgoui/styles/*` | 执行 `npm run sync:cgo-ui`；执行 `npm run build` 进行生产静态渲染校验 |
 
@@ -41,7 +41,7 @@ npm run build && npm test && npm run check && npm run build:site
   - `dist/cgo-ui.js`、`dist/cgo-ui-react.js`、`dist/theme.js` 重新生成且无报错；
   - `smoke-test.mjs` 全部通过（React、Theme、图标及 Vanilla bundle 导出完整）；
   - `check-package.mjs` 确认发包清单（16 个必需文件）完备；
-  - `site/` 静态展示站点编译成功。
+  - `site/` 静态展示站点编译成功，且 HTML 资源查询参数自动注入为 `?v=yymmdd.hhmmss`。
 
 ---
 
@@ -59,7 +59,7 @@ CGo-OpenMap 无生产构建打包器，由浏览器直接解析 ESM，且由 Ser
    ```
 
 2. **版本号与 Service Worker 缓存刷新**：
-   生成当前时间戳（例如 `260922.2336`）：
+   生成当前时间戳（例如 `261006.100000`，格式 `yymmdd.hhmmss`，切勿使用 `?v=2.1.0`）：
    - 更新 `CGo-OpenMap/sw.js` 中的 `const CACHE_NAME = 'cgo-openmap-v<TIMESTAMP>';`
    - 将下列 HTML 文件中的 `?v=<OLD>` 批量更新为 `?v=<TIMESTAMP>`：
      - `index.html`
