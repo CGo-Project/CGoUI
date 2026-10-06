@@ -131,7 +131,8 @@
     border-color: var(--select-accent);
 }
 .admin-select-button:focus-visible {
-    outline: none;
+    outline: 2px solid var(--focus-ring, #00263b);
+    outline-offset: 2px;
     border-color: var(--select-accent);
     box-shadow: 0 0 0 3px color-mix(in oklab, var(--select-accent) 22%, transparent);
 }
@@ -606,6 +607,13 @@
     border-color: var(--admin-primary, var(--primary-color));
     box-shadow: 0 0 0 3px var(--admin-focus, rgba(0, 96, 152, 0.15));
     outline: none;
+}
+.admin-field input:focus-visible,
+.admin-field select:focus-visible,
+.permission-toolbar select:focus-visible,
+.permission-row select:focus-visible {
+    outline: 2px solid var(--focus-ring, #00263b);
+    outline-offset: 1px;
 }
 .admin-field input:disabled,
 .admin-field select:disabled,

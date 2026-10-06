@@ -90,13 +90,25 @@ function checkEmbedMode() {
     }
 }
 
+/**
+ * 校验跨窗口传来的主题值：只接受 light / dark，system 解析为当前系统偏好，
+ * 其余一律丢弃，避免任意字符串被写进 data-theme。
+ */
+function normalizeIncomingTheme(theme) {
+    if (theme === 'light' || theme === 'dark') return theme;
+    if (theme === 'system') return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return null;
+}
+
 function initMessageListener() {
     window.addEventListener('message', (e) => {
-        if (e.data && e.data.type === 'theme-change') applyTheme(e.data.theme);
+        if (!e.data || e.data.type !== 'theme-change') return;
+        const theme = normalizeIncomingTheme(e.data.theme);
+        if (theme) applyTheme(theme);
     });
     if (window.self !== window.top) {
         try {
-            const parentTheme = window.parent.document.documentElement.getAttribute('data-theme');
+            const parentTheme = normalizeIncomingTheme(window.parent.document.documentElement.getAttribute('data-theme'));
             if (parentTheme) setTimeout(() => applyTheme(parentTheme), 50);
         } catch (e) {
             try {
@@ -405,6 +417,27 @@ export function getThemeColor() {
     return _currentThemeColorConfig;
 }
 
+/**
+ * 暗色下主色作「文字」用的提亮色：把暗色主色与白色按 45:55 混合，
+ * 让自定义主题色的 ghost 按钮 / 激活标签文字跟随主色，同时保证对深底的对比度。
+ */
+function darkPrimaryTextColor(darkPrimary) {
+    // 默认主色沿用 cgo_clr.css 里的令牌值
+    if (String(darkPrimary).toLowerCase() === '#006098') return '#5db3e6';
+    const rgb = hexToRgb(darkPrimary);
+    if (!rgb) return '#5db3e6';
+    return (
+        '#' +
+        rgb
+            .map((channel) =>
+                Math.round(channel * 0.45 + 255 * 0.55)
+                    .toString(16)
+                    .padStart(2, '0')
+            )
+            .join('')
+    );
+}
+
 function applyThemeColorCSS(palette) {
     if (typeof document === 'undefined') return;
     let el = document.getElementById('cgo-theme-color-style');
@@ -426,6 +459,7 @@ function applyThemeColorCSS(palette) {
 [data-theme='dark'] {
   --primary-color: ${palette.darkPrimary};
   --primary-hover: ${palette.darkPrimaryHover};
+  --primary-text: ${darkPrimaryTextColor(palette.darkPrimary)};
   --text-main: ${palette.darkTextMain || palette.textMain};
   --text-light: ${palette.darkTextLight};
   --table-head-text: ${palette.darkTextMain || palette.textMain};

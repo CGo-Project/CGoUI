@@ -207,8 +207,8 @@ a:hover {
 }
 
 .btn:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px rgba(0, 96, 152, 0.3);
+    outline: 2px solid var(--focus-ring, #00263b);
+    outline-offset: 2px;
 }
 
 /* ── 主色按钮 ── */
@@ -733,7 +733,7 @@ a:hover {
 .form-control {
     width: 100%;
     padding: 8px 12px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--input-border, var(--border-color));
     border-radius: var(--radius-sm);
     background-color: var(--panel-bg);
     color: var(--text-main);
@@ -748,6 +748,11 @@ a:hover {
     outline: none;
     border-color: var(--primary-color);
     box-shadow: 0 0 0 3px rgba(0, 96, 152, 0.15);
+}
+
+.form-control:focus-visible {
+    outline: 2px solid var(--focus-ring, #00263b);
+    outline-offset: 1px;
 }
 
 .form-control::placeholder {
@@ -1373,12 +1378,16 @@ a:hover {
     color: var(--text-main);
     border: 1px solid var(--border-color);
     font-family: inherit;
-    outline: none;
     transition: border-color var(--transition-base);
 }
 
 .help-setting-select:focus {
     border-color: var(--primary-color);
+}
+
+.help-setting-select:focus-visible {
+    outline: 2px solid var(--focus-ring, #00263b);
+    outline-offset: 2px;
 }
 
 .help-footer {
@@ -2116,5 +2125,27 @@ th.selected::after {
 
     to {
         transform: translateY(0);
+    }
+}
+
+/* =====================================================
+   减少动效 (prefers-reduced-motion)
+   用户在系统里开启「减少动态效果」时，关掉过渡与入场 / 循环动画。
+   用极短时长而不是 none，保证依赖 transitionend / animationend 的脚本仍会收到事件。
+   ===================================================== */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    /* 加载指示保留并放慢，否则停住的圆环会被误认为卡死 */
+    .spinner {
+        animation-duration: 3s !important;
+        animation-iteration-count: infinite !important;
     }
 }
