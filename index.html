@@ -17,7 +17,7 @@
     <title>Central Go 前端视觉库</title>
 
     <!-- CGoUI 核心 Bundle 与文档路由最高优先级预加载 -->
-    <link rel="modulepreload" href="./dist/cgo-ui.js?v=2.1.0">
+    <link rel="modulepreload" href="./dist/cgo-ui.js?v=261006.100000">
     <link rel="modulepreload" href="./docs/docs.js?v=260804.000001">
 
     <!-- Google Fonts -->
@@ -35,7 +35,9 @@
 
     <style>
         /* Web Components 元素未注册前的占位与防无样式闪烁 */
-        cgo-icon:not(:defined), cgo-side-nav:not(:defined), cgo-theme-toggle:not(:defined) {
+        cgo-icon:not(:defined),
+        cgo-side-nav:not(:defined),
+        cgo-theme-toggle:not(:defined) {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -63,6 +65,7 @@
         }
 
         @media (min-width: 641px) {
+
             :root[header-mode="floating"] .doc-shell,
             body[header-mode="floating"] .doc-shell {
                 height: 100dvh;
@@ -99,6 +102,7 @@
         }
 
         @media (max-width: 640px) {
+
             :root[header-mode="floating"] .doc-shell,
             body[header-mode="floating"] .doc-shell {
                 height: 100dvh;
@@ -106,6 +110,7 @@
                 flex-direction: column;
                 padding: 0;
             }
+
             :root[header-mode="floating"] cgo-side-nav,
             body[header-mode="floating"] cgo-side-nav {
                 margin-top: calc(env(safe-area-inset-top, 0px) + 72px);
@@ -117,6 +122,7 @@
                 box-sizing: border-box;
                 z-index: 1000;
             }
+
             :root[header-mode="floating"] .doc-main,
             body[header-mode="floating"] .doc-main {
                 padding-top: 20px;
@@ -575,7 +581,7 @@
             z-index: 2;
         }
 
-        .preview-box > * {
+        .preview-box>* {
             position: relative;
             z-index: 3;
         }
@@ -693,7 +699,7 @@
             transition: opacity 0.25s cubic-bezier(0.32, 0.72, 0, 1);
         }
 
-        .compare-card > * {
+        .compare-card>* {
             position: relative;
             z-index: 3;
         }
@@ -839,21 +845,27 @@
 
 <body>
     <!-- 苹果 Liquid Glass: Lucas Romero Di Benedetto 核心物理折射滤镜管线 -->
-    <svg id="cgo-liquid-glass-filters" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;" xmlns="http://www.w3.org/2000/svg">
+    <svg id="cgo-liquid-glass-filters" aria-hidden="true"
+        style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;"
+        xmlns="http://www.w3.org/2000/svg">
         <defs>
-            <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
-                <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" seed="5" result="turbulence" />
+            <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox"
+                color-interpolation-filters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" seed="5"
+                    result="turbulence" />
                 <feComponentTransfer in="turbulence" result="mapped">
                     <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
                     <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
                     <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
                 </feComponentTransfer>
                 <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
-                <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lighting-color="white" result="specLight">
+                <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100"
+                    lighting-color="white" result="specLight">
                     <fePointLight x="-200" y="-200" z="300" />
                 </feSpecularLighting>
                 <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
-                <feDisplacementMap in="SourceGraphic" in2="softMap" scale="20" xChannelSelector="R" yChannelSelector="G" />
+                <feDisplacementMap in="SourceGraphic" in2="softMap" scale="20" xChannelSelector="R"
+                    yChannelSelector="G" />
             </filter>
         </defs>
     </svg>
@@ -861,52 +873,52 @@
     <!-- 移动端顶部状态栏/信号栏实色安全区保护层：遮挡页面滚动穿透内容 -->
     <div class="mobile-status-bar-fill" aria-hidden="true"></div>
 
-<header class="tool-header">
-    <div class="header-island header-island-left glass-surface">
-        <div class="header-left">
-            <button class="btn btn-info" onclick="history.back()" title="返回上一页">
-                <cgo-icon name="back"></cgo-icon>
-                <span>返回</span>
-            </button>
-            <a href="../index.html" class="btn btn-primary" title="返回主页">
-                <cgo-icon name="home"></cgo-icon>
-                <span>主页</span>
-            </a>
+    <header class="tool-header">
+        <div class="header-island header-island-left glass-surface">
+            <div class="header-left">
+                <button class="btn btn-info" onclick="history.back()" title="返回上一页">
+                    <cgo-icon name="back"></cgo-icon>
+                    <span>返回</span>
+                </button>
+                <a href="../index.html" class="btn btn-primary" title="返回主页">
+                    <cgo-icon name="home"></cgo-icon>
+                    <span>主页</span>
+                </a>
+            </div>
+            <div class="header-island-divider" aria-hidden="true"></div>
+            <div class="header-center">
+                <img src="./design.png" alt="Logo" class="header-logo">
+                <span class="app-title">前端视觉<span style="font-weight:400;color:var(--text-light);font-size:13px;">
+                        组件库</span></span>
+            </div>
         </div>
-        <div class="header-island-divider" aria-hidden="true"></div>
-        <div class="header-center">
-            <img src="./design.png" alt="Logo" class="header-logo">
-            <span class="app-title">前端视觉<span style="font-weight:400;color:var(--text-light);font-size:13px;">
-                    组件库</span></span>
+
+        <div class="header-island header-island-right glass-surface">
+            <div class="header-right">
+                <cgo-header-toggle></cgo-header-toggle>
+                <cgo-theme-toggle></cgo-theme-toggle>
+            </div>
         </div>
+    </header>
+
+    <div class="doc-shell">
+        <cgo-side-nav id="doc-nav"></cgo-side-nav>
+        <main id="doc-main" class="doc-main"></main>
     </div>
 
-    <div class="header-island header-island-right glass-surface">
-        <div class="header-right">
-            <cgo-header-toggle></cgo-header-toggle>
-            <cgo-theme-toggle></cgo-theme-toggle>
-        </div>
-    </div>
-</header>
+    <!-- 网站语言：locale=en / locale=ja / locale=ko / locale=zh-HK / locale=zh-TW 使用同一份文档内容，避免多份页面漂移。 -->
+    <script>
+        window.__CGO_LOCALE__ = new URLSearchParams(location.search).get('locale') || 'zh';
+        window.__CGO_LOCALE_SOURCE__ = location.href;
+        window.__CGO_I18N_SITE_ROOT__ = new URL('./', location.href).href;
+    </script>
+    <script type="module" src="./i18n/runtime.js"></script>
 
-<div class="doc-shell">
-    <cgo-side-nav id="doc-nav"></cgo-side-nav>
-    <main id="doc-main" class="doc-main"></main>
-</div>
+    <!-- CGoUI Web Components 统一 bundle -->
+    <script type="module" src="./dist/cgo-ui.js?v=261006.100000"></script>
 
-<!-- 网站语言：locale=en / locale=ja / locale=ko / locale=zh-HK / locale=zh-TW 使用同一份文档内容，避免多份页面漂移。 -->
-<script>
-    window.__CGO_LOCALE__ = new URLSearchParams(location.search).get('locale') || 'zh';
-    window.__CGO_LOCALE_SOURCE__ = location.href;
-    window.__CGO_I18N_SITE_ROOT__ = new URL('./', location.href).href;
-</script>
-<script type="module" src="./i18n/runtime.js"></script>
-
-<!-- CGoUI Web Components 统一 bundle -->
-<script type="module" src="./dist/cgo-ui.js?v=2.1.0"></script>
-
-<!-- 文档站数据与路由 -->
-<script type="module" src="./docs/docs.js?v=260804.000001"></script>
+    <!-- 文档站数据与路由 -->
+    <script type="module" src="./docs/docs.js?v=260804.000001"></script>
 </body>
 
 </html>
