@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, nothing } from 'lit';
 import './icon.js';
 
 /**
@@ -7,7 +7,13 @@ import './icon.js';
  * size:    sm | (默认) | lg | xl
  * 属性:    icon, icon-pos(left|right), disabled, loading, full, icon-only, color, text-color
  * 事件:    原生 click 透传（点击 host 即可）
+ * 无障碍:  宿主上的 aria-label / aria-expanded / aria-pressed / aria-haspopup / aria-controls
+ *          会转发到内部 <button>；icon-only 且没有 aria-label 时用宿主的 title 作名称。
+ * 表单:    type="submit" / "reset" 会提交 / 重置最近的外层 <form>。
  */
+/* 需要转发到内部 <button> 的宿主属性（title 仅用于 icon-only 的名称兜底） */
+const FORWARDED_ATTRS = ['aria-label', 'aria-expanded', 'aria-pressed', 'aria-haspopup', 'aria-controls', 'title'];
+
 export class CgoButton extends LitElement {
     static properties = {
         variant: { type: String },
@@ -25,6 +31,10 @@ export class CgoButton extends LitElement {
         textColor: { type: String, attribute: 'text-color' },
         iconColor: { type: String, attribute: 'icon-color' },
     };
+
+    static get observedAttributes() {
+        return [...super.observedAttributes, ...FORWARDED_ATTRS];
+    }
 
     static styles = css`
         :host {
@@ -56,8 +66,8 @@ export class CgoButton extends LitElement {
             user-select: none;
         }
         button:focus-visible {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(0, 96, 152, 0.3);
+            outline: 2px solid var(--focus-ring, #00263b);
+            outline-offset: 2px;
         }
         :host([disabled]) button,
         :host([loading]) button {
@@ -127,7 +137,7 @@ export class CgoButton extends LitElement {
         }
         .v-ghost {
             background: transparent;
-            color: var(--primary-color, #006098);
+            color: var(--primary-text, var(--primary-color, #006098));
             border-color: var(--primary-color, #006098);
         }
         .v-ghost:hover {
@@ -216,6 +226,15 @@ export class CgoButton extends LitElement {
                 transform: rotate(360deg);
             }
         }
+        @media (prefers-reduced-motion: reduce) {
+            button {
+                transition: none;
+            }
+            /* 加载指示保留但放慢，避免看起来像卡死 */
+            .spin {
+                animation-duration: 2.4s;
+            }
+        }
     `;
 
     constructor() {
@@ -234,6 +253,72 @@ export class CgoButton extends LitElement {
         this.color = '';
         this.textColor = '';
         this.iconColor = '';
+        this._wasActive = false;
+        this.addEventListener('click', (e) => this._onHostClick(e));
+    }
+
+    attributeChangedCallback(name, oldValue, value) {
+        super.attributeChangedCallback(name, oldValue, value);
+        if (FORWARDED_ATTRS.includes(name) && oldValue !== value) this.requestUpdate();
+    }
+
+    get _button() {
+        return this.renderRoot ? this.renderRoot.querySelector('button') : null;
+    }
+
+    focus(options) {
+        const button = this._button;
+        if (button) button.focus(options);
+    }
+
+    blur() {
+        const button = this._button;
+        if (button) button.blur();
+    }
+
+    /* shadow 内的按钮没有表单归属，这里代为提交 / 重置最近的外层表单 */
+    _onHostClick(e) {
+        if (this.type !== 'submit' && this.type !== 'reset') return;
+        if (this.disabled || this.loading) return;
+        const form = this.closest('form');
+        if (!form) return;
+        // 等宿主上的其它 click 监听跑完，尊重它们的 preventDefault
+        setTimeout(() => {
+            if (e.defaultPrevented || !form.isConnected) return;
+            if (this.type === 'reset') {
+                form.reset();
+            } else if (typeof form.requestSubmit === 'function') {
+                form.requestSubmit();
+            } else {
+                // 旧浏览器没有 requestSubmit：借一个临时原生按钮触发校验与 submit 事件
+                const proxy = document.createElement('button');
+                proxy.type = 'submit';
+                proxy.hidden = true;
+                form.appendChild(proxy);
+                proxy.click();
+                proxy.remove();
+            }
+        }, 0);
+    }
+
+    willUpdate(changed) {
+        if (changed.has('active') && this.active) this._wasActive = true;
+    }
+
+    /* 内部 <button> 的可访问名称：aria-label > (icon-only) title > (icon-only) 宿主文本 */
+    _accessibleName() {
+        const label = this.getAttribute('aria-label');
+        if (label) return label;
+        if (!this.iconOnly) return null;
+        return this.getAttribute('title') || this.textContent.trim() || null;
+    }
+
+    _pressedState() {
+        const explicit = this.getAttribute('aria-pressed');
+        if (explicit !== null) return explicit;
+        // 用过 active 的按钮视为开关按钮，之后同时播报按下 / 未按下
+        if (this.active) return 'true';
+        return this._wasActive ? 'false' : null;
     }
 
     render() {
@@ -251,10 +336,21 @@ export class CgoButton extends LitElement {
             <slot></slot>
         `;
         return html`
-            <button class=${cls} style=${style} type=${this.type} ?disabled=${this.disabled || this.loading}>
+            <button
+                class=${cls}
+                style=${style}
+                type=${this.type}
+                ?disabled=${this.disabled || this.loading}
+                aria-label=${this._accessibleName() ?? nothing}
+                aria-expanded=${this.getAttribute('aria-expanded') ?? nothing}
+                aria-pressed=${this._pressedState() ?? nothing}
+                aria-haspopup=${this.getAttribute('aria-haspopup') ?? nothing}
+                aria-controls=${this.getAttribute('aria-controls') ?? nothing}
+                aria-busy=${this.loading ? 'true' : nothing}
+            >
                 ${this.loading
                 ? html`
-                          <span class="spin"></span>
+                          <span class="spin" aria-hidden="true"></span>
                       `
                 : null}
                 ${!this.loading && this.iconPos !== 'right' ? iconEl : null} ${this.iconOnly ? null : label}

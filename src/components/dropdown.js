@@ -1,21 +1,13 @@
 import { LitElement, html, css } from 'lit';
-
-const _openInstances = new Set();
-let _outsideBound = false;
-function _bindOutside() {
-    if (_outsideBound) return;
-    _outsideBound = true;
-    document.addEventListener('click', () => {
-        _openInstances.forEach((inst) => inst.close());
-    });
-}
+import { PopupController } from '../utils/popup.js';
 
 /**
  * <cgo-dropdown align="right">
  *   <cgo-button slot="trigger" icon="more-vert" icon-only></cgo-button>
  *   <a class="dropdown-item" href="#">菜单项</a>
  * </cgo-dropdown>
- * 互斥展开 / 点击外部关闭 / 点击项后关闭。移植自 cgo_element.css §10 + initDropdowns。
+ * 互斥展开 / 点击外部关闭 / Esc 关闭 / 点击项后关闭。移植自 cgo_element.css §10 + initDropdowns。
+ * 互斥、外部点击与 Esc 由公共 PopupController 处理；aria-expanded 写在 slot="trigger" 的元素上。
  */
 export class CgoDropdown extends LitElement {
     static properties = {
@@ -107,40 +99,55 @@ export class CgoDropdown extends LitElement {
         ::slotted(button) cgo-icon {
             flex-shrink: 0;
         }
+        @media (prefers-reduced-motion: reduce) {
+            .menu {
+                animation: none;
+            }
+        }
     `;
 
     constructor() {
         super();
         this.open = false;
         this.align = 'right';
+        this._popup = new PopupController(this, {
+            close: () => this.close(),
+            getTrigger: () => this._triggerEl(),
+        });
     }
 
-    disconnectedCallback() {
-        super.disconnectedCallback();
-        _openInstances.delete(this);
+    /* slot="trigger" 里的第一个元素（通常是 cgo-button） */
+    _triggerEl() {
+        return this.querySelector('[slot="trigger"]');
     }
 
-    firstUpdated() {
-        _bindOutside();
+    _syncTriggerAria() {
+        const trigger = this._triggerEl();
+        if (trigger) trigger.setAttribute('aria-expanded', this.open ? 'true' : 'false');
     }
 
-    _toggle(e) {
-        e.stopPropagation();
+    updated(changed) {
+        if (changed.has('open')) {
+            // open 也可能被外部直接改写，统一在这里向弹层控制器登记
+            if (this.open) this._popup.opened();
+            else this._popup.closed();
+            this._syncTriggerAria();
+        }
+    }
+
+    _toggle() {
         this.open ? this.close() : this.show();
     }
 
     show() {
-        _openInstances.forEach((inst) => {
-            if (inst !== this) inst.close();
-        });
         this.open = true;
-        _openInstances.add(this);
+        this._popup.opened();
     }
 
     close() {
         if (!this.open) return;
         this.open = false;
-        _openInstances.delete(this);
+        this._popup.closed();
     }
 
     _onMenuClick(e) {
@@ -152,7 +159,7 @@ export class CgoDropdown extends LitElement {
     render() {
         return html`
             <div class="trigger" @click=${this._toggle}>
-                <slot name="trigger"></slot>
+                <slot name="trigger" @slotchange=${this._syncTriggerAria}></slot>
             </div>
             <div class="menu" @click=${this._onMenuClick}>
                 <slot></slot>

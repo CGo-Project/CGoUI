@@ -9,6 +9,7 @@ import { ICONS, buildSvg, iconNames, _escIcon as esc } from '../icons/icons.js';
 import { showToast } from '../components/toast.js';
 import { showNoticePopup } from '../components/notice-popup.js';
 import { generateCaptcha } from '../components/captcha.js';
+import { getDeepActiveElement, safeFocus, trapTabKey } from '../utils/focus.js';
 import {
     applyTheme,
     getStorageKey,
@@ -211,39 +212,52 @@ function bindThemeSelect(selectElement) {
 }
 
 /* ───────── 帮助弹窗（移植自 cgo_ctrl.js，依赖仍加载的全局 CSS）───────── */
+let helpModalSeq = 0;
+
 function showHelpModal(options) {
-    console.log('[HelpModal] showHelpModal entry called, options:', options);
     options = options || {};
     const title = options.title || '帮助与选项';
     const subtitle = options.subtitle || '';
     const config = getShimConfig(typeof window !== 'undefined' ? window : undefined);
     const branding = { ...config.branding, ...(options.branding || {}) };
-    const iconHtml = options.iconPath ? '<img src="' + options.iconPath + '" class="help-icon-img" alt="Logo">' : '';
+    // title / subtitle / iconPath 可能来自用户数据，一律转义后再拼进 innerHTML
+    const iconHtml = options.iconPath
+        ? '<img src="' + esc(options.iconPath) + '" class="help-icon-img" alt="Logo">'
+        : '';
     const beianPath = options.beianPath || branding.beianPath;
     const contentHtml = options.content || '';
     const maxWidth = options.maxWidth || '420px';
     const isEnglish = !!options.isEnglish;
     const isEmbeddedApp = options.isEmbedded === true || config.isEmbeddedApp({ options, global: window });
     const themeHtml = options.hideTheme || isEmbeddedApp ? '' : getThemeSettingHTML(isEnglish);
+    const titleId = 'cgo-help-title-' + ++helpModalSeq;
 
     const overlay = document.createElement('div');
     overlay.className = 'help-overlay';
     const dialog = document.createElement('div');
     dialog.className = 'text-dialog help-dialog';
     dialog.style.maxWidth = maxWidth;
+    dialog.setAttribute('role', 'dialog');
+    dialog.setAttribute('aria-modal', 'true');
+    dialog.setAttribute('aria-labelledby', titleId);
+    dialog.tabIndex = -1;
     const closeBtn = document.createElement('button');
     closeBtn.className = 'dialog-close-btn';
-    closeBtn.innerHTML = '&times;';
+    closeBtn.type = 'button';
+    closeBtn.setAttribute('aria-label', isEnglish ? 'Close' : '关闭');
+    closeBtn.innerHTML = '<span aria-hidden="true">&times;</span>';
     const container = document.createElement('div');
     container.className = 'help-container';
 
     const headerHtml =
         '<div class="help-header">' +
         iconHtml +
-        '<div class="help-title-group"><h3>' +
-        title +
+        '<div class="help-title-group"><h3 id="' +
+        titleId +
+        '">' +
+        esc(title) +
         '</h3>' +
-        (subtitle ? '<p>' + subtitle + '</p>' : '') +
+        (subtitle ? '<p>' + esc(subtitle) + '</p>' : '') +
         '</div></div>';
     const footerLinks = Array.isArray(branding.links)
         ? branding.links
@@ -287,16 +301,30 @@ function showHelpModal(options) {
     const themeSelect = dialog.querySelector('#js-theme-select');
     if (themeSelect) bindThemeSelect(themeSelect);
 
-    const close = (reason) => {
-        console.log('[HelpModal] close called, reason:', reason, 'stack:', new Error().stack);
+    // 焦点管理：打开时移入弹窗，Tab 在框内循环，关闭后还给打开前的元素
+    const returnFocus = getDeepActiveElement();
+    const onKeydown = (e) => {
+        if (e.key === 'Escape') {
+            // 弹窗里的下拉等弹层已用这次 Esc 收起自己时，不再关闭弹窗
+            if (e.defaultPrevented) return;
+            close();
+        } else if (e.key === 'Tab') {
+            trapTabKey(e, dialog, dialog);
+        }
+    };
+    const close = () => {
+        document.removeEventListener('keydown', onKeydown);
         if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
         if (dialog.parentNode) dialog.parentNode.removeChild(dialog);
+        if (returnFocus && returnFocus !== document.body) safeFocus(returnFocus);
     };
-    closeBtn.addEventListener('click', () => close('closeBtn click'));
+    document.addEventListener('keydown', onKeydown);
+    if (!safeFocus(closeBtn, { preventScroll: true })) safeFocus(dialog, { preventScroll: true });
+    closeBtn.addEventListener('click', () => close());
     // 延迟绑定 overlay 的点击事件，防止触发点击事件的“穿透”或“瞬间关闭”
     setTimeout(() => {
         overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) close('overlay click');
+            if (e.target === overlay) close();
         });
     }, 100);
 }

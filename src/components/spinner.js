@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, nothing } from 'lit';
 
 /**
  * <cgo-spinner>
@@ -24,6 +24,10 @@ import { LitElement, html, css } from 'lit';
  * - value="0..100" (实时进度)
  * - duration="3000" 或 "3s" (设定时间自动过渡)
  * - show-text / show-percentage (显示百分比数字模式 vs 不显示百分比纯圆环模式)
+ * - paused (暂停 duration 自动过渡，恢复后从暂停处继续)
+ *
+ * 无障碍: spinner 模式为 role="status"，progress 模式为 role="progressbar"；
+ * 名称取宿主的 aria-label（spinner 模式缺省为「加载中」）。纯装饰用途请在宿主上加 aria-hidden="true"。
  */
 export class CgoSpinner extends LitElement {
     static properties = {
@@ -36,6 +40,7 @@ export class CgoSpinner extends LitElement {
         duration: { type: String },
         showText: { type: Boolean, attribute: 'show-text' },
         showPercentage: { type: Boolean, attribute: 'show-percentage' },
+        paused: { type: Boolean, reflect: true },
     };
 
     static styles = css`
@@ -123,6 +128,14 @@ export class CgoSpinner extends LitElement {
             }
         }
 
+        /* 减少动效：加载指示保留但放慢到 1/3 速度，避免看起来像卡死 */
+        @media (prefers-reduced-motion: reduce) {
+            .spin-cw,
+            .spin-ccw {
+                animation-duration: calc(var(--spin-duration, 1s) * 3);
+            }
+        }
+
         /* 进度圆环样式与方向 */
         .progress-indicator {
             transition: stroke-dashoffset var(--dash-transition, 0.3s) ease;
@@ -167,6 +180,7 @@ export class CgoSpinner extends LitElement {
         this.duration = '';
         this.showText = false;
         this.showPercentage = false;
+        this.paused = false;
 
         this._animTimer = null;
         this._startTime = null;
@@ -217,10 +231,13 @@ export class CgoSpinner extends LitElement {
         this._stopDurationAnim();
 
         this.value = 0;
-        const startTime = performance.now();
+        let last = performance.now();
+        let elapsed = 0;
 
         const step = (now) => {
-            const elapsed = now - startTime;
+            // 暂停期间不累计时间
+            if (!this.paused) elapsed += now - last;
+            last = now;
             const progress = Math.min(1, elapsed / ms);
             this.value = Math.round(progress * 100);
 
@@ -336,8 +353,13 @@ export class CgoSpinner extends LitElement {
             const dashArray = `${circumference * 0.25} ${circumference * 0.75}`;
 
             return html`
-                <div class="spinner-container ${sizeClass}" style="${customSizeStyle}">
-                    <svg viewBox="0 0 40 40">
+                <div
+                    class="spinner-container ${sizeClass}"
+                    style="${customSizeStyle}"
+                    role="status"
+                    aria-label=${this.getAttribute('aria-label') || '加载中'}
+                >
+                    <svg viewBox="0 0 40 40" aria-hidden="true">
                         <circle class="track" cx="20" cy="20" r="${radius}"></circle>
                         <circle
                             class="indicator ${animClass}"
@@ -371,8 +393,16 @@ export class CgoSpinner extends LitElement {
         const transitionDuration = this._animTimer ? '0.05s' : '0.3s';
 
         return html`
-            <div class="spinner-container ${sizeClass}" style="${customSizeStyle}">
-                <svg viewBox="0 0 40 40">
+            <div
+                class="spinner-container ${sizeClass}"
+                style="${customSizeStyle}"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow=${Math.round(val)}
+                aria-label=${this.getAttribute('aria-label') || nothing}
+            >
+                <svg viewBox="0 0 40 40" aria-hidden="true">
                     <circle class="track" cx="20" cy="20" r="${radius}"></circle>
                     <circle
                         class="indicator progress-indicator ${dirClass}"

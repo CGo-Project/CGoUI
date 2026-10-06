@@ -29,7 +29,9 @@ export class CgoNoticeCard extends LitElement {
         closable: { type: Boolean, reflect: true },
         actions: { type: Array },
         customCatName: { type: String, attribute: 'cat-name' },
-        duration: { type: Number }
+        duration: { type: Number },
+        /** 暂停倒计时圆环（悬停 / 聚焦时由通知弹窗容器置位） */
+        paused: { type: Boolean }
     };
 
     static styles = css`
@@ -44,7 +46,14 @@ export class CgoNoticeCard extends LitElement {
             --cat-system: var(--cgopush-cat-system, #6b7280);
         }
 
-        :host([data-theme='dark']),
+        /* :host-context 单独成条：不支持它的浏览器（Safari / Firefox）只丢弃那一条，
+           不会连带让 :host([data-theme]) 失效 */
+        :host([data-theme='dark']) {
+            --cat-software: #38bdf8;
+            --cat-operation: #ffca28;
+            --cat-promotion: #4ade80;
+            --cat-system: #a0b0b9;
+        }
         :host-context([data-theme='dark']) {
             --cat-software: #38bdf8;
             --cat-operation: #ffca28;
@@ -200,10 +209,19 @@ export class CgoNoticeCard extends LitElement {
             z-index: 2;
         }
 
-        :host([data-theme='dark']) .close-btn,
+        :host([data-theme='dark']) .close-btn {
+            background: rgba(255, 255, 255, 0.15);
+            color: #ffffff;
+        }
         :host-context([data-theme='dark']) .close-btn {
             background: rgba(255, 255, 255, 0.15);
             color: #ffffff;
+        }
+
+        .close-btn:focus-visible,
+        .action-btn:focus-visible {
+            outline: 2px solid var(--focus-ring, #00263b);
+            outline-offset: 2px;
         }
 
         .close-btn:hover {
@@ -240,6 +258,7 @@ export class CgoNoticeCard extends LitElement {
         this.actions = [];
         this.customCatName = '';
         this.duration = 0;
+        this.paused = false;
     }
 
     _handleClose(e) {
@@ -282,9 +301,11 @@ export class CgoNoticeCard extends LitElement {
                                 fill-mode="fill"
                                 direction="cw"
                                 class="close-spinner"
+                                aria-hidden="true"
+                                ?paused=${this.paused}
                             ></cgo-spinner>
                         ` : null}
-                        <button class="close-btn" @click=${this._handleClose} title="关闭">
+                        <button class="close-btn" type="button" @click=${this._handleClose} title="关闭" aria-label="关闭">
                             <cgo-icon name="close" size="12"></cgo-icon>
                         </button>
                     </div>

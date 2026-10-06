@@ -27,6 +27,8 @@ export class CgoFloatingWindow extends LitElement {
         :host([interactive]) .header {
             cursor: move;
             user-select: none;
+            /* 触屏上拖动标题栏不触发页面滚动，避免拖动被浏览器手势打断 */
+            touch-action: none;
         }
         .window {
             width: min(320px, 100%);
@@ -97,6 +99,10 @@ export class CgoFloatingWindow extends LitElement {
             background: var(--btn-info-hover, #e9ecef);
             color: var(--text-main, #00263b);
         }
+        .ctrl:focus-visible {
+            outline: 2px solid var(--focus-ring, #00263b);
+            outline-offset: 1px;
+        }
         .content {
             padding: var(--cgo-floating-content-padding, 14px);
             color: var(--text-light, #666);
@@ -122,6 +128,27 @@ export class CgoFloatingWindow extends LitElement {
         this._onPointerDown = this._onPointerDown.bind(this);
         this._toggleMinimize = this._toggleMinimize.bind(this);
         this._close = this._close.bind(this);
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        // 拖动途中被移除：立即清掉挂在 document 上的监听，不再派发事件
+        this._teardownDrag();
+    }
+
+    _teardownDrag() {
+        this._isDragging = false;
+        if (this._pointerId !== undefined && this._dragHeader && this._dragHeader.releasePointerCapture) {
+            try {
+                this._dragHeader.releasePointerCapture(this._pointerId);
+            } catch (_) {}
+        }
+        this._pointerId = undefined;
+        if (this._onPointerMoveBound) document.removeEventListener('pointermove', this._onPointerMoveBound);
+        if (this._onPointerUpBound) {
+            document.removeEventListener('pointerup', this._onPointerUpBound);
+            document.removeEventListener('pointercancel', this._onPointerUpBound);
+        }
     }
 
     _onPointerDown(e) {
@@ -167,6 +194,8 @@ export class CgoFloatingWindow extends LitElement {
         this._onPointerUpBound = this._onPointerUp.bind(this);
         document.addEventListener('pointermove', this._onPointerMoveBound);
         document.addEventListener('pointerup', this._onPointerUpBound);
+        // 触屏手势被系统接管（滚动、来电等）时不会有 pointerup，按拖动结束处理
+        document.addEventListener('pointercancel', this._onPointerUpBound);
 
         this.dispatchEvent(new CustomEvent('cgo-dragstart', { bubbles: true, composed: true }));
         e.preventDefault();
@@ -231,17 +260,7 @@ export class CgoFloatingWindow extends LitElement {
 
     _onPointerUp(e) {
         if (!this._isDragging) return;
-        this._isDragging = false;
-
-        if (this._pointerId !== undefined && this._dragHeader && this._dragHeader.releasePointerCapture) {
-            try {
-                this._dragHeader.releasePointerCapture(this._pointerId);
-            } catch (_) {}
-            this._pointerId = undefined;
-        }
-
-        document.removeEventListener('pointermove', this._onPointerMoveBound);
-        document.removeEventListener('pointerup', this._onPointerUpBound);
+        this._teardownDrag();
 
         const clientX = e && e.clientX !== undefined ? e.clientX : 0;
         const clientY = e && e.clientY !== undefined ? e.clientY : 0;
@@ -292,11 +311,18 @@ export class CgoFloatingWindow extends LitElement {
                     </div>
                     <div class="controls">
                         <slot name="header-extra"></slot>
-                        <button class="ctrl" title=${this.minimized ? '还原' : '最小化'} @click=${this._toggleMinimize}>
-                            ${this.minimized ? '+' : '-'}
+                        <button
+                            class="ctrl"
+                            type="button"
+                            title=${this.minimized ? '还原' : '最小化'}
+                            aria-label=${this.minimized ? '还原' : '最小化'}
+                            aria-expanded=${this.minimized ? 'false' : 'true'}
+                            @click=${this._toggleMinimize}
+                        >
+                            <span aria-hidden="true">${this.minimized ? '+' : '-'}</span>
                         </button>
                         ${!this.noclose
-                            ? html`<button class="ctrl" title="关闭" @click=${this._close}><cgo-icon name="close" size="12"></cgo-icon></button>`
+                            ? html`<button class="ctrl" type="button" title="关闭" aria-label="关闭" @click=${this._close}><cgo-icon name="close" size="12"></cgo-icon></button>`
                             : ''}
                     </div>
                 </div>

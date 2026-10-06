@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, nothing } from 'lit';
 
 /**
  * <cgo-avatar name="张三" color="#006098" size="60"></cgo-avatar>
@@ -64,14 +64,16 @@ export class CgoAvatar extends LitElement {
         const sizeStr = /^\d+$/.test(this.size) ? this.size + 'px' : this.size;
         const bg = this.color || 'var(--primary-color, #006098)';
         const style = `--cgo-avatar-size:${sizeStr};${this.src ? '' : `background:${bg}`}`;
+        // 无图时只显示末字 / 首字母，用 role="img" 把完整姓名暴露给读屏
+        const named = !this.src && !!this.name;
         return html`
-            <div class="av" style=${style}>
+            <div class="av" style=${style} role=${named ? 'img' : nothing} aria-label=${named ? this.name : nothing}>
                 ${this.src
                     ? html`
                           <img src=${this.src} alt=${this.name || 'avatar'} />
                       `
                     : html`
-                          <span>${this._initials()}</span>
+                          <span aria-hidden=${named ? 'true' : nothing}>${this._initials()}</span>
                       `}
             </div>
         `;

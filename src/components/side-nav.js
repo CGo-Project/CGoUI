@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, nothing } from 'lit';
 import './icon.js';
 
 /**
@@ -436,6 +436,7 @@ export class CgoSideNav extends LitElement {
             return html`
                 <button
                     class="sidenav-item ${isActive ? 'active' : ''} ${isDanger ? 'danger' : ''}${wrapClass}"
+                    aria-current=${isActive ? 'page' : nothing}
                     @click=${() => this.select(currentClickableIdx)}
                     type="button"
                 >
@@ -469,7 +470,7 @@ export class CgoSideNav extends LitElement {
                       `
                     : null}
 
-                <nav class="sidenav-menu">${navItems}</nav>
+                <nav class="sidenav-menu" aria-label=${this.getAttribute('aria-label') || '侧边导航'}>${navItems}</nav>
 
                 ${this._hasSlot('footer')
                     ? html`

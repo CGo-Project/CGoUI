@@ -1,8 +1,6 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, nothing } from 'lit';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
-
-/* 全局互斥：同一时刻只有一个 toolbar-select 展开 */
-const _openInstances = new Set();
+import { PopupController } from '../utils/popup.js';
 
 /**
  * <cgo-toolbar-select value="beijing" placeholder="请选择模板">
@@ -14,6 +12,9 @@ const _openInstances = new Set();
  * 参考 stasign 的 sf-custom-select，移植为 WebComponent。
  * 选项直接在 Shadow DOM 内渲染（不依赖 slot 投影），确保样式可控。
  * 事件: cgo-change（detail = { value, label }）。
+ * 键盘: 触发器上 Enter / Space / 上下键展开；展开后上下键 / Home / End 移动，
+ *       Enter / Space 选择，Esc 关闭并把焦点还给触发器。
+ * 互斥、点击外部关闭与 Esc 由公共 PopupController 处理。
  */
 
 export class CgoToolbarSelect extends LitElement {
@@ -38,7 +39,6 @@ export class CgoToolbarSelect extends LitElement {
             appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
-            outline: none;
             display: flex;
             align-items: center;
             gap: 10px;
@@ -61,6 +61,10 @@ export class CgoToolbarSelect extends LitElement {
         }
         .trigger:hover {
             border-color: var(--primary-color, #006098);
+        }
+        .trigger:focus-visible {
+            outline: 2px solid var(--focus-ring, #00263b);
+            outline-offset: 2px;
         }
 
         :host([open]) .trigger {
@@ -143,6 +147,10 @@ export class CgoToolbarSelect extends LitElement {
         .opt:hover {
             background: var(--btn-info-hover, #e9ecef);
         }
+        .opt:focus-visible {
+            outline: 2px solid var(--focus-ring, #00263b);
+            outline-offset: -2px;
+        }
         .opt.selected {
             background: var(--primary-color, #006098);
             color: #fff;
@@ -216,6 +224,17 @@ export class CgoToolbarSelect extends LitElement {
         .src {
             display: none;
         }
+
+        @media (prefers-reduced-motion: reduce) {
+            .trigger,
+            .arrow,
+            .opt {
+                transition: none;
+            }
+            :host([open]) .options {
+                animation: none !important;
+            }
+        }
     `;
 
     constructor() {
@@ -226,7 +245,10 @@ export class CgoToolbarSelect extends LitElement {
         this.openUp = false;
         this.disabled = false;
         this._label = '';
-        this._onOutside = this._onOutside.bind(this);
+        this._popup = new PopupController(this, {
+            close: () => this.close(),
+            getTrigger: () => this.shadowRoot && this.shadowRoot.querySelector('.trigger'),
+        });
         this._positionHandler = () => {
             if (this.open) this._positionOptions();
         };
@@ -234,7 +256,6 @@ export class CgoToolbarSelect extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
-        document.addEventListener('click', this._onOutside);
         // 将 <html data-theme> 同步到宿主元素，使 :host([data-theme]) 在 Shadow DOM 中生效
         // :host-context() 在 Safari 中不被支持，所以需要此方案
         this._syncThemeToHost();
@@ -246,10 +267,8 @@ export class CgoToolbarSelect extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        document.removeEventListener('click', this._onOutside);
         window.removeEventListener('resize', this._positionHandler);
         window.removeEventListener('scroll', this._positionHandler, true);
-        _openInstances.delete(this);
         if (this._themeObserver) {
             this._themeObserver.disconnect();
             this._themeObserver = null;
@@ -263,10 +282,6 @@ export class CgoToolbarSelect extends LitElement {
         } else {
             this.removeAttribute('data-theme');
         }
-    }
-
-    _onOutside(event) {
-        if (!this.contains(event.target)) this.close();
     }
 
     _getOptions() {
@@ -291,21 +306,82 @@ export class CgoToolbarSelect extends LitElement {
 
     updated(changed) {
         if (changed.has('value')) this._syncLabel();
+        // open 也可能被外部直接改写，统一在这里向弹层控制器登记
+        if (changed.has('open')) {
+            if (this.open) this._popup.opened();
+            else this._popup.closed();
+        }
     }
 
-    _toggle(e) {
-        e.stopPropagation();
+    _onSlotChange() {
+        this._syncLabel();
+        this.requestUpdate();
+    }
+
+    _toggle() {
         if (this.disabled) return;
         this.open ? this.close() : this.show();
     }
 
+    _optionEls() {
+        return [...this.shadowRoot.querySelectorAll('.opt')];
+    }
+
+    /* 把焦点移到第 index 个选项（roving tabindex） */
+    _focusOption(index) {
+        const els = this._optionEls();
+        if (!els.length) return;
+        const next = Math.max(0, Math.min(index, els.length - 1));
+        els[next].focus({ preventScroll: true });
+        if (els[next].scrollIntoView) els[next].scrollIntoView({ block: 'nearest' });
+    }
+
+    _onTriggerKeydown(e) {
+        if (this.disabled || this.open) return;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            this.show();
+        }
+    }
+
+    _onOptionsKeydown(e) {
+        const els = this._optionEls();
+        const current = els.indexOf(this.shadowRoot.activeElement);
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            this._focusOption(current < 0 ? 0 : (current + 1) % els.length);
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            this._focusOption(current < 0 ? els.length - 1 : (current - 1 + els.length) % els.length);
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            this._focusOption(0);
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            this._focusOption(els.length - 1);
+        } else if (e.key === 'Enter' || e.key === ' ') {
+            if (current < 0) return;
+            e.preventDefault();
+            this._choose(this._getOptions()[current]?.getAttribute('value') || '');
+        } else if (e.key === 'Tab') {
+            // 选项不在 Tab 序列里：收起并回到触发器，再由浏览器继续正常的 Tab 移动
+            this.close();
+            this._popup.restoreFocus();
+        }
+    }
+
     show() {
-        // 互斥：关闭其他已展开的 toolbar-select
-        _openInstances.forEach((inst) => {
-            if (inst !== this) inst.close();
-        });
+        const wasOpen = this.open;
         this.open = true;
-        _openInstances.add(this);
+        // 先登记（记录展开前的焦点），再把焦点移入列表
+        this._popup.opened();
+        if (!wasOpen) {
+            const opts = this._getOptions();
+            const selected = opts.findIndex((opt) => (opt.getAttribute('value') || '') === this.value);
+            this.updateComplete.then(() => {
+                if (this.open) this._focusOption(selected >= 0 ? selected : 0);
+            });
+        }
         // fixed 定位需在面板渲染后基于 trigger 视口坐标计算，并随窗口变化/滚动跟随
         this._positionOptions();
         window.addEventListener('resize', this._positionHandler);
@@ -372,9 +448,15 @@ export class CgoToolbarSelect extends LitElement {
     close() {
         if (!this.open) return;
         this.open = false;
-        _openInstances.delete(this);
+        this._popup.closed();
         window.removeEventListener('resize', this._positionHandler);
         window.removeEventListener('scroll', this._positionHandler, true);
+    }
+
+    /* 用户操作选中：选完把焦点还给触发器，避免焦点随列表隐藏而丢失 */
+    _choose(optValue) {
+        this._select(optValue);
+        this._popup.restoreFocus();
     }
 
     _select(optValue) {
@@ -400,9 +482,19 @@ export class CgoToolbarSelect extends LitElement {
         const isPlaceholder = !this._label && !!this.placeholder;
 
         return html`
-            <button class="trigger" type="button" @click=${this._toggle}>
+            <button
+                class="trigger"
+                type="button"
+                aria-haspopup="listbox"
+                aria-expanded=${this.open ? 'true' : 'false'}
+                aria-label=${this.getAttribute('aria-label') ? `${this.getAttribute('aria-label')} ${this._label || this.placeholder || ''}`.trim() : nothing}
+                ?disabled=${this.disabled}
+                @click=${this._toggle}
+                @keydown=${this._onTriggerKeydown}
+            >
                 <span class="text ${isPlaceholder ? 'placeholder' : ''}">${this._label || this.placeholder || ''}</span>
                 <svg
+                    aria-hidden="true"
                     class="arrow"
                     viewBox="0 0 24 24"
                     fill="none"
@@ -414,18 +506,29 @@ export class CgoToolbarSelect extends LitElement {
                     <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
             </button>
-            <div class="options">
-                ${opts.map((opt) => {
+            <div
+                class="options"
+                role="listbox"
+                aria-label=${this.getAttribute('aria-label') || this.placeholder || nothing}
+                @keydown=${this._onOptionsKeydown}
+            >
+                ${opts.map((opt, i) => {
                     const val = opt.getAttribute('value') || '';
                     const isSel = val === this.value;
                     return html`
-                        <div class="opt ${isSel ? 'selected' : ''}" @click=${() => this._select(val)}>
+                        <div
+                            class="opt ${isSel ? 'selected' : ''}"
+                            role="option"
+                            aria-selected=${isSel ? 'true' : 'false'}
+                            tabindex="-1"
+                            @click=${() => this._choose(val)}
+                        >
                             ${unsafeHTML(opt.innerHTML)}
                         </div>
                     `;
                 })}
             </div>
-            <div class="src"><slot></slot></div>
+            <div class="src"><slot @slotchange=${this._onSlotChange}></slot></div>
         `;
     }
 }

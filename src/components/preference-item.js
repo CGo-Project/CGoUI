@@ -92,12 +92,16 @@ export class CgoPreferenceItem extends LitElement {
             border-radius: var(--radius-xs, 4px);
             border: 1px solid var(--primary-color, #00263b);
             background: var(--card-bg, #fff);
-            color: var(--primary-color, #00263b);
+            color: var(--primary-text, var(--primary-color, #00263b));
             font: inherit;
             font-size: 13px;
             font-weight: 700;
             cursor: pointer;
             flex-shrink: 0;
+        }
+        .action:focus-visible {
+            outline: 2px solid var(--focus-ring, #00263b);
+            outline-offset: 2px;
         }
         .action:hover {
             background: var(--primary-color, #00263b);

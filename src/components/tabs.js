@@ -7,6 +7,7 @@ import { LitElement, html, css } from 'lit';
  * </cgo-tabs>
  * 选项卡，移植自 cgo_element.css §8。
  * 事件: cgo-tab-change（detail.index）。
+ * 键盘: 左右方向键 / Home / End 在标签间移动并切换。
  */
 export class CgoTab extends LitElement {
     static properties = { label: { type: String }, active: { type: Boolean, reflect: true } };
@@ -22,6 +23,23 @@ export class CgoTab extends LitElement {
         super();
         this.label = '';
         this.active = false;
+    }
+    connectedCallback() {
+        super.connectedCallback();
+        if (!this.hasAttribute('role')) this.setAttribute('role', 'tabpanel');
+    }
+    updated(changed) {
+        if (changed.has('label')) {
+            // 标签按钮在父级 shadow 内，aria-labelledby 跨不过边界，改用 aria-label 给面板命名
+            if (!this.hasAttribute('aria-label') || this.getAttribute('aria-label') === this._autoLabel) {
+                if (this.label) this.setAttribute('aria-label', this.label);
+                else this.removeAttribute('aria-label');
+                this._autoLabel = this.label;
+            }
+            // 标签文字变化后让父级重绘标签栏
+            const tabs = this.closest('cgo-tabs');
+            if (tabs) tabs.requestUpdate();
+        }
     }
     render() {
         return html`
@@ -54,6 +72,16 @@ export class CgoTabs extends LitElement {
             display: none;
         }
         .tab {
+            /* <button> 外观复位，保持与原 div 标签一致 */
+            appearance: none;
+            -webkit-appearance: none;
+            margin: 0;
+            border: 0;
+            border-radius: 0;
+            background: none;
+            line-height: inherit;
+            letter-spacing: inherit;
+            flex: 0 0 auto;
             padding: 12px 20px;
             cursor: pointer;
             font-size: var(--text-base, 14px);
@@ -69,8 +97,12 @@ export class CgoTabs extends LitElement {
             color: var(--text-main, #00263b);
             background: var(--tab-hover, rgba(0, 0, 0, 0.03));
         }
+        .tab:focus-visible {
+            outline: 2px solid var(--focus-ring, #00263b);
+            outline-offset: -2px;
+        }
         .tab.active {
-            color: var(--primary-color, #006098);
+            color: var(--primary-text, var(--primary-color, #006098));
             font-weight: 700;
             background: var(--card-bg, #fff);
             border-bottom-color: var(--primary-color, #006098);
@@ -104,11 +136,16 @@ export class CgoTabs extends LitElement {
         return [...this.querySelectorAll('cgo-tab')];
     }
 
+    /* 让各面板的 active 与 index 保持一致 */
+    _syncPanels() {
+        this._tabs.forEach((t, idx) => {
+            t.active = idx === this.index;
+        });
+    }
+
     _select(i) {
         this.index = i;
-        this._tabs.forEach((t, idx) => {
-            t.active = idx === i;
-        });
+        this._syncPanels();
         this.dispatchEvent(new CustomEvent('cgo-tab-change', { detail: { index: i }, bubbles: true, composed: true }));
     }
 
@@ -116,19 +153,56 @@ export class CgoTabs extends LitElement {
         this._select(this.index || 0);
     }
 
+    updated(changed) {
+        // 外部直接改 index 时同步面板（不重复派发事件）
+        if (changed.has('index')) this._syncPanels();
+    }
+
+    _onSlotChange() {
+        this._syncPanels();
+        this.requestUpdate();
+    }
+
+    _onKeydown(e, i) {
+        const count = this._tabs.length;
+        if (!count) return;
+        let next;
+        if (e.key === 'ArrowRight') next = (i + 1) % count;
+        else if (e.key === 'ArrowLeft') next = (i - 1 + count) % count;
+        else if (e.key === 'Home') next = 0;
+        else if (e.key === 'End') next = count - 1;
+        else return;
+        e.preventDefault();
+        if (next !== this.index) this._select(next);
+        this.updateComplete.then(() => {
+            const button = this.shadowRoot.querySelectorAll('.tab')[next];
+            if (button) button.focus();
+        });
+    }
+
     render() {
         const tabs = this._tabs;
+        // roving tabindex：只有当前标签在 Tab 序列里；index 越界时退回第一个
+        const focusIndex = this.index >= 0 && this.index < tabs.length ? this.index : 0;
         return html`
-            <div class="bar">
+            <div class="bar" role="tablist">
                 ${tabs.map(
                     (t, i) => html`
-                        <div class="tab ${i === this.index ? 'active' : ''}" @click=${() => this._select(i)}>
+                        <button
+                            class="tab ${i === this.index ? 'active' : ''}"
+                            type="button"
+                            role="tab"
+                            aria-selected=${i === this.index ? 'true' : 'false'}
+                            tabindex=${i === focusIndex ? '0' : '-1'}
+                            @click=${() => this._select(i)}
+                            @keydown=${(e) => this._onKeydown(e, i)}
+                        >
                             ${t.label}
-                        </div>
+                        </button>
                     `
                 )}
             </div>
-            <div class="panels"><slot></slot></div>
+            <div class="panels"><slot @slotchange=${this._onSlotChange}></slot></div>
         `;
     }
 }
