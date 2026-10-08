@@ -1393,7 +1393,7 @@ function renderComponent(meta) {
 }
 
 /* ============ 图标分类定义与网格 ============ */
-const ICON_ALIASES = new Set(['open-link', 'plus', 'bell', 'xianggang', 'taibei', 'gaoxiong', 'haerbin', 'xi-an', 'arrival', 'departure', 'compass']);
+const ICON_ALIASES = new Set(['open-link', 'plus', 'bell', 'xianggang', 'taibei', 'gaoxiong', 'haerbin', 'xi-an', 'escalator-down', 'escalator-up', 'arrival', 'departure', 'compass', 'cgo-app']);
 
 const ICON_CATEGORIES = [
     {
@@ -1484,6 +1484,13 @@ const ICON_CATEGORIES = [
             'nanjing', 'nanning', 'nantong', 'ningbo', 'shijiazhuang', 'shenzhen', 'suzhou', 'taipei',
             'taiyuan', 'taoyuan', 'tianjin', 'wenzhou', 'wuhan', 'wuhu', 'wuxi', 'xiamen',
             'xian', 'zhengzhou'
+        ],
+    },
+    {
+        name: 'Central Go 品牌与应用标识',
+        en: 'Central Go Brand & Product Marks',
+        icons: [
+            'cgo', 'cgoapp'
         ],
     },
 ];
