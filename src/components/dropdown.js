@@ -54,19 +54,24 @@ export class CgoDropdown extends LitElement {
         :host([align='center']) .menu {
             right: auto;
             left: 50%;
-            transform: translateX(-50%);
+            /* C-02: 使用独立 CSS translate 属性而非 transform，
+               避免与 @keyframes 里的 translate 属性冲突 */
+            translate: -50% 0;
+            transform: none;
         }
         :host([open]) .menu {
             display: block;
         }
+        /* C-02: dropdownIn 仅控制 Y 轴 + 透明度，不控制 X 轴，
+           避免居中对齐时 translateX(-50%) 被覆盖导致完成候位置突跳 */
         @keyframes dropdownIn {
             from {
                 opacity: 0;
-                transform: translateY(-6px);
+                translate: 0 -6px;
             }
             to {
                 opacity: 1;
-                transform: translateY(0);
+                translate: 0 0;
             }
         }
         /* 暴露给 light DOM 菜单项的统一样式（::slotted）

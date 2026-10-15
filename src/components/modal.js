@@ -99,6 +99,28 @@ export class CgoModal extends LitElement {
                 transform: translate(-50%, -50%) scale(1);
             }
         }
+        /* C-04: 弹窗退出动画 — 干脱收缩，不反弹 */
+        @keyframes dialogOut {
+            from {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: translate(-50%, -48%) scale(0.97);
+            }
+        }
+        .overlay.closing {
+            animation: overlayOut 0.2s ease-in forwards;
+        }
+        @keyframes overlayOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        .dialog.closing {
+            /* C-04: 出场使用 ease-in，无弹跨 */
+            animation: dialogOut 0.18s cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
         .close {
             position: absolute;
             top: 12px;
@@ -167,6 +189,7 @@ export class CgoModal extends LitElement {
         this.title = '';
         this.maxWidth = '';
         this.closeOnOverlay = true;
+        this._closing = false; /* C-04: 退出动画中标记 */
         this._onKey = this._onKey.bind(this);
     }
 
@@ -179,22 +202,36 @@ export class CgoModal extends LitElement {
         document.removeEventListener('keydown', this._onKey);
     }
     _onKey(e) {
-        if (e.key === 'Escape' && this.open) this._close();
+        if (e.key === 'Escape' && this.open && !this._closing) this._close();
     }
     _close() {
-        this.open = false;
-        this.dispatchEvent(new CustomEvent('cgo-close', { bubbles: true, composed: true }));
+        if (this._closing) return;
+        /* C-04: 播放退出动画，动画结束后再关闭 */
+        this._closing = true;
+        this.requestUpdate();
+        const dialog = this.shadowRoot?.querySelector('.dialog');
+        const overlay = this.shadowRoot?.querySelector('.overlay');
+        const done = () => {
+            this._closing = false;
+            this.open = false;
+            this.dispatchEvent(new CustomEvent('cgo-close', { bubbles: true, composed: true }));
+        };
+        if (dialog) {
+            dialog.addEventListener('animationend', done, { once: true });
+        } else {
+            done();
+        }
     }
     show() {
         this.open = true;
     }
 
     render() {
-        if (!this.open) return html``;
+        if (!this.open && !this._closing) return html``;
         const style = this.maxWidth ? `width:min(${this.maxWidth},92dvw)` : '';
         return html`
-            <div class="overlay" @click=${() => this.closeOnOverlay && this._close()}></div>
-            <div class="dialog" style=${style} role="dialog" aria-modal="true">
+            <div class="overlay ${this._closing ? 'closing' : ''}" @click=${() => !this._closing && this.closeOnOverlay && this._close()}></div>
+            <div class="dialog ${this._closing ? 'closing' : ''}" style=${style} role="dialog" aria-modal="true">
                 <button class="close" @click=${this._close} aria-label="关闭"><cgo-icon name="close" size="14"></cgo-icon></button>
                 ${this.title
                     ? html`

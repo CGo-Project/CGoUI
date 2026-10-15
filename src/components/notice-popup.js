@@ -47,13 +47,14 @@ export class CgoNoticePopup extends LitElement {
             pointer-events: auto;
             transform: translateX(125%);
             opacity: 0;
+            /* C-03: max-height clip用于初始霯路，但不动画它，避免 Reflow */
             max-height: 0;
             overflow: hidden;
             transition: 
-                transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-                opacity 0.35s ease-out,
-                max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                margin-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                /* C-01: 入场保留弹性超调曲线（仅入场，退出改用 ease-in） */
+                transform 0.4s cubic-bezier(0.34, 1.3, 0.64, 1),
+                opacity 0.3s ease-out;
+            /* C-03: max-height/margin-bottom 不列入 transition，通过 JS 切换类名现志居高 */
         }
 
         .popup-item.show {
@@ -64,11 +65,16 @@ export class CgoNoticePopup extends LitElement {
         }
 
         .popup-item.leaving {
+            /* C-01: 退出曲线改为干脱的 ease-in，不再反弹 */
             transform: translateX(125%);
             opacity: 0;
             max-height: 0 !important;
             margin-bottom: -10px !important;
             overflow: hidden !important;
+            /* 退出时覆盖入场的弹性曲线 */
+            transition:
+                transform 0.2s cubic-bezier(0.4, 0, 1, 1),
+                opacity 0.15s ease-in !important;
         }
 
         .toast-card {

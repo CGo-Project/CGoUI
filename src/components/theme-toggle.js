@@ -30,17 +30,48 @@ export class CgoThemeToggle extends LitElement {
             background: var(--btn-info-bg, #f1f3f5);
             color: var(--text-main, #00263b);
             cursor: pointer;
-            transition: all var(--transition-base, 0.2s ease);
+            transition:
+                background-color 160ms cubic-bezier(0.23, 1, 0.32, 1),
+                border-color 160ms cubic-bezier(0.23, 1, 0.32, 1),
+                transform 120ms cubic-bezier(0.23, 1, 0.32, 1);
             -webkit-tap-highlight-color: transparent;
         }
         button:hover {
             background: var(--btn-info-hover, #e9ecef);
+        }
+        /* C-05: 按压微反馈 */
+        button:active {
+            transform: scale(0.92);
+            transition-duration: 80ms;
         }
         svg {
             width: 20px;
             height: 20px;
             fill: currentColor;
             pointer-events: none;
+            /* C-07: 图标切换时旋转淡入动效 */
+            transition:
+                opacity 160ms ease-out,
+                transform 280ms cubic-bezier(0.34, 1.3, 0.64, 1);
+        }
+        /* C-07: 切换中：旋转 180° 缩放退出 */
+        svg.icon-exit {
+            opacity: 0;
+            transform: rotate(180deg) scale(0.4);
+        }
+        /* C-07: 新图标旋转进入 */
+        svg.icon-enter {
+            animation: iconEnter 280ms cubic-bezier(0.34, 1.3, 0.64, 1) forwards;
+        }
+        @keyframes iconEnter {
+            from {
+                opacity: 0;
+                transform: rotate(-90deg) scale(0.5);
+            }
+            to {
+                opacity: 1;
+                transform: rotate(0deg) scale(1);
+            }
         }
         .tip {
             position: fixed;
@@ -72,6 +103,7 @@ export class CgoThemeToggle extends LitElement {
         this._tip = '';
         this._pressTimer = null;
         this._isLongPress = false;
+        this._iconAnimating = false; /* C-07: 图标动画状态 */
     }
 
     connectedCallback() {
@@ -80,7 +112,11 @@ export class CgoThemeToggle extends LitElement {
     }
 
     _sync(theme) {
+        this._iconAnimating = true;
         this._theme = theme;
+        this.requestUpdate();
+        /* C-07: 动画完成后重置动画状态 */
+        setTimeout(() => { this._iconAnimating = false; this.requestUpdate(); }, 300);
     }
 
     _start = (e) => {
@@ -120,7 +156,7 @@ export class CgoThemeToggle extends LitElement {
     render() {
         const path = this._theme === 'dark' ? ICONS['moon'].d : ICONS['sun'].d;
         const tpl = document.createElement('template');
-        tpl.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true">${path}</svg>`;
+        tpl.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true" class="${this._iconAnimating ? 'icon-enter' : ''}">${path}</svg>`;
         return html`
             <button
                 title="切换明暗 · 长按恢复系统"
