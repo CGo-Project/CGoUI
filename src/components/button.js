@@ -236,6 +236,38 @@ export class CgoButton extends LitElement {
         this.iconColor = '';
     }
 
+    connectedCallback() {
+        super.connectedCallback();
+        this._onFormActionClick = (e) => {
+            if (this.disabled || this.loading) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+                return;
+            }
+            if (this.type === 'submit') {
+                const form = this.closest('form');
+                if (form) {
+                    if (typeof form.requestSubmit === 'function') {
+                        form.requestSubmit();
+                    } else {
+                        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+                    }
+                }
+            } else if (this.type === 'reset') {
+                const form = this.closest('form');
+                if (form) form.reset();
+            }
+        };
+        this.addEventListener('click', this._onFormActionClick);
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        if (this._onFormActionClick) {
+            this.removeEventListener('click', this._onFormActionClick);
+        }
+    }
+
     render() {
         const variant = this.color ? 'custom' : this.variant;
         const cls = `v-${variant} ${this.size ? 's-' + this.size : ''} ${this.active ? 'is-active' : ''}`;
