@@ -40,7 +40,15 @@
      - Hero 头图区（`<section class="hero-split">`）
      - 交错图文模块（`<section class="content-section">`）
      - 文章与规范卡片（`<section class="tool-card article-content">`）
-3. **AI 自定布局 (Custom CGO UI Layout)**：
+3. **Ribbon 效率页面模板 (Ribbon Efficiency Template)**：
+   - **适用场景**：源自 **CGo Voice 播音工厂** 等生产力工具架构，适用于 CAD、音频工坊、拓扑搭线/连线网络、工程控制台、节点编辑器、复杂仿真等需要**高度集成多标签工具栏、密集型命令与全景工作台**的应用。
+   - **布局架构**：`body.office-app-shell` 设置 `height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden;`。
+     - **顶部标题栏**（`<header class="office-title-bar">`）：左侧应用图标 + 品牌与文档标题，中间全局模式/全局参数胶囊，右侧设置、选项与 `<cgo-theme-toggle>`。
+     - **主 Ribbon 功能区**（`<nav class="office-ribbon-container">`）：选项卡行（`.ribbon-tabs-row`，支持点击切换、双击折叠与右侧折叠按钮）+ 命令分组工具栏主体（`.ribbon-toolbar-body`，含大按钮 `.ribbon-action-btn-lg`、纵向紧凑按钮组 `.ribbon-v-stack`、参数调节盒 `.ribbon-param-box` 与分组底标 `.ribbon-group-label`）。
+     - **主工作区**（`<main class="office-main-workspace">`）：全景视口与画布（`.main-canvas-wrapper` 与 `.cgo-canvas-viewport`），搭配蓝图点阵背景与浮动缩放工具栏。
+     - **工作区右侧辅助列表区**（`<aside class="aux-list-sidebar">`）：常驻展开/折叠侧边栏，包含列表头（带 `<cgo-badge>` 计数与收起按钮）、搜索与批量操作栏、卡片滚动列表，收起时自动显示右上贴边浮动展开胶囊（`.sidebar-floating-toggle-btn`）。
+     - **底部状态底栏**（`<footer class="office-status-bar">`）：左侧硬件算力状态、服务就绪指标与 `<cgo-badge>` 计数徽章，右侧缩放控制器（`.zoom-controls`）。
+4. **AI 自定布局 (Custom CGO UI Layout)**：
    - **适用场景**：结构特殊、无法简单归类的复杂 Web 应用。
    - **设计原则**：自由组装布局，但必须全面遵循 CGO UI 的 Design Tokens、CSS 变量与 Web Components 组件规范。
 
@@ -539,9 +547,9 @@ CGoUI 支持通过页面属性 `bg-mode` 规范化控制页面全局背景，并
 | 类别 | 类名 | 来源 |
 | :--- | :--- | :--- |
 | **库内置**（引入四件套即生效） | `.tool-header` `.header-island` `.header-island-left` `.header-island-right` `.header-island-divider` `.header-left` `.header-center` `.header-right` `.app-title` `.tool-container` `.tool-card` `.article-content` `.modern-table` `.disclaimer` `.table-container` `.tab-item` `.btn` `.btn-primary` `.btn-info` `.btn-full` `.dropdown` `.dropdown-content` `.line-tag` `.line-bg` | `styles/*.css` |
-| **模板自带，库里没有** | `.header-tabs` `.hero-split` `.hero-media` `.hero-content` `.hero-actions` `.content-section` `.content-group` `.content-image` `.content-text` | 仅存在于 `templates/info_template.html` 的 `<style>` 内 |
+| **模板自带，库里没有** | `.header-tabs` `.hero-split` `.hero-media` `.hero-content` `.hero-actions` `.content-section` `.content-group` `.content-image` `.content-text`（介绍页专属）；`.office-title-bar` `.office-ribbon-container` `.ribbon-tabs-row` `.ribbon-tab-btn` `.ribbon-collapse-toggle-btn` `.ribbon-toolbar-body` `.ribbon-group` `.ribbon-action-btn-lg` `.ribbon-v-stack` `.ribbon-param-box` `.office-main-workspace` `.cgo-canvas-viewport` `.aux-list-sidebar` `.sidebar-floating-toggle-btn` `.office-status-bar`（Ribbon 效率页专属） | 分别仅存在于 `templates/info_template.html` 与 `templates/ribbon_template.html` 的 `<style>` 内 |
 
-> **⚠️ 铁律**：使用第二类（Hero / 交错图文 / Header Tabs）版式时，**必须把 `info_template.html` 中对应的 `<style>` 规则一并复制进目标页面的私有 CSS**。只写类名不带样式，页面会退化成无样式的裸块。
+> **⚠️ 铁律**：使用第二类（Hero / 交错图文 / Header Tabs）或第三类（Ribbon 效率布局 / Office 标题栏 / 右侧辅助侧边栏 / 底部状态栏）版式时，**必须把对应模板文件中的 `<style>` 规则一并复制进目标页面的私有 CSS**。只写类名不带样式，页面会退化成无样式的裸块。
 
 ### 2. 组件映射表（**全部 30 个已注册组件，此表之外的标签一律不存在**）
 

@@ -69,6 +69,8 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "build:site": "node scripts/build-site.mjs",
+    "build:voice": "node scripts/build-voice.mjs",
+    "build:voice:watch": "node scripts/build-voice.mjs --watch",
     "dev": "node scripts/build.mjs --watch",
     "docs": "vite --open /index.html",
     "clean": "node scripts/clean.mjs",

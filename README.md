@@ -101,6 +101,7 @@ scripts/         构建、检查、烟囱测试和清理脚本
 ```sh
 npm ci
 npm run build
+npm run build:voice       # 构建并同步静态资源至 CGo-Voice (支持 --watch)
 npm test
 npm run check
 npm run test:pack
