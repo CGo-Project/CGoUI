@@ -36,15 +36,16 @@ export class CgoButton extends LitElement {
             width: 100%;
         }
         button {
+            position: relative;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 4px;
-            padding: 6px 12px;
-            border-radius: var(--radius-xs, 4px);
-            border: 1px solid transparent;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: var(--radius-sm, 6px);
+            border: none;
             cursor: pointer;
-            font-family: var(--font-sans, system-ui, sans-serif);
+            font-family: var(--font-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
             font-size: var(--text-md, 0.9rem);
             font-weight: 500;
             line-height: 1;
@@ -52,114 +53,262 @@ export class CgoButton extends LitElement {
             box-sizing: border-box;
             width: 100%;
             white-space: nowrap;
-            transition: all var(--transition-base, 0.2s ease);
             user-select: none;
-        }
-        button:focus-visible {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(0, 96, 152, 0.3);
-        }
-        :host([disabled]) button,
-        :host([loading]) button {
-            opacity: 0.6;
-            cursor: not-allowed;
+            overflow: hidden;
+            isolation: isolate;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            /* Emil Kowalski 规范：显式声明光学与微交互过渡，无位移浮动 */
+            transition:
+                color var(--dur-fast, 140ms) ease,
+                background-color var(--dur-fast, 140ms) ease,
+                box-shadow var(--dur-fast, 140ms) ease,
+                transform var(--dur-micro, 100ms) cubic-bezier(0.23, 1, 0.32, 1),
+                opacity var(--dur-fast, 140ms) ease;
         }
 
-        /* 变体 */
+        /* 卡片同款精致 1px 双轴微光描边 (Layer 2 Masked 1px Hairline Rim Light) */
+        button::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background:
+                linear-gradient(to right,
+                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 0,
+                    rgba(0, 0, 0, 0) var(--lg-rim-side, 3px),
+                    rgba(0, 0, 0, 0) calc(100% - var(--lg-rim-side, 3px)),
+                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 100%),
+                linear-gradient(to bottom,
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) 0,
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) var(--lg-rim-hold, 1px),
+                    rgba(255, 255, 255, 0) 8px,
+                    rgba(0, 0, 0, 0.02) calc(100% - 4px),
+                    rgba(0, 0, 0, 0.12) 100%);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.64;
+            transition: opacity var(--dur-fast, 140ms) ease;
+        }
+
+        button:hover:not([disabled]):not([loading])::before {
+            opacity: 0.75;
+        }
+
+        :host-context([data-theme='dark']) button::before {
+            background:
+                linear-gradient(to bottom,
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 1.5)) 0,
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 1.5)) 1px,
+                    rgba(255, 255, 255, 0) 8px,
+                    rgba(255, 255, 255, 0) calc(100% - 4px),
+                    rgba(255, 255, 255, 0.08) 100%);
+        }
+
+        :host([variant='primary']),
+        :host([variant='danger']),
+        :host([variant='success']),
+        :host([variant='warning']),
+        :host([variant='dark']) {
+            color: #ffffff !important;
+        }
+
+        /* 保证按钮文字和图标在 Layer 3 (z-index: 3) 绝对锐利清晰 */
+        button > *,
+        .btn-label,
+        ::slotted(*) {
+            position: relative;
+            z-index: 3;
+            color: inherit;
+        }
+
+        .btn-label {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* 按压微触感反馈：仅在点击时产生 scale(0.98) 弹性回馈，鼠标悬停完全取消位移上升 */
+        button:active:not([disabled]):not([loading]) {
+            transform: scale(0.98);
+        }
+
+        /* 焦点环指示器 */
+        button:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--bg-color, #ffffff), 0 0 0 4px var(--primary-color, #006098);
+        }
+        :host-context([data-theme='dark']) button:focus-visible {
+            box-shadow: 0 0 0 2px var(--bg-color, #1a1a1a), 0 0 0 4px var(--primary-hover, #0070b0);
+        }
+
+        :host([disabled]) button,
+        :host([loading]) button {
+            opacity: 0.55;
+            cursor: not-allowed;
+            pointer-events: none;
+            transform: none !important;
+            box-shadow: none;
+        }
+
+        /* ── 变体 1：Primary 主要按钮（纯正品牌色，同系统一）── */
         .v-primary {
-            background: var(--primary-color, #006098);
-            color: var(--btn-text, #fff);
+            background-color: var(--primary-color, #006098);
+            color: #ffffff !important;
             border-color: var(--primary-color, #006098);
+            box-shadow: 0 1px 2px rgba(0, 96, 152, 0.2);
         }
         .v-primary:hover {
-            background: var(--primary-hover, #004f80);
+            background-color: var(--primary-hover, #004f80);
+            color: #ffffff !important;
             border-color: var(--primary-hover, #004f80);
+            box-shadow: 0 2px 5px rgba(0, 96, 152, 0.25);
         }
         .v-primary.is-active {
-            background: var(--primary-hover, #004f80);
+            background-color: var(--primary-hover, #004f80);
+            color: #ffffff !important;
             border-color: var(--primary-hover, #004f80);
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
         }
+        :host-context([data-theme='dark']) .v-primary {
+            background-color: var(--primary-color, #0070b0);
+            color: #ffffff !important;
+            border-color: var(--primary-color, #0070b0);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        :host-context([data-theme='dark']) .v-primary:hover {
+            background-color: var(--primary-hover, #0084d1);
+            color: #ffffff !important;
+            border-color: var(--primary-hover, #0084d1);
+            box-shadow: 0 2px 6px rgba(0, 112, 176, 0.35);
+        }
+
+        /* ── 变体 2：Info 次级按钮（标准次级中性，同系统一）── */
         .v-info {
-            background: var(--btn-info-bg, #f1f3f5);
-            color: var(--btn-info-text, #333);
+            background-color: var(--btn-info-bg, #f1f3f5);
+            color: var(--text-main, #00263b);
             border-color: var(--border-color, #dee2e6);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
         }
         .v-info:hover {
-            background: var(--btn-info-hover, #e9ecef);
+            background-color: var(--btn-info-hover, #e9ecef);
+            border-color: var(--border-hover, #ced4da);
             color: var(--text-main, #00263b);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
         }
+        .v-info.is-active {
+            background-color: #dee2e6;
+            border-color: #ced4da;
+        }
+        :host-context([data-theme='dark']) .v-info {
+            background-color: var(--btn-info-bg, #262729);
+            color: var(--text-main, #e5e8ea);
+            border-color: var(--border-color, #383a3c);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+        }
+        :host-context([data-theme='dark']) .v-info:hover {
+            background-color: var(--btn-info-hover, #323438);
+            border-color: var(--border-hover, #44474b);
+            color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+        }
+
+        /* ── 变体 3：Dark 深色按钮 ── */
         .v-dark {
-            background: var(--cgo-btn-dark-bg, #131313);
-            color: #dee2e6;
-            border-color: var(--cgo-btn-dark-border, var(--cgo-btn-dark-bg, #333333));
+            background-color: #1a1a1c;
+            color: #f0f2f5;
+            border-color: #2e2f33;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
         }
         .v-dark:hover {
-            background: var(--cgo-btn-dark-hover-bg, #1a1a1a);
-            border-color: var(--cgo-btn-dark-hover-border, var(--cgo-btn-dark-hover-bg, #333333));
+            background-color: #292a2e;
+            border-color: #3e4046;
+            color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
         }
+
+        /* ── 变体 4：Danger 危险按钮 ── */
         .v-danger {
-            background: var(--danger-color, #ea4335);
-            color: #fff;
+            background-color: var(--danger-color, #ea4335);
+            color: #ffffff;
             border-color: var(--danger-color, #ea4335);
+            box-shadow: 0 1px 2px rgba(234, 67, 53, 0.2);
         }
         .v-danger:hover {
-            background: var(--danger-hover, #ff5252);
-            border-color: var(--danger-hover, #ff5252);
+            background-color: var(--danger-hover, #d33828);
+            border-color: var(--danger-hover, #d33828);
+            box-shadow: 0 2px 5px rgba(234, 67, 53, 0.28);
         }
+
+        /* ── 变体 5：Success 成功按钮 ── */
         .v-success {
-            background: var(--success-color, #34a853);
-            color: #fff;
+            background-color: var(--success-color, #34a853);
+            color: #ffffff;
             border-color: var(--success-color, #34a853);
+            box-shadow: 0 1px 2px rgba(52, 168, 83, 0.2);
         }
         .v-success:hover {
-            filter: brightness(1.1);
+            background-color: #2d9248;
+            border-color: #2d9248;
+            box-shadow: 0 2px 5px rgba(52, 168, 83, 0.28);
         }
+
+        /* ── 变体 6：Warning 警示按钮 ── */
         .v-warning,
         .v-warn {
-            background: var(--warning-color, #f59e0b);
-            color: #fff;
+            background-color: var(--warning-color, #f59e0b);
+            color: #ffffff;
             border-color: var(--warning-color, #f59e0b);
+            box-shadow: 0 1px 2px rgba(245, 158, 11, 0.2);
         }
         .v-warning:hover,
         .v-warn:hover {
-            filter: brightness(1.08);
+            background-color: #d97706;
+            border-color: #d97706;
+            box-shadow: 0 2px 5px rgba(245, 158, 11, 0.28);
         }
+
+        /* ── 变体 7：Ghost 幽灵按钮 ── */
         .v-ghost {
-            background: transparent;
+            background-color: transparent;
             color: var(--primary-color, #006098);
-            border-color: var(--primary-color, #006098);
+            border-color: transparent;
+            box-shadow: none;
+        }
+        .v-ghost::before {
+            display: none;
         }
         .v-ghost:hover {
-            background: var(--info-bg, #e7f3fb);
+            background-color: var(--info-bg, #e7f3fb);
+            color: var(--primary-hover, #004f80);
+            border-color: transparent;
         }
+        :host-context([data-theme='dark']) .v-ghost {
+            color: var(--primary-color, #4dabf7);
+            border-color: transparent;
+        }
+        :host-context([data-theme='dark']) .v-ghost:hover {
+            background-color: rgba(77, 171, 247, 0.12);
+            color: #70bcfb;
+            border-color: transparent;
+        }
+
+        /* ── 自定义色按钮 ── */
         .v-custom {
-            background: var(--cgo-button-bg);
+            background-color: var(--cgo-button-bg);
             color: var(--cgo-button-fg, var(--btn-text, #fff));
             border-color: var(--cgo-button-border, var(--cgo-button-bg));
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
         .v-custom:hover {
-            filter: brightness(1.06);
-        }
-        .v-glass {
-            background: var(--glass-bg, rgba(255, 255, 255, 0.7));
-            color: var(--text-main, #00263b);
-            border-color: var(--glass-border, rgba(255, 255, 255, 0.4));
-            box-shadow: 0 2px 8px rgba(0, 38, 59, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.8);
-            backdrop-filter: var(--glass-backdrop-blur, none);
-            -webkit-backdrop-filter: var(--glass-backdrop-blur, none);
-        }
-        .v-glass:hover {
-            background: var(--glass-bg-hover, rgba(255, 255, 255, 0.85));
-            box-shadow: 0 4px 14px rgba(0, 38, 59, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.95);
-            transform: translateY(-1px);
-        }
-        :host-context([data-theme='dark']) .v-glass {
-            color: var(--text-main, #f0f2f5);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-        }
-        :host-context([data-theme='dark']) .v-glass:hover {
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            filter: brightness(0.92);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.16);
         }
 
         /* 尺寸 */
@@ -197,26 +346,47 @@ export class CgoButton extends LitElement {
         /* 胶囊形（筛选 / 控制栏 ctrl-btn）*/
         :host([pill]) button {
             height: 36px;
-            padding: 0 20px;
+            padding: 0 18px;
             border-radius: var(--radius-full, 9999px);
-            background: var(--btn-info-bg, #f1f3f5);
-            border: 1px solid var(--border-color, #dee2e6);
+            border: none;
+            background-color: var(--btn-info-bg, #f1f3f5);
             color: var(--text-main, #00263b);
             font-weight: 500;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
         }
         :host([pill]) button:hover {
-            background: var(--btn-info-hover, #e9ecef);
+            background-color: var(--btn-info-hover, #e9ecef);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
         }
         :host([pill]) button.is-active,
         :host([pill]) button.v-primary {
-            background: var(--primary-color, #006098);
-            border-color: var(--primary-color, #006098);
-            color: var(--btn-text, #fff);
+            background-color: var(--primary-color, #006098);
+            color: #ffffff;
+            box-shadow: 0 1px 2px rgba(0, 96, 152, 0.2);
         }
         :host([pill]) button.is-active:hover,
         :host([pill]) button.v-primary:hover {
-            background: var(--primary-hover, #004f80);
-            border-color: var(--primary-hover, #004f80);
+            background-color: var(--primary-hover, #004f80);
+            box-shadow: 0 2px 5px rgba(0, 96, 152, 0.25);
+        }
+        :host-context([data-theme='dark']):host([pill]) button {
+            background-color: var(--btn-info-bg, #262729);
+            color: var(--text-main, #e5e8ea);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+        }
+        :host-context([data-theme='dark']):host([pill]) button:hover {
+            background-color: var(--btn-info-hover, #323438);
+            color: #ffffff;
+        }
+        :host-context([data-theme='dark']):host([pill]) button.is-active,
+        :host-context([data-theme='dark']):host([pill]) button.v-primary {
+            background-color: var(--primary-color, #0070b0);
+            color: #ffffff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+        :host-context([data-theme='dark']):host([pill]) button.is-active:hover,
+        :host-context([data-theme='dark']):host([pill]) button.v-primary:hover {
+            background-color: var(--primary-hover, #0084d1);
         }
         :host([pill]) .s-sm {
             height: 30px;
@@ -289,7 +459,8 @@ export class CgoButton extends LitElement {
     }
 
     render() {
-        const variant = this.color ? 'custom' : this.variant;
+        const rawVariant = this.variant === 'glass' ? 'info' : (this.variant || 'info');
+        const variant = this.color ? 'custom' : rawVariant;
         const cls = `v-${variant} ${this.size ? 's-' + this.size : ''} ${this.active ? 'is-active' : ''}`;
         const style = this.color
             ? `--cgo-button-bg:${this.color};--cgo-button-border:${this.color};--cgo-button-fg:${this.textColor || 'var(--btn-text, #fff)'};`
@@ -300,7 +471,7 @@ export class CgoButton extends LitElement {
               `
             : null;
         const label = html`
-            <slot></slot>
+            <span class="btn-label"><slot></slot></span>
         `;
         return html`
             <button class=${cls} style=${style} type=${this.type} ?disabled=${this.disabled || this.loading}>
@@ -309,7 +480,8 @@ export class CgoButton extends LitElement {
                           <span class="spin"></span>
                       `
                 : null}
-                ${!this.loading && this.iconPos !== 'right' ? iconEl : null} ${this.iconOnly ? null : label}
+                ${!this.loading && this.iconPos !== 'right' ? iconEl : null}
+                ${this.iconOnly && this.icon ? null : label}
                 ${!this.loading && this.iconPos === 'right' ? iconEl : null}
             </button>
         `;

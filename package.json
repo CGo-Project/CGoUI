@@ -1,6 +1,6 @@
 {
   "name": "@centralgo/cgo-ui",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "description": "Lightweight Lit-based Web Components design system with light/dark themes, responsive UI, custom theming, and an optional React adapter.",
   "keywords": [
     "web-components",

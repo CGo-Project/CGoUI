@@ -29,6 +29,7 @@ import {
     setDefaultHeaderMode,
     setHeaderModeStorageKey,
     getHeaderModeStorageKey,
+    autoUpgradeHeader,
 } from '../theme.js';
 
 const DEFAULT_SHIM_CONFIG = Object.freeze({
@@ -389,6 +390,7 @@ export function installGlobalShim(global = window) {
         setDefaultHeaderMode,
         setHeaderModeStorageKey,
         getHeaderModeStorageKey,
+        autoUpgradeHeader,
     };
     CGO.setThemeColor = setThemeColor;
     CGO.resetThemeColor = resetThemeColor;
@@ -406,6 +408,7 @@ export function installGlobalShim(global = window) {
     CGO.setDefaultHeaderMode = setDefaultHeaderMode;
     CGO.setHeaderModeStorageKey = setHeaderModeStorageKey;
     CGO.getHeaderModeStorageKey = getHeaderModeStorageKey;
+    CGO.autoUpgradeHeader = autoUpgradeHeader;
     CGO.initImgIconWrappers = initImgIconWrappers;
     global.CGO = CGO;
 
@@ -419,12 +422,13 @@ export function installGlobalShim(global = window) {
     global.ToolTheme.setThemeColorStorageKey = setThemeColorStorageKey;
     global.ToolTheme.getThemeColorStorageKey = getThemeColorStorageKey;
 
-    // 旧版自动行为：DOM 就绪后渲染 data-icon、初始化旧 .dropdown、绑定图片渐进加载
+    // 旧版自动行为：DOM 就绪后渲染 data-icon、初始化旧 .dropdown、绑定图片渐进加载、自动升级旧标题栏
     const autorun = () => {
         renderIcons();
         initDropdowns(document);
         bindLegacyThemeButton();
         initImgIconWrappers(document);
+        autoUpgradeHeader(document);
     };
     initImgIconWrappers(document);
     if (document.readyState === 'loading') {

@@ -224,7 +224,7 @@ function translateTextNode(node) {
   if (!current || (!HAN_RE.test(current) && !directTranslationSources.has(current.trim()))) return;
   const seen = translatedTextNodes.get(node);
   const parent = node.parentElement;
-  if (parent && ['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE'].includes(parent.tagName)) return;
+  if (parent && (['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE'].includes(parent.tagName) || parent.closest?.('[data-cgo-i18n-switch]'))) return;
   const code = inCodeContext(node);
   const next = translateString(current, { code });
   // A node can be observed once before a dynamic route finishes inserting its
@@ -398,6 +398,25 @@ const LANGUAGE_SWITCHER_LABELS = {
 };
 
 function installLanguageSwitcher() {
+  const existingSelect = document.getElementById('cgo-i18n-language-select');
+  if (existingSelect) {
+    if (existingSelect.value !== locale) {
+      existingSelect.value = locale;
+    }
+    if (!existingSelect.__cgoI18nBound) {
+      existingSelect.__cgoI18nBound = true;
+      const onChange = (e) => {
+        const next = e.detail?.value || existingSelect.value;
+        if (next && next !== locale) {
+          location.href = localizedUrl(next);
+        }
+      };
+      existingSelect.addEventListener('cgo-change', onChange);
+      existingSelect.addEventListener('change', onChange);
+    }
+    return;
+  }
+
   if (document.getElementById(switcherId)) return;
   if (!document.body) return;
 
@@ -412,33 +431,27 @@ function installLanguageSwitcher() {
     zIndex: '1500',
   });
 
-  const select = document.createElement('select');
+  const select = document.createElement('cgo-toolbar-select');
   select.id = 'cgo-i18n-language-select';
   select.dataset.cgoI18nSwitch = 'select';
   select.setAttribute('aria-label', LANGUAGE_SWITCHER_LABELS[locale]);
   select.title = LANGUAGE_SWITCHER_LABELS[locale];
   select.value = locale;
+  select.style.width = '140px';
   for (const targetLocale of SUPPORTED_LOCALES) {
-    const option = document.createElement('option');
-    option.value = targetLocale;
+    const option = document.createElement('cgo-toolbar-option');
+    option.setAttribute('value', targetLocale);
     option.textContent = LANGUAGE_LABELS[targetLocale];
-    option.selected = targetLocale === locale;
     select.append(option);
   }
-  Object.assign(select.style, {
-    minHeight: '30px',
-    maxWidth: '180px',
-    padding: '3px 26px 3px 9px',
-    borderRadius: '7px',
-    border: '1px solid var(--border-color, #d9e0e5)',
-    background: 'var(--card-bg, #fff)',
-    color: 'var(--text-main, #00263b)',
-    font: '600 12px/1.2 system-ui, sans-serif',
-    cursor: 'pointer',
-  });
-  select.addEventListener('change', () => {
-    location.href = localizedUrl(select.value);
-  });
+  const onChange = (e) => {
+    const next = e.detail?.value || select.value;
+    if (next && next !== locale) {
+      location.href = localizedUrl(next);
+    }
+  };
+  select.addEventListener('cgo-change', onChange);
+  select.addEventListener('change', onChange);
   wrapper.append(select);
 
   const docsHeader = document.querySelector('.header-right');

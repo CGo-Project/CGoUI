@@ -414,12 +414,12 @@ CGoUI 内置了次世代 Liquid Glass（物理光学折射、双轴微光圈边�
 
 | 档位 | 声明方式 | 效果表现 | 适用与 AI 判定决策规则 |
 | :--- | :--- | :--- | :--- |
-| **默认档位 (Flat)** | **不加任何属性**（或 `glass-mode="flat"`） | 完全扁平化，无折射、无模糊，经典实体卡片背景（`var(--card-bg)`）与常规轻阴影。零额外 GPU 开销。 | **素色/白底页面或纯平面设计**：当目标页面为纯色/素色背景、无复杂视觉底色、或用户要求纯平面设计时，AI **不得添加任何 glass 属性**，保持默认扁平。 |
+| **默认档位 (Liquid)** | **不加任何属性**（或显式 `<html glass-mode="liquid">`） | 硬件加速 SVG 折射滤镜（`filter: url(#glass-distortion)`）+ 5px 高饱和模糊 + 双轴微光圈边缘 + 5 重微质感阴影矩阵 + Apple 物理弹性微交互。作为 CGoUI 2.0 次世代视觉体系的默认基线开启。 | **默认全站应用**：作为现代化高质量 CGoUI 页面的标准默认配置。重构新页面或现代化改造时默认保持或显式标注 `glass-mode="liquid"`，提供极致物理沉浸质感。 |
 | **轻量模糊档位 (Blur)** | `<html glass-mode="blur">` | 仅应用 5px 高饱和模糊（`backdrop-filter: blur(5px) saturate(130%)`），不进行 SVG 空间折射计算。 | **中低端设备或轻量通透**：当网页存在背景，但用户在需求中明确指出**“主要面向低端设备”、“注重极低性能开销/省电”**时，AI 应在 `<html>` 标签添加 `glass-mode="blur"`。 |
-| **液态玻璃档位 (Liquid)** | `<html glass-mode="liquid">` | 硬件加速 SVG 折射滤镜（`filter: url(#glass-distortion)`）+ 5px 高饱和模糊 + 双轴微光圈边缘 + 5 重微质感阴影矩阵 + Apple 物理弹性悬停。 | **大背景/壁纸/地图重构**：当待改造网页**包含大量背景（如高清摄影壁纸、大幅插画、交互地图、多色渐变等视觉素材）**时，AI **必须主动在 `<html>` 标签上添加 `glass-mode="liquid"`**（例如 `<html lang="zh-CN" glass-mode="liquid">`），激活用真实光学折射衬托背景的极致物理沉浸质感！ |
+| **降级扁平档位 (Flat)** | `<html glass-mode="flat">`（或 `glass-mode="none"`） | 完全扁平化，无折射、无模糊，经典实体卡片背景（`var(--card-bg)`）与常规轻阴影。零额外 GPU 开销。 | **素色/白底页面或纯平面设计**：当目标页面为极简纯白/素色背景、无复杂视觉底色、或用户明确要求纯平面设计时，AI 可显式声明 `glass-mode="flat"` 进行降级。 |
 
-- **零破坏原则**：CGoUI 默认永远是完全扁平的，任何既有项目更新后均不会有任何非预期视觉变化。
-- **作用域**：可以在 `<html>` 全局声明，也可以在具体 `<cgo-card variant="glass" glass-mode="liquid">` 上精细覆盖。
+- **默认液态原则**：CGoUI 默认启用液态光学玻璃（`liquid`），带来通透沉浸的现代视觉质感；如需传统纯平设计可显式声明 `glass-mode="flat"`。
+- **作用域**：可以在 `<html>` 全局生效，也可以在具体 `<cgo-card variant="glass" glass-mode="liquid">` 上精细覆盖。
 - **文字绝对清晰原则**：开启 `liquid` 模式后，CGoUI 采用严格的 4 层立体复合架构（Layer 0 折射磨砂、Layer 1 底色衬底、Layer 2 双轴光圈、Layer 3 文字内容），内容层绝不会出现文字发虚或图标模糊。
 
 ### 7.1 液态玻璃卡片三档规范 (Glass Card Tier System)
@@ -429,8 +429,8 @@ CGoUI 对所有液态玻璃卡片建立了严格的 3 档分级体系，彻底�
 | 档位 | 类名 / 标签 | 语义与定位 | 透明度 (Layer 1) | 交互反馈 (Hover) | 典型使用场景 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Tier A** | `.tool-item`<br>`.glass-card` | **可交互卡片**（操作入口） | 中低（`0.60` → hover `0.68`） | ✅ 高亮增亮 + 上移 `translateY(-4px)` + 阴影扩散 | 工具网格列表项、功能链接卡片、类似于含详细信息的立体按钮 |
-| **Tier B** | `.glass-panel`<br>`section.tool-card` | **不可交互底板**（布局分栏） | 高（`0.82` 固定） | ❌ **完全禁止**（零位移、零颜色变化、零高亮反应） | 正文各版块分栏、长文阅读容器、主工作台、承载文字/图表/按钮的背景底板 |
-| **Tier C** | `.glass-surface`<br>`.header-island` | **不可交互强调板**（浮动表面） | 中（`0.72` 固定） | ❌ **完全禁止**（零位移、零颜色变化、零高亮反应） | 浮动双岛标题栏、底部悬浮操作胶囊、仪表盘顶层状态区、Hero 容器 |
+| **Tier B** | `.glass-panel`<br>`section.tool-card`<br>`<cgo-dropdown>` / `<cgo-admin-select>` / `<cgo-toolbar-select>` 面板<br>`<cgo-modal>` / `.help-dialog` 主面板<br>`<cgo-table>` 数据表格底板<br>`<cgo-notice-center>` 通知中心底板<br>`<cgo-avatar>` 圆形头像<br>`<cgo-chat-bubble>` 对话气泡 | **不可交互底板**（布局分栏 / 下拉、弹窗与表格底板） | 高（`0.82` 固定） | ❌ **完全禁止**（零位移、零颜色变化、零高亮反应） | 正文各版块分栏、长文阅读容器、主工作台、承载文字/图表/按钮的背景底板、下拉菜单浮层面板、模态弹窗主面板、数据表格底板、通知中心面板、圆形头像底板、对话气泡底板 |
+| **Tier C** | `.glass-surface`<br>`.header-island`<br>`<cgo-card>` (默认)<br>`.help-card` / `.help-data-info` | **不可交互强调板**（浮动表面 / card 默认形态 / 弹窗内嵌卡片） | 中（`0.72` 固定） | ❌ **完全禁止**（零位移、零颜色变化、零高亮反应） | 浮动双岛标题栏、底部悬浮操作胶囊、仪表盘顶层状态区、Hero 容器、通用卡片默认形态、帮助弹窗内详细信息卡片 |
 
 - **Tier A 规范**：Layer 0 为 `blur(5px) saturate(130%) url(#glass-distortion)`，鼠标悬停时产生弹性位移与微光增强；
 - **Tier B 规范**：Layer 0 为 `blur(14px) saturate(135%) url(#glass-distortion)`，顶边微光圈弱化，内部任意交互元素（输入框、按钮）不被底板 hover 干扰；
@@ -438,21 +438,32 @@ CGoUI 对所有液态玻璃卡片建立了严格的 3 档分级体系，彻底�
 - **防多层边框与重影冲突铁律**：CGoUI 玻璃卡片均自带 Layer 2（`::before`）双轴微光圈轮廓。**严禁在玻璃卡片上声明实体 CSS 边框（如 `border: 1px solid ...`）**，否则实体边框将导致微光圈内缩，在圆角处形成极不协调的「双层套圈重影边框」；接入时实体 `border` 必须显式为 `none`，背景必须为 `transparent`；
 - **防面板套娃与多层重合铁律**：严禁在一个 `glass-panel` 或 `glass-surface` 内部再嵌套另一个同向同等边框的面板底板，坚决杜绝「俄罗斯套娃」、「一层套一层」、「多层面板重合」导致的透明度相乘发黑与边框沟槽。主要工作区仅保留一层最外层 Tier B 底板，内部子区域仅使用无边框透明布局或极弱纯色衬底（`background: rgba(120, 120, 120, 0.05); border: none;`）；
 - **移动端 640px 唯一断点规范**：所有卡片 Grid、双岛菜单栏折叠、边距收敛必须统一定义在 `@media (max-width: 640px)`，严禁分散出现 768px、992px 等不一致断点；
-- **标题栏自适应保留原则**：若被改造的原始页面本身没有标题栏或无导航概念，AI 严禁强行增加浮动标题栏或顶部背景渐变遮罩。
+- **标题栏自适应保留原则**：若被改造的原始页面本身没有标题栏或无导航概念，AI 严禁强行增加浮动标题栏或顶部背景渐变遮罩；
+- **📖 详细升级 SOP 参照**：改造任何页面前，必须通读并对照 [液态玻璃升级 SOP (docs/液态玻璃升级SOP.md)](../docs/液态玻璃升级SOP.md) 执行自检。
+
+### 7.2 按钮光学微光与物理微交互规范 (Button Physics & Rim Light)
+
+- **1px 极细微光轮廓线（Hairline Rim Light）**：全系按钮统一采用双轴单像素 Masked 微光轮廓。不透明度统一收敛为 **常态 0.64 / 悬停 0.75**，杜绝大反差笨重高光与粗白边。
+- **动效收敛（/all-emil 物理交互）**：**彻底取消悬停上浮位移（严禁 translateY(-1px/2px)）**，避免密集按钮组在鼠标滑过时上下颠簸。仅在 `:active` 点击瞬间产生 `scale(0.98)` 微触感弹性回弹。
+- **视觉一致性**：7 种变体（`primary`、`info`、`dark`、`success`、`danger`、`warning`、`ghost`）使用统一圆角、高度与阴影层级，保持全站风格统一。
 
 ### 8. 悬浮菜单栏 (Floating Island Header) 与双岛屿架构规范
 
-CGoUI 支持将经典三段式顶栏无缝升级为脱离文档流的「双岛屿浮动菜单栏」（参考 CGo-Web-Tools/map 实践）：
+CGoUI 2.0 默认采用脱离文档流的「分体浮动双岛菜单栏」（参考 CGo-Web-Tools/map 实践），同时完整保留 1.0 经典整体吸顶标题栏规范：
 
 | 模式 | 声明方式 | 效果表现 | 适用与 AI 决策规则 |
 | :--- | :--- | :--- | :--- |
-| **经典原版吸顶模式 (Classic)** | **不加任何属性**（或 `header-mode="classic"`） | 吸顶固定导航栏（`sticky top: 0`），背景与底边框贴合全宽。默认状态，100% 零破坏兼容。 | **默认基线**：常规桌面工具页、表单、后台管理系统，维持原版紧凑吸顶顶栏。 |
-| **悬浮双岛菜单栏 (Floating)** | `<html header-mode="floating">` | 桌面端呈现左右双岛屿（左岛：返回+仪表盘+分割线+Logo标题；右岛：操作+切换器）；移动端自适应折叠为单胶囊浮栏。 | **现代化沉浸式应用**：地图可视化、高清壁纸、Liquid Glass 背景、沉浸式画布界面等，必须主动在 `<html>` 添加 `header-mode="floating"`。 |
+| **悬浮双岛菜单栏 (Floating)** | **默认状态**（不加任何属性或 `header-mode="floating"`） | 桌面端呈现左右双岛屿（左岛：返回+仪表盘+分割线+Logo标题；右岛：操作+主题切换器）；移动端自适应折叠为单胶囊浮栏。 | **2.0 默认标准**：所有网页改造统一采用分体浮动双岛菜单栏，现代沉浸、物理光感。 |
+| **经典原版吸顶模式 (Classic)** | 显式声明 `header-mode="classic"` | 吸顶固定整体导航栏（`sticky top: 0`），背景与底边框贴合全宽。100% 保持 1.0 经典吸顶效果。 | **历史业务兼容**：仅在用户明确要求保留或指定 1.0 整体吸顶标题栏时显式声明使用。 |
 
+- **自动升级机制**：已有网页如果使用的是 1.0 的整体标题栏（`<header class="tool-header">` 内含 `.header-left`、`.header-center`、`.header-right`），引入 CGoUI 2.0 后系统会自动在运行时将其升级为 2.0 分体浮动双岛结构，无需破坏性手工重写。
+- **杜绝私有主题切换按钮（铁律）**：**必须清除页面一切自定义/私有的主题切换按钮**（如原生 `<button id="theme-btn">`、手写 SVG 月亮等），右岛内统一使用标准组件 `<cgo-theme-toggle></cgo-theme-toggle>`。
+- **取消添加顶栏切换按钮（铁律）**：**在网页改造时严禁添加 `<cgo-header-toggle>` 顶栏切换按钮**。2.0 默认统一采用分体浮动标题栏，右侧仅保留功能按钮与 `<cgo-theme-toggle>`。
+- **右岛定位与超宽屏防溢出铁律**：`.header-island-right` 必须声明 `position: fixed !important; right: calc(...) !important; left: auto !important; width: fit-content !important;`。严禁缺少 `left: auto !important`，防止在超宽屏下被父级 flex 布局推算偏移挤出屏幕外。
 - **双岛 DOM 骨架规范**：
   ```html
   <header class="tool-header">
-    <div class="header-island header-island-left">
+    <div class="header-island header-island-left glass-surface">
       <div class="header-left">
         <button class="btn btn-info" onclick="history.back()"><cgo-icon name="back"></cgo-icon><span>返回</span></button>
         <a href="../index.html" class="btn btn-primary"><cgo-icon name="home-dots"></cgo-icon><span>仪表盘</span></a>
@@ -463,15 +474,13 @@ CGoUI 支持将经典三段式顶栏无缝升级为脱离文档流的「双岛�
         <span class="app-title">页面标题</span>
       </div>
     </div>
-    <div class="header-island header-island-right">
+    <div class="header-island header-island-right glass-surface">
       <div class="header-right">
-        <cgo-header-toggle></cgo-header-toggle>
         <cgo-theme-toggle></cgo-theme-toggle>
       </div>
     </div>
   </header>
   ```
-- **切换开关 `<cgo-header-toggle>`**：允许用户在运行时随时点击切换吸顶/悬浮形态，持久化至 `localStorage`。
 - **与 Liquid Glass 自动联动**：当同时开启 `glass-mode="liquid"` 时，悬浮双岛自动激活次世代光学折射与柔和边缘微光。
 - **悬浮模式顶部遮罩渐变标准 (Scrim Gradient)**：
   - **触发条件**：悬浮标题栏模式（`header-mode="floating"`）下自动激活；**普通吸顶标题栏模式严禁添加渐变**。
@@ -546,7 +555,7 @@ CGoUI 支持通过页面属性 `bg-mode` 规范化控制页面全局背景，并
 
 | 类别 | 类名 | 来源 |
 | :--- | :--- | :--- |
-| **库内置**（引入四件套即生效） | `.tool-header` `.header-island` `.header-island-left` `.header-island-right` `.header-island-divider` `.header-left` `.header-center` `.header-right` `.app-title` `.tool-container` `.tool-card` `.article-content` `.modern-table` `.disclaimer` `.table-container` `.tab-item` `.btn` `.btn-primary` `.btn-info` `.btn-full` `.dropdown` `.dropdown-content` `.line-tag` `.line-bg` | `styles/*.css` |
+| **库内置**（引入四件套即生效） | `.tool-header` `.header-island` `.header-island-left` `.header-island-right` `.header-island-divider` `.header-left` `.header-center` `.header-right` `.app-title` `.tool-container` `.tool-card` `.glass-card` `.glass-panel` `.glass-surface` `.mobile-status-bar-fill` `.article-content` `.modern-table` `.disclaimer` `.table-container` `.tab-item` `.btn` `.btn-primary` `.btn-info` `.btn-full` `.dropdown` `.dropdown-content` `.line-tag` `.line-bg` | `styles/*.css` |
 | **模板自带，库里没有** | `.header-tabs` `.hero-split` `.hero-media` `.hero-content` `.hero-actions` `.content-section` `.content-group` `.content-image` `.content-text`（介绍页专属）；`.office-title-bar` `.office-ribbon-container` `.ribbon-tabs-row` `.ribbon-tab-btn` `.ribbon-collapse-toggle-btn` `.ribbon-toolbar-body` `.ribbon-group` `.ribbon-action-btn-lg` `.ribbon-v-stack` `.ribbon-param-box` `.office-main-workspace` `.cgo-canvas-viewport` `.aux-list-sidebar` `.sidebar-floating-toggle-btn` `.office-status-bar`（Ribbon 效率页专属） | 分别仅存在于 `templates/info_template.html` 与 `templates/ribbon_template.html` 的 `<style>` 内 |
 
 > **⚠️ 铁律**：使用第二类（Hero / 交错图文 / Header Tabs）或第三类（Ribbon 效率布局 / Office 标题栏 / 右侧辅助侧边栏 / 底部状态栏）版式时，**必须把对应模板文件中的 `<style>` 规则一并复制进目标页面的私有 CSS**。只写类名不带样式，页面会退化成无样式的裸块。
@@ -558,18 +567,18 @@ CGoUI 支持通过页面属性 `bg-mode` 规范化控制页面全局背景，并
 | 按钮 | `<cgo-button>` | `variant="primary\|info\|danger\|ghost"` `size="sm\|md"` `icon="..."` `icon-only` | 原生 `click` |
 | 图标 | `<cgo-icon>` | `name="..."` `size="24"` | — |
 | 主题切换 | `<cgo-theme-toggle>` | — | 自管理 |
-| 顶栏模式切换 | `<cgo-header-toggle>` | — | 自管理（切换悬浮与吸顶） |
+| 顶栏模式切换 | `<cgo-header-toggle>` | — | 历史兼容组件；2.0 默认采用分体浮动双岛，改造时取消添加此按钮 |
 | 输入框 | `<cgo-input>` | `label` `value` `placeholder` `type` `hint` `state` `disabled` | `cgo-input`（`detail.value`） |
-| 通用卡片 | `<cgo-card>` | `variant` `title` | — |
+| 通用卡片 | `<cgo-card>` | `tier="c\|a\|b"`（默认`c`） `variant` `title` `icon` | 默认采用 Tier C 浮动强调表面形态（0.72固定+双轴微光圈+零位移） |
 | 徽标 | `<cgo-badge>` | `variant="primary\|success\|danger\|warning\|info\|muted"` `subsystem` `pill` | — |
 | 线路徽标 | `<cgo-line-badge>` | `line="10"` | — |
 | 等级卡片 | `<cgo-level-card>` | `level` `label` | — |
 | 头像 | `<cgo-avatar>` | — | — |
-| 下拉**菜单**（触发器 + 菜单项） | `<cgo-dropdown>` | `align="left\|right"`，触发器用 `slot="trigger"`，项用 `.dropdown-item` | **不派发事件**，在菜单项上自行绑 `click` |
-| 下拉**选择器** | `<cgo-toolbar-select>` + `<cgo-toolbar-option value="">` | — | `cgo-change`（`detail.value`） |
-| 管理端选择器 | `<cgo-admin-select>` | — | `cgo-admin-change` |
-| 模态弹窗 | `<cgo-modal>` | `open` `title` `max-width="420px"` | `cgo-close` |
-| 选项卡 | `<cgo-tabs>` + `<cgo-tab label="">` | — | `cgo-tab-change`（`detail.index`） |
+| 下拉**菜单**（触发器 + 菜单项） | `<cgo-dropdown>` | `align="left\|right\|center"` `glass-mode`，触发器用 `slot="trigger"`，项用 `.dropdown-item` | 弹出面板已全面适配 Liquid Glass Tier B 不可交互底板规范；**不派发事件**，在菜单项上自行绑 `click` |
+| 下拉**选择器** | `<cgo-toolbar-select>` + `<cgo-toolbar-option value="">` | `value` `placeholder` `disabled` `glass-mode` | 功能入口收起时对齐按钮液态玻璃微光，展开时对齐输入框激活光晕环，下拉菜单浮层对齐 Liquid Glass Tier B 规范 | `cgo-change`（`detail.value`） |
+| 管理端选择器 | `<cgo-admin-select>` | `state="inherit\|enabled\|disabled\|hidden"` `glass-mode` | 功能入口收起时对齐按钮液态玻璃微光，展开时对齐输入框激活光晕环，下拉菜单对齐 Liquid Glass Tier B 规范 | `cgo-admin-change` |
+| 模态弹窗 | `<cgo-modal>` | `open` `title` `max-width="420px"` `glass-mode` | 主面板全面对齐 Liquid Glass Tier B 规范；内嵌卡片对齐 Tier C 规范 | `cgo-close` |
+| 选项卡 | `<cgo-tabs>` + `<cgo-tab label="" icon="">` | 移植自 CGo-Voice 分段胶囊风格；`full`（撑满等宽） `pill`（全圆角） `size="sm|md|lg"` `index="0"`；子项支持 `icon` `disabled` `active` | `cgo-tab-change`（`detail.index`） |
 | 图片/媒体查看器 | `<cgo-media-viewer>` | `label` | — |
 | 数据表格 | `<cgo-table>` 或 `<table class="modern-table">` | — | — |
 | 工具提示 | `<cgo-tooltip>` | — | — |
@@ -690,6 +699,7 @@ cgo-dropdown::part(menu) {
 | 为等待 Web Font 而隐藏主体、等待 `document.fonts.ready` 后才显示页面 | 造成 FOIT 与首屏延迟；必须先渲染主体再渐进替换字体 |
 | 使用 `@import` 或 `font-display: block` 阻塞字体加载 | 字体不能成为首屏渲染前置条件 |
 | 凭空捏造 Noto Sans SC 字体文件/CDN 路径 | 仓库未声明的资源不可假设存在；无真实 Web Font 时使用后备字体栈 |
+| 改造时在顶栏添加 `<cgo-header-toggle>` 按钮 | 2.0 默认统一采用分体浮动双岛标题栏，改造时已取消添加模式切换按钮 |
 
 ---
 
@@ -699,6 +709,7 @@ cgo-dropdown::part(menu) {
 2. **完整改造代码**：输出改造后的**完整可直接运行 HTML 代码**。
 3. **重构亮点总结**：说明布局重排、原站主题色如何迁移至 CGoUI Custom Theme、是否使用自动衍生 / overrides、组件替换、字体统一与渐进加载、防闪烁处理、CSS 变量去硬编码点以及 Emoji 降级说明。
 4. **改造后验证清单**：输出以下检查项供人工验证：
+   - [ ] 顶栏采用 2.0 默认分体浮动双岛结构，未添加 `<cgo-header-toggle>` 模式切换按钮
    - [ ] 原站主主题色来自明确输入或 HTML/CSS/SVG 等可验证证据，没有把语义色 / 线路色 / 图表色 / 偶然图片色误判为主题色
    - [ ] 已识别可靠主题色时，调用 `CGO.theme.setThemeColor(DETECTED_THEME_COLOR)` 接管 CGoUI Primary，而不是继续使用默认深蓝
    - [ ] 自动生成的亮 / 暗 Palette 可读性正常；仅在确有需要时使用合法的 `overrides` 字段微调

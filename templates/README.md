@@ -24,22 +24,22 @@
 ### 2. 页面结构 (DOM Tree)
 ```text
 body (flex-direction: column; overflow: hidden;)
-├── header.tool-header (三段式/双岛屿自适应菜单栏)
-│   ├── .header-island.header-island-left (左侧浮岛，桌面端浮动居左，移动端穿透)
+├── header.tool-header (悬浮双岛菜单栏)
+│   ├── .header-island.header-island-left.glass-surface (左侧浮岛，Tier C 强调板)
 │   │   ├── .header-left (左侧按钮：返回、仪表盘/主页)
 │   │   ├── .header-island-divider (垂直细分割线)
 │   │   └── .header-center (Logo/Icon + 应用标题 app-title)
-│   └── .header-island.header-island-right (右侧浮岛，桌面端浮动居右，移动端穿透)
-│       └── .header-right (导出下拉菜单、cgo-header-toggle 顶栏切换、cgo-theme-toggle、更多菜单)
+│   └── .header-island.header-island-right.glass-surface (右侧浮岛，Tier C 强调板)
+│       └── .header-right (导出下拉菜单、cgo-theme-toggle、更多菜单)
 └── main.tool-container (下方主工作区)
-    ├── .tool-card (工具栏 / 操作控制面板)
-    └── .table-container (数据表格 / 工作面板，支持粘性表头与粘性首列)
+    ├── .tool-card.glass-panel (工具栏 / 操作控制面板，Tier B 底板)
+    └── .table-container.glass-panel (数据表格 / 工作面板，Tier B 底板，支持粘性表头与粘性首列)
 ```
 
 ### 3. HTML 骨架代码片段
 ```html
 <header class="tool-header">
-    <div class="header-island header-island-left">
+    <div class="header-island header-island-left glass-surface">
         <div class="header-left">
             <button class="btn btn-info" onclick="history.back()"><cgo-icon name="back"></cgo-icon><span>返回</span></button>
             <a href="../index.html" class="btn btn-primary"><cgo-icon name="home-dots"></cgo-icon><span>仪表盘</span></a>
@@ -50,7 +50,7 @@ body (flex-direction: column; overflow: hidden;)
             <span class="app-title">工具页面标题</span>
         </div>
     </div>
-    <div class="header-island header-island-right">
+    <div class="header-island header-island-right glass-surface">
         <div class="header-right">
             <div class="dropdown">
                 <button class="btn btn-info dropbtn"><cgo-icon name="download"></cgo-icon><span>导出</span></button>
@@ -58,22 +58,25 @@ body (flex-direction: column; overflow: hidden;)
                     <a href="javascript:void(0)" id="export-btn"><span>导出文件</span></a>
                 </div>
             </div>
-            <cgo-header-toggle></cgo-header-toggle>
             <cgo-theme-toggle></cgo-theme-toggle>
         </div>
     </div>
 </header>
 <main class="tool-container">
-    <div class="table-container">
+    <div class="tool-card glass-panel">
+        <!-- 工具栏操作按钮 -->
+    </div>
+    <div class="table-container glass-panel">
         <!-- 表格或工作区内容 -->
     </div>
 </main>
 ```
 > **页面模式与顶栏模式切换提示**：
-> - 页面默认采用经典吸顶顶栏（`classic`）与纯色底色背景（`solid`，零破坏兼容）；
-> - **悬浮双岛菜单栏**：可在 `<html>` 标签上声明 `header-mode="floating"`（如 `<html lang="zh-CN" header-mode="floating">`）；用户也可通过 `<cgo-header-toggle>` 按钮在运行时自主切换，状态自动记忆到本地；
-> - **悬浮顶栏遮罩渐变**：悬浮模式下顶部自动注入贯通背景色遮罩渐变（视窗顶部至顶栏底部，跟随深色/浅色模式背景色渐变至透明，z层级位于正文与悬浮顶栏之间），正文滚动至顶栏背后时平滑融入背景，普通版标题栏不添加渐变；
-> - **导航栏（左侧面板）联动**：悬浮模式下外观与浮动菜单栏及 `tool.html` 卡片一致（移动端宽度自动与浮动菜单栏对齐，非全宽贯通）；普通版标题栏模式下圆角自动归零（`border-radius: 0`）；
+> - **2.0 默认分体浮动菜单栏**：页面默认采用 2.0 分体浮动双岛菜单栏（`floating`），同时完整保留 1.0 经典吸顶整体标题栏规范（若需吸顶可在 `<html>` 标签上显式声明 `header-mode="classic"` 或通过 API 切回）；
+> - **自动升级**：旧版 1.0 网页升级至 CGoUI 2.0 后，无需手动重写 DOM，系统会自动将原本的 1.0 整体标题栏升级为 2.0 分体浮动双岛菜单栏；
+> - **取消添加切换按钮**：网页改造与模板构建时已取消添加 `<cgo-header-toggle>` 顶栏切换按钮，默认统一使用现代浮动双岛架构；
+> - **悬浮顶栏遮罩渐变**：悬浮模式下顶部自动注入贯通背景色遮罩渐变（视窗顶部至顶栏底部，跟随深色/浅色模式背景色渐变至透明，z层级位于正文与悬浮顶栏之间），正文滚动至顶栏背后时平滑融入背景，经典版标题栏不添加渐变；
+> - **导航栏（左侧面板）联动**：悬浮模式下外观与浮动菜单栏及 `tool.html` 卡片一致（移动端宽度自动与浮动菜单栏对齐，非全宽贯通）；经典吸顶标题栏模式下圆角自动归零（`border-radius: 0`）；
 > - **微光渐变背景**：可在 `<html>` 标签上声明 `bg-mode="gradient"`（如 `<html lang="zh-CN" bg-mode="gradient">`），CGoUI 自动应用视口固定（`fixed`）的标准双角微光径向渐变，严禁在页面内随意硬编码渐变。
 
 
@@ -86,17 +89,17 @@ body (flex-direction: column; overflow: hidden;)
 
 ### 2. 页面结构 (DOM Tree)
 ```text
-body (min-height: 100vh; overflow-y: auto;)
-├── header.tool-header (顶部固定菜单栏)
+body.scrollable (min-height: 100vh; overflow-y: auto;)
+├── header.tool-header (1.0 经典吸顶整体合并标题栏，header-mode="classic")
 │   ├── .header-left (左侧：导航按钮 + Logo/Icon + 标题)
 │   ├── .header-center (中间：选项卡 nav.header-tabs / cgo-tabs 导航视图)
 │   └── .header-right (右侧：cgo-theme-toggle 主题切换 + 选项/帮助按钮)
-└── main.tool-container (正文主容器)
-    ├── section.hero-split (Hero 头图展示区：左大图 + 右文字与行动点)
+└── main.tool-container (正文主容器，流式标准内边距)
+    ├── section.hero-split.glass-panel (Hero 头图展示区，Tier B 底板，零悬停位移)
     ├── section.content-section (交错图文风采区)
-    │   ├── .content-group (左图 + 右文字)
-    │   └── .content-group.reverse (右图 + 左文字)
-    └── section.tool-card.article-content (长文/规范文章卡片)
+    │   ├── .content-group.glass-panel (左图 + 右文字，Tier B 底板，零悬停位移)
+    │   └── .content-group.reverse.glass-panel (右图 + 左文字，Tier B 底板，零悬停位移)
+    └── section.tool-card.article-content.glass-panel (长文/规范文章卡片，Tier B 底板)
         ├── .page-title & .page-subtitle (标题与副标题)
         ├── .disclaimer (提示与注脚框)
         ├── table.modern-table (数据对比表格)
@@ -124,8 +127,8 @@ body (min-height: 100vh; overflow-y: auto;)
 </header>
 
 <main class="tool-container">
-    <!-- Hero 头图区块 -->
-    <section class="hero-split">
+    <!-- Hero 头图区块 (Tier B 底板，零悬停位移) -->
+    <section class="hero-split glass-panel">
         <div class="hero-media"><img src="..." alt="Hero"></div>
         <div class="hero-content">
             <h1>核心大标题</h1>
@@ -136,9 +139,9 @@ body (min-height: 100vh; overflow-y: auto;)
         </div>
     </section>
 
-    <!-- 交错图文模块 -->
+    <!-- 交错图文模块 (Tier B 底板，零悬停位移) -->
     <section class="content-section">
-        <div class="content-group">
+        <div class="content-group glass-panel">
             <div class="content-image"><img src="..."></div>
             <div class="content-text">
                 <h3>特性标题</h3>
@@ -147,8 +150,8 @@ body (min-height: 100vh; overflow-y: auto;)
         </div>
     </section>
 
-    <!-- 文章卡片与表格 -->
-    <section class="tool-card article-content">
+    <!-- 文章卡片与表格 (Tier B 底板) -->
+    <section class="tool-card article-content glass-panel">
         <h2>规范解析</h2>
         <div class="disclaimer"><strong>注：</strong> 重要提示框文本。</div>
         <table class="modern-table">
@@ -305,20 +308,22 @@ body.office-app-shell (100dvh 全屏固定受控视口，overflow: hidden)
 | :--- | :--- | :--- |
 | **页面模式属性** | `<html bg-mode="gradient\|solid">` | 背景渲染模式（默认 solid 纯色，gradient 为固定微光双角径向渐变） |
 | **顶栏模式属性** | `<html header-mode="floating\|classic">` | 顶栏形态（默认 classic 吸顶，floating 为双岛屿悬浮栏） |
-| **毛玻璃模式属性** | `<html glass-mode="liquid\|blur\|flat">` | 毛玻璃质感（默认 flat，blur 为磨砂，liquid 为次世代液态光学玻璃） |
-| **顶部栏** | `<header class="tool-header">` | 统一顶栏样式 |
-| **三段式布局** | `.header-left`, `.header-center`, `.header-right` | Header 三段浮动/Flex 对齐 |
+| **毛玻璃模式属性** | `<html glass-mode="liquid\|blur\|flat">` | 毛玻璃质感（默认 liquid 为次世代液态光学玻璃，blur 为磨砂，flat 为无玻璃特效） |
+| **移动状态栏保护** | `.mobile-status-bar-fill` | 移动端顶部系统信号栏实色安全区保护层，彻底防止文字与状态栏重合 |
+| **顶部双岛栏** | `<header class="tool-header">`<br>`.header-island.header-island-left.glass-surface`<br>`.header-island.header-island-right.glass-surface` | 统一顶栏样式，左右双岛浮动架构（Tier C 不可交互强调板） |
+| **双岛内部布局** | `.header-left`, `.header-island-divider`, `.header-center`, `.header-right` | Header 双岛内部浮动/Flex 对齐与细分割线 |
 | **应用标题** | `.app-title` | Header 内部应用标题文本样式 |
-| **主容器** | `<main class="tool-container">` | 页面主体受控容器 |
-| **通用卡片** | `.tool-card` | 带阴影与边框的标准白色/暗色卡片 |
-| **文章卡片** | `.tool-card.article-content` | 长文与排版专用卡片 |
+| **主容器** | `<main class="tool-container">` | 页面主体受控容器（悬浮模式下顶部自动避让 84px） |
+| **Tier A 可交互卡片** | `.glass-card` / `.tool-item` | 可点击入口卡片，允许微光增强 + 上移 `translateY(-4px)` + 阴影扩散 |
+| **Tier B 不可交互底板** | `.glass-panel` / `.tool-card.glass-panel` | 正文各版块分栏、主工作台、数据表格底板，固定 0.82 透明度，**严禁 hover 上浮位移** |
+| **Tier C 不可交互强调板** | `.glass-surface` / `.header-island` / `<cgo-card>` | 悬浮双岛、胶囊表面、浮动视口，固定 0.72 透明度，**严禁 hover 上浮位移** |
 | **数据表格** | `.modern-table` | 标准清爽数据表格 |
-| **Excel 表格** | `#colorTable` / `#toolDataTable` + `.table-container` | 包含 `sticky` 标题与固定首列的表格 |
+| **Excel 表格** | `#colorTable` / `#toolDataTable` + `.table-container.glass-panel` | 包含 `sticky` 标题与固定首列的表格底板 |
 | **提示框** | `.disclaimer` | 带左边框色带的醒目提示框 |
-| **选项卡** | `.header-tabs` + `.tab-item` | 顶部 Header 内部的导航 Tabs |
-| **Web 组件: 按钮** | `<cgo-button variant="primary\|info\|danger\|ghost" size="sm\|md" icon="...">` | 统一按钮组件 |
+| **选项卡** | `.header-tabs` + `.tab-item` | 顶部 Header 内部的导航 Tabs（岛内极弱透明背景，无嵌套磨砂） |
+| **Web 组件: 按钮** | `<cgo-button variant="primary\|info\|danger\|ghost" size="sm\|md" icon="...">` | 统一按钮组件（1px 双轴微光线，悬停零位移，点击 scale(0.98)） |
 | **Web 组件: 图标** | `<cgo-icon name="..." size="...">` | 矢量图标组件 |
-| **Web 组件: 主题** | `<cgo-theme-toggle></cgo-theme-toggle>` | 亮暗主题一键切换器 |
+| **Web 组件: 主题** | `<cgo-theme-toggle></cgo-theme-toggle>` | 亮暗主题一键切换器（官方标准，自适应多端事件） |
 
 > **⚠️ 上表均为库内置类**（引入 `styles/` 四件套即生效）。
 > - `.header-tabs`、`.hero-split`、`.hero-media`、`.hero-content`、`.hero-actions`、`.content-section`、`.content-group`、`.content-image`、`.content-text` 只定义于 [info_template.html](./info_template.html) 的 `<style>` 块内；

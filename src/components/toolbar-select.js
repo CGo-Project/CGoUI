@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
+import { injectLiquidGlassFilter } from '../theme.js';
 
 /* 全局互斥：同一时刻只有一个 toolbar-select 展开 */
 const _openInstances = new Set();
@@ -11,9 +12,10 @@ const _openInstances = new Set();
  * </cgo-toolbar-select>
  *
  * 工具栏下拉选择器，用于左侧面板内的模板/配色/Logo 选择。
- * 参考 stasign 的 sf-custom-select，移植为 WebComponent。
- * 选项直接在 Shadow DOM 内渲染（不依赖 slot 投影），确保样式可控。
- * 事件: cgo-change（detail = { value, label }）。
+ * 遵循次世代 Liquid Glass 体系：
+ * 1. 收起态对齐 <cgo-button> 的液态玻璃微光描边与触感反馈；
+ * 2. 展开态对齐 <cgo-input> 的激活发光环（无多重描边与重影冲突）；
+ * 3. 下拉浮层全面对齐 <cgo-dropdown> 的 Liquid Glass Tier B 规范。
  */
 
 export class CgoToolbarSelect extends LitElement {
@@ -23,54 +25,130 @@ export class CgoToolbarSelect extends LitElement {
         open: { type: Boolean, reflect: true },
         openUp: { type: Boolean, reflect: true, attribute: 'open-up' },
         disabled: { type: Boolean, reflect: true },
+        glassMode: { type: String, attribute: 'glass-mode', reflect: true },
         _label: { type: String, state: true },
     };
 
     static styles = css`
         :host {
-            display: block;
+            display: inline-block;
             position: relative;
-            width: 100%;
-            font-family: var(--font-sans, system-ui, sans-serif);
+            vertical-align: middle;
+            box-sizing: border-box;
+            font-family: var(--font-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
         }
 
+        /* ── 1. 功能入口收起时：参考 <cgo-button> 的液态玻璃与物理微交互 ── */
         .trigger {
             appearance: none;
             -webkit-appearance: none;
             -moz-appearance: none;
-            outline: none;
+            position: relative;
+            outline: none !important;
+            border: none !important;
             display: flex;
             align-items: center;
             gap: 10px;
             width: 100%;
-            background: var(--input-bg, var(--bg-secondary, #f5f6f8));
-            border: 1px solid var(--border-color, #dee2e6);
-            border-radius: 6px;
-            padding: 6px 10px;
+            background: var(--btn-info-bg, #f1f3f5);
+            border-radius: var(--radius-sm, 6px);
+            padding: 6px 12px;
             cursor: pointer;
             font-size: 13px;
-            font-family: var(--font-sans, system-ui, sans-serif);
-            font-weight: 400;
+            font-family: inherit;
+            font-weight: 500;
             color: var(--text-main, #00263b);
             text-align: left;
             line-height: 1.6;
             user-select: none;
-            min-height: 32px;
+            min-height: 34px;
+            height: 34px;
             box-sizing: border-box;
-            transition: all 0.2s ease;
-        }
-        .trigger:hover {
-            border-color: var(--primary-color, #006098);
+            overflow: hidden;
+            isolation: isolate;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+            transition:
+                color var(--dur-fast, 140ms) ease,
+                background-color var(--dur-fast, 140ms) ease,
+                box-shadow var(--dur-fast, 140ms) ease,
+                transform var(--dur-micro, 100ms) cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        :host([open]) .trigger {
-            border-color: var(--primary-color, #006098);
-            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12);
+        /* <cgo-button> 同款 1px 双轴微光描边 (Layer 2 Masked 1px Hairline Rim Light，唯一描边来源) */
+        .trigger::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background:
+                linear-gradient(to right,
+                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 0,
+                    rgba(0, 0, 0, 0) var(--lg-rim-side, 3px),
+                    rgba(0, 0, 0, 0) calc(100% - var(--lg-rim-side, 3px)),
+                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 100%),
+                linear-gradient(to bottom,
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) 0,
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) var(--lg-rim-hold, 1px),
+                    rgba(255, 255, 255, 0) 8px,
+                    rgba(0, 0, 0, 0.02) calc(100% - 4px),
+                    rgba(0, 0, 0, 0.12) 100%);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.64;
+            transition: opacity var(--dur-fast, 140ms) ease;
         }
 
-        :host([data-theme='dark']) .trigger {
-            background: rgba(255, 255, 255, 0.03);
-            border-color: rgba(255, 255, 255, 0.08);
+        .trigger:hover:not(:disabled)::before {
+            opacity: 0.75;
+        }
+
+        .trigger:hover:not(:disabled) {
+            background: var(--btn-info-hover, #e9ecef);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        /* 收起未打开状态下的按压微触感反馈 */
+        :host(:not([open])) .trigger:active:not(:disabled) {
+            transform: scale(0.98);
+        }
+
+        /* 暗色模式收起态适配 */
+        :host([data-theme='dark']) .trigger,
+        :host-context([data-theme='dark']) .trigger {
+            background: var(--btn-info-bg, #262729);
+            color: var(--text-main, #e5e8ea);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+        }
+
+        :host([data-theme='dark']) .trigger:hover:not(:disabled),
+        :host-context([data-theme='dark']) .trigger:hover:not(:disabled) {
+            background: var(--btn-info-hover, #323438);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+        }
+
+        :host([data-theme='dark']) .trigger::before,
+        :host-context([data-theme='dark']) .trigger::before {
+            background:
+                linear-gradient(to bottom,
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 1.5)) 0,
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 1.5)) 1px,
+                    rgba(255, 255, 255, 0) 8px,
+                    rgba(255, 255, 255, 0) calc(100% - 4px),
+                    rgba(255, 255, 255, 0.08) 100%);
+        }
+
+        /* 保证文字和箭头在 Layer 3 (z-index: 3) 绝对锐利清晰 */
+        .text,
+        .arrow {
+            position: relative;
+            z-index: 3;
         }
 
         .text {
@@ -80,46 +158,167 @@ export class CgoToolbarSelect extends LitElement {
             text-overflow: ellipsis;
             min-width: 0;
         }
+
         .placeholder {
-            opacity: 0.5;
+            opacity: 0.55;
         }
 
         .arrow {
-            width: 12px;
-            height: 12px;
-            opacity: 0.5;
+            width: 14px;
+            height: 14px;
+            opacity: 0.65;
             flex-shrink: 0;
-            transition: transform 0.2s ease;
-        }
-        :host([open]) .arrow {
-            transform: rotate(180deg);
+            transition: transform var(--dur-fast, 160ms) cubic-bezier(0.16, 1, 0.3, 1), opacity var(--dur-fast, 140ms) ease;
         }
 
         :host([disabled]) .trigger {
             opacity: 0.5;
             cursor: not-allowed;
             pointer-events: none;
+            box-shadow: none;
+            transform: none !important;
         }
 
+        /* ── 2. 功能入口打开时：参考 <cgo-input> 激活时的样式效果 ──
+           彻底移除 ::before 微光描边，使用单组 box-shadow 呈现 1px 精准轮廓线 + 3.5px 扩散光晕，
+           绝无多层边框套圈与内缩重影！ */
+        :host([open]) .trigger::before {
+            display: none !important;
+        }
+
+        :host([open]) .trigger {
+            outline: none !important;
+            border: none !important;
+            transform: none !important;
+            box-shadow:
+                0 0 0 1px var(--primary-color, #006098),
+                0 0 0 3.5px rgba(0, 96, 152, 0.14),
+                0 1px 2px rgba(0, 96, 152, 0.08) !important;
+        }
+
+        :host([open]) .arrow {
+            transform: rotate(180deg);
+            opacity: 0.9;
+        }
+
+        :host([data-theme='dark']):host([open]) .trigger,
+        :host-context([data-theme='dark']):host([open]) .trigger {
+            box-shadow:
+                0 0 0 1px var(--primary-color, #4dabf7),
+                0 0 0 3.5px rgba(77, 171, 247, 0.22),
+                0 1px 3px rgba(0, 0, 0, 0.35) !important;
+        }
+
+        /* ── 3. 打开时的下拉菜单：参考 <cgo-dropdown> 的下拉菜单添加与 card B 一致的液态玻璃效果 ── */
         .options {
             position: fixed;
-            max-height: 300px;
-            background: var(--panel-bg, #fff);
-            border: 1px solid var(--border-color, #dee2e6);
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            z-index: 100;
-            overflow-y: auto;
+            background: transparent;
+            border: none !important;
+            outline: none !important;
+            border-radius: var(--radius-md, 8px);
+            box-shadow: var(--glass-shadow, 0 8px 24px rgba(0, 38, 59, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04));
+            z-index: 100000;
             display: none;
             padding: 6px;
             box-sizing: border-box;
+            overflow: hidden;
+            isolation: isolate;
         }
+
         :host([open]) .options {
-            display: block;
+            display: flex;
+            flex-direction: column;
         }
-        /* position: fixed 下，宽度与位置由 JS 注入的内联样式控制 */
-        :host([open-up]) .options {
-            box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.15);
+
+        /* Layer 0: 折射磨砂层 (Tier B 规范: 14px 模糊 + 135% 饱和度 + SVG 空间折射) */
+        .glass-refraction {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            border-radius: inherit;
+            backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
+            backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
+            -webkit-backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
+            filter: var(--glass-refraction-filter, url(#glass-distortion));
+            pointer-events: none;
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        /* Layer 1: 半透明底色衬底层 (Tier B 规范: 0.82 固定) */
+        .options::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            border-radius: inherit;
+            background: var(--glass-bg-panel, rgba(255, 255, 255, 0.82));
+            pointer-events: none;
+            transition: background-color 0.25s ease;
+        }
+
+        :host([data-theme='dark']) .options::after,
+        :host-context([data-theme='dark']) .options::after {
+            background: var(--glass-bg-panel, rgba(31, 32, 34, 0.82));
+        }
+
+        /* Layer 2: 弱化微光圈 (Tier B 规范: 顶部柔和单向光，与 0.82 高不透明底板自然融合，杜绝双层套圈) */
+        .options::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(to bottom,
+                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45 * 0.75)) 0,
+                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45 * 0.75)) var(--lg-rim-hold, 1px),
+                rgba(255, 255, 255, 0) var(--lg-rim-fade, 12px));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.8;
+        }
+
+        :host([data-theme='dark']) .options::before,
+        :host-context([data-theme='dark']) .options::before {
+            background: linear-gradient(to bottom,
+                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 0.45 * 1.5)) 0,
+                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 0.45 * 1.5)) 1px,
+                rgba(255, 255, 255, 0) 8px);
+        }
+
+        :host([data-theme='dark']) .options,
+        :host-context([data-theme='dark']) .options {
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Layer 3: 菜单内容项容器（保证选项滚动时不破坏外层微光圈与背景卡片） */
+        .options-content {
+            position: relative;
+            z-index: 3;
+            max-height: 280px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .options-content::-webkit-scrollbar {
+            width: 5px;
+        }
+        .options-content::-webkit-scrollbar-thumb {
+            background: rgba(0, 0, 0, 0.12);
+            border-radius: 10px;
+        }
+        :host([data-theme='dark']) .options-content::-webkit-scrollbar-thumb,
+        :host-context([data-theme='dark']) .options-content::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.15);
         }
 
         .opt {
@@ -129,23 +328,53 @@ export class CgoToolbarSelect extends LitElement {
             width: 100%;
             box-sizing: border-box;
             padding: 8px 10px;
-            border-radius: 6px;
+            border-radius: var(--radius-xs, 4px);
             cursor: pointer;
             font-size: 13px;
+            font-weight: 500;
             color: var(--text-main, #00263b);
-            transition: background 0.15s;
+            transition:
+                background-color var(--dur-fast, 140ms) ease,
+                color var(--dur-fast, 140ms) ease,
+                transform var(--dur-micro, 100ms) ease;
             user-select: none;
-            border: none;
-            background: none;
-            font-family: var(--font-sans, system-ui, sans-serif);
+            border: none !important;
+            outline: none !important;
+            background: transparent;
+            font-family: inherit;
             text-align: left;
         }
+
         .opt:hover {
-            background: var(--btn-info-hover, #e9ecef);
+            background: var(--btn-info-hover, rgba(0, 38, 59, 0.06));
+            color: var(--text-main, #00263b);
         }
+
+        :host([data-theme='dark']) .opt,
+        :host-context([data-theme='dark']) .opt {
+            color: var(--text-main, #e5e8ea);
+        }
+
+        :host([data-theme='dark']) .opt:hover,
+        :host-context([data-theme='dark']) .opt:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+        }
+
+        .opt:active {
+            transform: scale(0.99);
+        }
+
         .opt.selected {
-            background: var(--primary-color, #006098);
-            color: #fff;
+            background: var(--primary-color, #006098) !important;
+            color: #ffffff !important;
+            font-weight: 600;
+        }
+
+        :host([data-theme='dark']) .opt.selected,
+        :host-context([data-theme='dark']) .opt.selected {
+            background: var(--primary-color, #0070b0) !important;
+            color: #ffffff !important;
         }
 
         /* 选项内颜色圆点 / 图片 */
@@ -165,37 +394,37 @@ export class CgoToolbarSelect extends LitElement {
             flex-shrink: 0;
         }
 
-        :host([data-theme='dark']) .options {
-            background: #2a2b2c;
-            border-color: rgba(255, 255, 255, 0.1);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        /* 传统扁平降级 */
+        :host([glass-mode='flat']) .options,
+        :host([glass-mode='none']) .options {
+            background: var(--card-bg, #fff);
+            border: 1px solid var(--border-color, #dee2e6) !important;
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
         }
-
-        :host([data-theme='dark'][open-up]) .options {
-            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.4);
+        :host([glass-mode='flat']) .options::before,
+        :host([glass-mode='flat']) .options::after,
+        :host([glass-mode='none']) .options::before,
+        :host([glass-mode='none']) .options::after {
+            display: none;
         }
-
-        .options::-webkit-scrollbar {
-            width: 6px;
-        }
-        .options::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.1);
-            border-radius: 10px;
-        }
-        :host([data-theme='dark']) .options::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.1);
+        :host([data-theme='dark']):host([glass-mode='flat']) .options,
+        :host-context([data-theme='dark']):host([glass-mode='flat']) .options {
+            background: var(--card-bg, #1f2020);
+            border-color: var(--border-color, #383a3c) !important;
         }
 
         :host([open]:not([open-up])) .options {
-            animation: cgoTsFadeIn 0.2s ease;
+            animation: cgoTsFadeIn var(--dur-fast, 160ms) cubic-bezier(0.16, 1, 0.3, 1);
         }
         :host([open][open-up]) .options {
-            animation: cgoTsFadeInUp 0.2s ease;
+            animation: cgoTsFadeInUp var(--dur-fast, 160ms) cubic-bezier(0.16, 1, 0.3, 1);
         }
+
         @keyframes cgoTsFadeIn {
             from {
                 opacity: 0;
-                transform: translateY(-5px);
+                transform: translateY(-4px);
             }
             to {
                 opacity: 1;
@@ -205,7 +434,7 @@ export class CgoToolbarSelect extends LitElement {
         @keyframes cgoTsFadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(5px);
+                transform: translateY(4px);
             }
             to {
                 opacity: 1;
@@ -225,6 +454,7 @@ export class CgoToolbarSelect extends LitElement {
         this.open = false;
         this.openUp = false;
         this.disabled = false;
+        this.glassMode = '';
         this._label = '';
         this._onOutside = this._onOutside.bind(this);
         this._positionHandler = () => {
@@ -234,9 +464,9 @@ export class CgoToolbarSelect extends LitElement {
 
     connectedCallback() {
         super.connectedCallback();
+        injectLiquidGlassFilter();
         document.addEventListener('click', this._onOutside);
         // 将 <html data-theme> 同步到宿主元素，使 :host([data-theme]) 在 Shadow DOM 中生效
-        // :host-context() 在 Safari 中不被支持，所以需要此方案
         this._syncThemeToHost();
         this._themeObserver = new MutationObserver(() => this._syncThemeToHost());
         this._themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
@@ -266,7 +496,7 @@ export class CgoToolbarSelect extends LitElement {
     }
 
     _onOutside(event) {
-        if (!this.contains(event.target)) this.close();
+        if (!event.composedPath().includes(this)) this.close();
     }
 
     _getOptions() {
@@ -398,9 +628,10 @@ export class CgoToolbarSelect extends LitElement {
     render() {
         const opts = this._getOptions();
         const isPlaceholder = !this._label && !!this.placeholder;
+        const isFlat = this.glassMode === 'flat' || this.glassMode === 'none';
 
         return html`
-            <button class="trigger" type="button" @click=${this._toggle}>
+            <button class="trigger" type="button" ?disabled=${this.disabled} aria-expanded=${this.open} @click=${this._toggle}>
                 <span class="text ${isPlaceholder ? 'placeholder' : ''}">${this._label || this.placeholder || ''}</span>
                 <svg
                     class="arrow"
@@ -415,15 +646,18 @@ export class CgoToolbarSelect extends LitElement {
                 </svg>
             </button>
             <div class="options">
-                ${opts.map((opt) => {
-                    const val = opt.getAttribute('value') || '';
-                    const isSel = val === this.value;
-                    return html`
-                        <div class="opt ${isSel ? 'selected' : ''}" @click=${() => this._select(val)}>
-                            ${unsafeHTML(opt.innerHTML)}
-                        </div>
-                    `;
-                })}
+                ${!isFlat ? html`<div class="glass-refraction" aria-hidden="true"></div>` : null}
+                <div class="options-content">
+                    ${opts.map((opt) => {
+                        const val = opt.getAttribute('value') || '';
+                        const isSel = val === this.value;
+                        return html`
+                            <div class="opt ${isSel ? 'selected' : ''}" @click=${() => this._select(val)}>
+                                ${unsafeHTML(opt.innerHTML)}
+                            </div>
+                        `;
+                    })}
+                </div>
             </div>
             <div class="src"><slot></slot></div>
         `;

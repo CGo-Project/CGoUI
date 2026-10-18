@@ -47,7 +47,9 @@ export function setHeaderMode(mode: 'classic' | 'floating' | string): string;
 export function getHeaderMode(): string;
 export function toggleHeaderMode(): string;
 export function setDefaultHeaderMode(mode: 'classic' | 'floating' | string): void;
+export function autoUpgradeHeader(root?: Document | Element | null): void;
 export function setBgMode(mode: 'solid' | 'gradient' | string): string;
 export function getBgMode(): string;
 export function setDefaultBgMode(mode: 'solid' | 'gradient' | string): void;
+
 

@@ -1,9 +1,10 @@
 import { LitElement, html, css } from 'lit';
 import './icon.js';
+import { injectLiquidGlassFilter } from '../theme.js';
 
 /**
  * <cgo-modal open title="标题" max-width="420px">内容…</cgo-modal>
- * 遮罩 + 居中对话框 + 关闭按钮。移植自 cgo_element.css §9。
+ * 遮罩 + 居中对话框 + 关闭按钮。遵循次世代 Liquid Glass Tier B 不可交互底板规范。
  * 事件: cgo-close（点击关闭按钮 / 遮罩 / Esc 时派发）。
  */
 export class CgoModal extends LitElement {
@@ -12,6 +13,7 @@ export class CgoModal extends LitElement {
         title: { type: String },
         maxWidth: { type: String, attribute: 'max-width' },
         closeOnOverlay: { type: Boolean, attribute: 'close-on-overlay' },
+        glassMode: { type: String, attribute: 'glass-mode', reflect: true },
     };
 
     static styles = css`
@@ -24,18 +26,11 @@ export class CgoModal extends LitElement {
         .overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.45);
+            background: transparent;
             z-index: 99990;
-            backdrop-filter: blur(4px);
-            -webkit-backdrop-filter: blur(4px);
-            animation: overlayIn 0.2s ease;
-        }
-        :host-context([glass-mode="liquid"]) .overlay,
-        :host-context([glass-mode="blur"]) .overlay,
-        :host-context([data-glass-mode="liquid"]) .overlay,
-        :host-context([data-glass-mode="blur"]) .overlay {
             backdrop-filter: blur(8px) saturate(120%);
             -webkit-backdrop-filter: blur(8px) saturate(120%);
+            animation: overlayIn 0.2s ease;
         }
         @keyframes overlayIn {
             from {
@@ -45,50 +40,111 @@ export class CgoModal extends LitElement {
                 opacity: 1;
             }
         }
+
+        /* 遵循 Tier B 不可交互底板规范 (0.82 衬底，柔和顶部微光圈) */
         .dialog {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: var(--panel-bg, #fff);
+            background: transparent;
             color: var(--text-main, #00263b);
-            border: 1px solid var(--border-color, #dee2e6);
+            border: none;
             border-radius: var(--radius-lg, 12px);
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+            box-shadow: 0 20px 50px -10px rgba(0, 38, 59, 0.2), 0 8px 24px -4px rgba(0, 38, 59, 0.12);
             z-index: 100000;
             width: min(560px, 92dvw);
             max-height: 90dvh;
             overflow: hidden;
+            isolation: isolate;
             display: flex;
             flex-direction: column;
             animation: dialogIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-            backdrop-filter: var(--glass-backdrop-blur-surface, none);
-            -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, none);
+            backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
         }
-        :host-context([glass-mode="liquid"]) .dialog,
-        :host-context([glass-mode="blur"]) .dialog,
-        :host-context([data-glass-mode="liquid"]) .dialog,
-        :host-context([data-glass-mode="blur"]) .dialog {
-            border: none;
-            background: rgba(255, 255, 255, 0.82);
-            box-shadow:
-                0 0 0 0.5px rgba(0, 0, 0, 0.08),
-                0 20px 50px -10px rgba(0, 38, 59, 0.2),
-                0 6px 16px -4px rgba(0, 38, 59, 0.1),
-                inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
+
+        /* Layer 0: 折射磨砂层 (Tier B 规范: 14px 模糊 + 135% 饱和度 + SVG 空间折射) */
+        .glass-refraction {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            border-radius: inherit;
+            backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
+            backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
+            -webkit-backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
+            filter: var(--glass-refraction-filter, url(#glass-distortion));
+            pointer-events: none;
+            overflow: hidden;
+            isolation: isolate;
         }
-        :host-context([data-theme="dark"][glass-mode="liquid"]) .dialog,
-        :host-context([data-theme="dark"][glass-mode="blur"]) .dialog,
-        :host-context([data-theme="dark"][data-glass-mode="liquid"]) .dialog,
-        :host-context([data-theme="dark"][data-glass-mode="blur"]) .dialog {
-            border: none;
-            background: rgba(28, 30, 32, 0.85);
-            box-shadow:
-                0 0 0 0.5px rgba(255, 255, 255, 0.12),
-                0 24px 60px -10px rgba(0, 0, 0, 0.7),
-                0 8px 20px -4px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.16);
+
+        /* Layer 1: 半透明底色衬底层 (Tier B 规范: 0.82 固定) */
+        .dialog::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            border-radius: inherit;
+            background: var(--glass-bg-panel, rgba(255, 255, 255, 0.82));
+            pointer-events: none;
+            transition: background-color 0.25s ease;
         }
+        :host-context([data-theme='dark']) .dialog::after {
+            background: var(--glass-bg-panel, rgba(31, 32, 34, 0.82));
+        }
+
+        /* Layer 2: 弱化微光圈 (Tier B 规范: 顶部柔和单向光，与 0.82 高不透明底板自然融合) */
+        .dialog::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(to bottom,
+                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45 * 0.75)) 0,
+                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45 * 0.75)) var(--lg-rim-hold, 1px),
+                rgba(255, 255, 255, 0) var(--lg-rim-fade, 12px));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.8;
+        }
+
+        :host-context([data-theme='dark']) .dialog::before {
+            background: linear-gradient(to bottom,
+                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 0.45 * 1.5)) 0,
+                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 0.45 * 1.5)) 1px,
+                rgba(255, 255, 255, 0) 8px);
+        }
+
+        :host-context([data-theme='dark']) .dialog {
+            box-shadow: 0 24px 60px -10px rgba(0, 0, 0, 0.7), 0 8px 24px -4px rgba(0, 0, 0, 0.5);
+        }
+
+        /* 传统扁平降级 */
+        :host([glass-mode='flat']) .dialog,
+        :host([glass-mode='none']) .dialog {
+            background: var(--panel-bg, #fff);
+            border: 1px solid var(--border-color, #dee2e6);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+        :host([glass-mode='flat']) .dialog::before,
+        :host([glass-mode='flat']) .dialog::after,
+        :host([glass-mode='none']) .dialog::before,
+        :host([glass-mode='none']) .dialog::after {
+            display: none;
+        }
+        :host-context([data-theme='dark']):host([glass-mode='flat']) .dialog {
+            background: var(--panel-bg, #1f2020);
+            border-color: var(--border-color, #383a3c);
+        }
+
         @keyframes dialogIn {
             from {
                 opacity: 0;
@@ -123,28 +179,32 @@ export class CgoModal extends LitElement {
         }
         .close {
             position: absolute;
-            top: 12px;
+            top: 14px;
             right: 16px;
             background: none;
             border: none;
             cursor: pointer;
-            font-size: 1.6rem;
             color: var(--text-light, #666);
             line-height: 1;
-            padding: 0;
-            z-index: 1;
-            transition: color 0.2s;
+            padding: 4px;
+            z-index: 10;
+            transition: color 0.2s, transform 0.15s;
         }
         .close:hover {
             color: var(--text-main, #00263b);
+            transform: scale(1.08);
         }
         .title {
+            position: relative;
+            z-index: 3;
             margin: 0;
             padding: 22px 25px 0;
             font-size: 18px;
             font-weight: 700;
         }
         .body {
+            position: relative;
+            z-index: 3;
             padding: 16px 25px 22px;
             overflow-y: auto;
             color: var(--text-main, #00263b);
@@ -189,12 +249,14 @@ export class CgoModal extends LitElement {
         this.title = '';
         this.maxWidth = '';
         this.closeOnOverlay = true;
+        this.glassMode = '';
         this._closing = false; /* C-04: 退出动画中标记 */
         this._onKey = this._onKey.bind(this);
     }
 
     connectedCallback() {
         super.connectedCallback();
+        injectLiquidGlassFilter();
         document.addEventListener('keydown', this._onKey);
     }
     disconnectedCallback() {
@@ -229,9 +291,11 @@ export class CgoModal extends LitElement {
     render() {
         if (!this.open && !this._closing) return html``;
         const style = this.maxWidth ? `width:min(${this.maxWidth},92dvw)` : '';
+        const isFlat = this.glassMode === 'flat' || this.glassMode === 'none';
         return html`
             <div class="overlay ${this._closing ? 'closing' : ''}" @click=${() => !this._closing && this.closeOnOverlay && this._close()}></div>
             <div class="dialog ${this._closing ? 'closing' : ''}" style=${style} role="dialog" aria-modal="true">
+                ${!isFlat ? html`<div class="glass-refraction" aria-hidden="true"></div>` : null}
                 <button class="close" @click=${this._close} aria-label="关闭"><cgo-icon name="close" size="14"></cgo-icon></button>
                 ${this.title
                     ? html`

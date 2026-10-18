@@ -486,7 +486,8 @@
         }
 
         .ribbon-action-btn-lg:active:not(:disabled) {
-            transform: scale(0.97);
+            transform: scale(0.98);
+            transition: transform 100ms cubic-bezier(0.23, 1, 0.32, 1);
             background: var(--office-hover);
         }
 
@@ -501,7 +502,7 @@
         }
 
         .ribbon-action-btn-lg:hover:not(:disabled) .ribbon-icon {
-            transform: translateY(-1px);
+            transform: none;
         }
 
         .ribbon-action-btn-lg.highlight-action {
@@ -1119,6 +1120,18 @@
 </head>
 
 <body class="office-app-shell">
+    <!-- Liquid Glass 硬件加速空间折射滤镜管线 -->
+    <svg id="cgo-liquid-glass-filters" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.025 0.025" numOctaves="1" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="20" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
+
+    <!-- 移动端顶部状态栏/信号栏实色安全区保护层：遮挡页面滚动穿透内容 -->
+    <div class="mobile-status-bar-fill" aria-hidden="true"></div>
 
     <!-- =====================================================================
          1. 顶部标题栏 (Title Bar)

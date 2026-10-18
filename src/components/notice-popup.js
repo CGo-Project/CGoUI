@@ -90,12 +90,13 @@ export class CgoNoticePopup extends LitElement {
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
             border: 1px solid rgba(0, 0, 0, 0.05);
             background: var(--text-main, #00263b);
-            color: var(--bg-color, #f8f9fa);
+            color: #ffffff;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 10px;
         }
+
         :host-context([glass-mode="liquid"]) .toast-card,
         :host-context([glass-mode="blur"]) .toast-card,
         :host-context([data-glass-mode="liquid"]) .toast-card,
@@ -125,6 +126,7 @@ export class CgoNoticePopup extends LitElement {
 
         .toast-message {
             flex: 1;
+            color: #ffffff;
         }
 
         .toast-progress-ring {
@@ -136,19 +138,26 @@ export class CgoNoticePopup extends LitElement {
             --border-color: rgba(255, 255, 255, 0.25);
         }
 
+        .toast-card.info {
+            background: var(--primary-color) !important;
+            color: #ffffff !important;
+        }
+
         .toast-card.success {
-            background: var(--success-color, #34a853);
-            color: #ffffff;
+            background: var(--success-color) !important;
+            color: #ffffff !important;
         }
 
-        .toast-card.danger {
-            background: var(--danger-color, #ea4335);
-            color: #ffffff;
+        .toast-card.danger,
+        .toast-card.error {
+            background: var(--danger-color) !important;
+            color: #ffffff !important;
         }
 
-        .toast-card.warning {
-            background: var(--warning-color, #f59e0b);
-            color: #ffffff;
+        .toast-card.warning,
+        .toast-card.warn {
+            background: var(--warning-color) !important;
+            color: #ffffff !important;
         }
     `;
 

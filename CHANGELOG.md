@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.2.0 - 2026-10-19
+
+- 全面升级液态玻璃（Liquid Glass）视觉系统与滤镜规范，支持动态高斯模糊与微光反射层。
+- 标题栏支持分体浮动双岛（2.0 `header-mode="floating"`）与合并吸顶（1.0 `header-mode="classic"`）双模式，并支持 HTML 声明式配置。
+- 页面模板体系优化（info_template、tool_template、ribbon_template），支持抗闪烁与防布局跳动。
+- 明暗主题切换按钮微光质感与按压反馈重构，严格保持设计系统基础圆角规范（4px）。
+- 动效Token全面对齐 Emil Kowalski 交互物理弹簧与平滑退出规范。
+
 ## 2.1.0 - 2026-08-06
 
 - 将 CGoUI 源码、主题样式、文档和发布产物迁移为独立仓库结构。

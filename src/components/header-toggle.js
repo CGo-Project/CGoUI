@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import { ICONS } from '../icons/icons.js';
 import { getHeaderMode, toggleHeaderMode, setHeaderMode, setHeaderModeStorageKey } from '../theme.js';
+import './button.js';
 
 /**
  * <cgo-header-toggle storage-key="custom_header_mode"></cgo-header-toggle>
@@ -20,32 +21,8 @@ export class CgoHeaderToggle extends LitElement {
         :host {
             display: inline-flex;
         }
-        button {
+        cgo-button {
             display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            width: 34px;
-            height: 34px;
-            padding: 0;
-            border-radius: var(--radius-xs, 4px);
-            border: 1px solid var(--border-color, #dee2e6);
-            background: var(--btn-info-bg, #f1f3f5);
-            color: var(--text-main, #00263b);
-            cursor: pointer;
-            transition: all var(--transition-base, 0.2s ease);
-            -webkit-tap-highlight-color: transparent;
-            box-sizing: border-box;
-        }
-        button:hover {
-            background: var(--btn-info-hover, #e9ecef);
-        }
-        button.is-floating {
-            background: var(--primary-color, #00263b);
-            color: var(--btn-text, #ffffff);
-            border-color: var(--primary-color, #00263b);
-        }
-        button.is-floating:hover {
-            background: var(--primary-hover, #004060);
         }
         svg {
             width: 18px;
@@ -83,7 +60,7 @@ export class CgoHeaderToggle extends LitElement {
     constructor() {
         super();
         this.storageKey = '';
-        this._mode = 'classic';
+        this._mode = 'floating';
         this._tip = '';
         this._pressTimer = null;
         this._isLongPress = false;
@@ -120,8 +97,8 @@ export class CgoHeaderToggle extends LitElement {
         this._isLongPress = false;
         this._pressTimer = setTimeout(() => {
             this._isLongPress = true;
-            setHeaderMode('classic');
-            this._showTip('已恢复默认吸顶顶栏');
+            setHeaderMode('floating');
+            this._showTip('已恢复默认悬浮菜单栏');
             if (navigator.vibrate) navigator.vibrate(50);
         }, 800);
     };
@@ -166,8 +143,9 @@ export class CgoHeaderToggle extends LitElement {
         tpl.innerHTML = `<svg viewBox="${viewBox}" aria-hidden="true">${path}</svg>`;
 
         return html`
-            <button
-                class="${isFloating ? 'is-floating' : ''}"
+            <cgo-button
+                variant="${isFloating ? 'primary' : 'info'}"
+                icon-only
                 title="${titleText}"
                 aria-label="${titleText}"
                 @pointerdown=${this._start}
@@ -181,7 +159,7 @@ export class CgoHeaderToggle extends LitElement {
                 }}
             >
                 ${tpl.content.cloneNode(true)}
-            </button>
+            </cgo-button>
             ${this._tip
                 ? html`
                       <div class="tip show">${this._tip}</div>

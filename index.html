@@ -17,7 +17,7 @@
     <title>Central Go 前端视觉库</title>
 
     <!-- CGoUI 核心 Bundle 与文档路由最高优先级预加载 -->
-    <link rel="modulepreload" href="./dist/cgo-ui.js?v=261008.103737">
+    <link rel="modulepreload" href="./dist/cgo-ui.js?v=261018.235700">
     <link rel="modulepreload" href="./docs/docs.js?v=260804.000001">
 
     <!-- Google Fonts -->
@@ -37,12 +37,22 @@
         /* Web Components 元素未注册前的占位与防无样式闪烁 */
         cgo-icon:not(:defined),
         cgo-side-nav:not(:defined),
+        cgo-toolbar-select:not(:defined),
         cgo-theme-toggle:not(:defined) {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             visibility: visible;
             opacity: 0.6;
+        }
+
+        cgo-toolbar-option {
+            display: none !important;
+        }
+
+        /* 仅在文档站首页固定语言选择器宽度为展示「繁體中文（香港）」的宽度，其他项目保持 auto */
+        #cgo-i18n-language-select {
+            width: 154px !important;
         }
 
         /* ===== 文档站布局 ===== */
@@ -90,14 +100,15 @@
             body[header-mode="floating"] .doc-main {
                 flex: 1;
                 min-width: 0;
+                max-width: none;
                 height: 100dvh;
                 overflow-y: auto;
                 overscroll-behavior: contain;
                 box-sizing: border-box;
                 padding-top: calc(env(safe-area-inset-top, 0px) + 88px);
                 padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
-                padding-left: 24px;
-                padding-right: clamp(20px, 5vw, 64px);
+                padding-left: 36px;
+                padding-right: calc(36px + env(safe-area-inset-right, 0px));
             }
         }
 
@@ -148,8 +159,8 @@
         }
 
         .doc-h1 {
-            font-size: 30px;
-            font-weight: 800;
+            font-size: 28px;
+            font-weight: 700;
             margin: 0 0 6px;
             display: flex;
             align-items: center;
@@ -173,17 +184,24 @@
 
         .doc-lead {
             color: var(--text-light);
-            font-size: 15px;
+            font-size: 14px;
             margin: 0 0 28px;
             line-height: 1.7;
         }
 
         .doc-h2 {
-            font-size: 18px;
+            font-size: 22px;
             font-weight: 700;
             margin: 36px 0 14px;
             padding-bottom: 8px;
             border-bottom: 1px solid var(--border-color);
+        }
+
+        .doc-h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 20px 0 10px;
+            color: var(--text-main);
         }
 
         /* 实例演示卡 */
@@ -316,61 +334,91 @@
         /* 基础页：色板 / token / 图标 */
         .swatch-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 14px;
         }
 
         .swatch-grid.compact {
-            grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
         }
 
         .swatch {
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            overflow: hidden;
-            background: var(--card-bg);
+            border-radius: var(--radius-lg, 12px) !important;
             color: var(--text-main);
             text-align: left;
             cursor: pointer;
             font: inherit;
-            padding: 0;
+            padding: 12px !important;
+            margin-bottom: 0 !important;
             display: flex;
             flex-direction: column;
-            transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+            border: none !important;
+            background: transparent !important;
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+            transition: transform var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1)),
+                        box-shadow var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1));
         }
 
-        .swatch:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--primary-color);
+        .swatch:active {
+            transform: scale(0.97) !important;
         }
 
         .swatch-color {
-            height: 60px;
+            width: 100%;
+            height: 52px;
+            border-radius: var(--radius-md, 8px) !important;
             flex-shrink: 0;
+            position: relative;
+            z-index: 3 !important;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.06);
+        }
+
+        [data-theme='dark'] .swatch-color {
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.25);
         }
 
         .swatch-meta {
-            padding: 8px 10px;
+            margin-top: 10px;
+            padding: 0;
             font-size: 12px;
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            position: relative;
+            z-index: 3 !important;
         }
 
         .swatch-meta b {
             display: block;
-            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.3;
         }
 
         .swatch-meta span {
+            display: block;
             color: var(--text-light);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            word-break: break-all;
+            line-height: 1.25;
+            opacity: 0.9;
         }
 
         .swatch-meta em {
             display: block;
             color: var(--text-light);
+            font-family: var(--font-mono);
+            font-size: 11px;
             font-style: normal;
-            margin-top: 3px;
-            opacity: 0.85;
+            margin-top: 2px;
+            opacity: 0.8;
+            line-height: 1.3;
         }
 
         .color-group-title {
@@ -387,19 +435,20 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             padding: 14px 6px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
+            border-radius: var(--radius-md) !important;
             cursor: pointer;
-            transition: all var(--transition-base);
             text-align: center;
+            border: none !important;
+            background: transparent !important;
         }
 
-        .icon-cell:hover {
-            border-color: var(--primary-color);
-            background: var(--info-bg);
-            transform: translateY(-2px);
+        .icon-cell cgo-icon,
+        .icon-cell span {
+            position: relative;
+            z-index: 3;
         }
 
         .icon-cell span {
@@ -407,6 +456,7 @@
             color: var(--text-light);
             font-family: var(--font-mono);
             word-break: break-all;
+            line-height: 1.3;
         }
 
         .token-row {
@@ -759,49 +809,72 @@
 
         .line-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 12px;
         }
 
         .line-swatch {
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            overflow: hidden;
-            background: var(--card-bg);
+            border-radius: var(--radius-lg, 12px) !important;
+            color: var(--text-main);
             text-align: left;
             cursor: pointer;
             font: inherit;
-            padding: 0;
+            padding: 12px !important;
+            margin-bottom: 0 !important;
             display: flex;
             flex-direction: column;
-            transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+            border: none !important;
+            background: transparent !important;
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+            transition: transform var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1)),
+                        box-shadow var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1));
         }
 
-        .line-swatch:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--primary-color);
+        .line-swatch:active {
+            transform: scale(0.97) !important;
         }
 
         .line-swatch-color {
-            height: 50px;
+            width: 100%;
+            height: 48px;
+            border-radius: var(--radius-md, 8px) !important;
             flex-shrink: 0;
+            position: relative;
+            z-index: 3 !important;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.06);
+        }
+
+        [data-theme='dark'] .line-swatch-color {
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.25);
         }
 
         .line-swatch-meta {
-            padding: 8px 10px;
+            margin-top: 8px;
+            padding: 0;
             font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            position: relative;
+            z-index: 3 !important;
         }
 
         .line-swatch-meta b {
             display: block;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text-main);
+            line-height: 1.3;
         }
 
         .line-swatch-meta span {
             font-family: var(--font-mono);
             font-size: 11px;
             color: var(--text-light);
+            word-break: break-all;
+            opacity: 0.9;
         }
 
         .filter-tags {
@@ -895,7 +968,14 @@
 
         <div class="header-island header-island-right glass-surface">
             <div class="header-right">
-                <cgo-header-toggle></cgo-header-toggle>
+                <cgo-toolbar-select id="cgo-i18n-language-select" data-cgo-i18n-switch="select" value="zh" style="width: 154px;">
+                    <cgo-toolbar-option value="zh">简体中文</cgo-toolbar-option>
+                    <cgo-toolbar-option value="en">English</cgo-toolbar-option>
+                    <cgo-toolbar-option value="ja">日本語</cgo-toolbar-option>
+                    <cgo-toolbar-option value="ko">한국어</cgo-toolbar-option>
+                    <cgo-toolbar-option value="zh-HK">繁體中文（香港）</cgo-toolbar-option>
+                    <cgo-toolbar-option value="zh-TW">繁體中文（台灣）</cgo-toolbar-option>
+                </cgo-toolbar-select>
                 <cgo-theme-toggle></cgo-theme-toggle>
             </div>
         </div>
@@ -911,11 +991,13 @@
         window.__CGO_LOCALE__ = new URLSearchParams(location.search).get('locale') || 'zh';
         window.__CGO_LOCALE_SOURCE__ = location.href;
         window.__CGO_I18N_SITE_ROOT__ = new URL('./', location.href).href;
+        const initialLangSelect = document.getElementById('cgo-i18n-language-select');
+        if (initialLangSelect) initialLangSelect.value = window.__CGO_LOCALE__;
     </script>
     <script type="module" src="./i18n/runtime.js"></script>
 
     <!-- CGoUI Web Components 统一 bundle -->
-    <script type="module" src="./dist/cgo-ui.js?v=261008.103737"></script>
+    <script type="module" src="./dist/cgo-ui.js?v=261018.235700"></script>
 
     <!-- 文档站数据与路由 -->
     <script type="module" src="./docs/docs.js?v=260804.000001"></script>

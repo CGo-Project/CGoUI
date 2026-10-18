@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" glass-mode="liquid" header-mode="floating">
+<html lang="zh-CN" glass-mode="liquid" header-mode="floating" bg-mode="gradient">
 
 <head>
     <meta charset="UTF-8">
@@ -13,8 +13,12 @@
       (function() {
         var t = localStorage.getItem('app-theme');
         document.documentElement.setAttribute('data-theme', t || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
-        var hm = localStorage.getItem('root_cgo_header_mode') || localStorage.getItem('cgo_header_mode');
-        if (hm) document.documentElement.setAttribute('header-mode', hm);
+        // 工具类模板默认 2.0 分体双岛悬浮标题栏模式
+        document.documentElement.setAttribute('header-mode', 'floating');
+        try {
+          var k = (location.pathname || '').replace(/\.html$/, '').replace(/[^a-zA-Z0-9_-]/g, '_') + '_cgo_header_mode';
+          localStorage.setItem(k, 'floating');
+        } catch(e) {}
       })();
     </script>
 
@@ -42,31 +46,21 @@
         cgo-icon:not(:defined),
         cgo-button:not(:defined),
         cgo-theme-toggle:not(:defined),
-        cgo-header-toggle:not(:defined),
         cgo-tabs:not(:defined) {
             display: inline-flex;
             visibility: visible;
             opacity: 0.6;
         }
 
-        /* 页面基础容器配置（工具页：固定全屏，内部滚动，液态玻璃背景）*/
+        /* 页面基础容器配置（工具页：固定全屏，内部滚动；背景由 bg-mode="gradient" 托管）*/
         body {
             height: 100vh;
             display: flex;
             flex-direction: column;
             overflow: hidden;
             margin: 0;
-            background: radial-gradient(circle at 15% 15%, rgba(0, 96, 152, 0.08), transparent 45%),
-                        radial-gradient(circle at 85% 85%, rgba(0, 160, 233, 0.06), transparent 45%),
-                        var(--bg-color, #f8f9fa);
             color: var(--text-main, #00263b);
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
-        }
-
-        [data-theme="dark"] body {
-            background: radial-gradient(circle at 15% 15%, rgba(0, 96, 152, 0.16), transparent 50%),
-                        radial-gradient(circle at 85% 85%, rgba(15, 35, 60, 0.35), transparent 50%),
-                        var(--bg-color, #0f1115);
         }
 
         .tool-container {
@@ -79,27 +73,11 @@
             box-sizing: border-box;
         }
 
-        /* 工具栏卡片 (Liquid Glass) */
-        .tool-card {
-            background: var(--glass-bg, #ffffff);
-            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(180%));
-            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(180%));
-            border: 1px solid var(--glass-border, #dee2e6);
-            border-radius: 10px;
-            box-shadow: var(--lg-shadow, 0 4px 16px rgba(0,0,0,0.04));
-        }
-
-        /* Excel 样式高级表格配置示例 (Liquid Glass) */
+        /* Excel 样式高级表格配置示例 (Tier B 底板内部滚动承载) */
         .table-container {
             flex: 1;
             min-height: 0;
             overflow: auto;
-            border-radius: 8px;
-            border: 1px solid var(--glass-border, var(--table-cell-border, #dee2e6));
-            background: var(--glass-bg, #ffffff);
-            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(180%));
-            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(180%));
-            box-shadow: var(--lg-shadow, 0 8px 24px rgba(0, 0, 0, 0.04));
         }
 
         #toolDataTable {
@@ -177,7 +155,7 @@
     <div class="mobile-status-bar-fill" aria-hidden="true"></div>
 
     <!-- ==================== 顶部菜单栏 Header (双岛/胶囊自适应布局) ==================== -->
-    <header class="tool-header">
+    <header class="tool-header floating-header" header-mode="floating">
         <div class="header-island header-island-left glass-surface">
             <!-- 1. 左侧：导航按钮区 -->
             <div class="header-left">
@@ -219,9 +197,6 @@
                     </div>
                 </div>
 
-                <!-- 顶栏模式切换组件 -->
-                <cgo-header-toggle></cgo-header-toggle>
-
                 <!-- 主题切换组件 -->
                 <cgo-theme-toggle></cgo-theme-toggle>
 
@@ -232,10 +207,6 @@
                         <span>更多</span>
                     </button>
                     <div class="dropdown-content">
-                        <a href="javascript:void(0)" onclick="window.CGO && window.CGO.toggleHeaderMode && window.CGO.toggleHeaderMode()">
-                            <cgo-icon name="unpin-angle"></cgo-icon>
-                            <span>切换顶栏模式 (悬浮/吸顶)</span>
-                        </a>
                         <a href="javascript:void(0)" id="help-btn">
                             <cgo-icon name="help"></cgo-icon>
                             <span>帮助与设置</span>
@@ -252,7 +223,6 @@
         <!-- 工具栏 / 操作面板 (Tier B 底板) -->
         <div class="tool-card glass-panel" style="margin-bottom: 16px; padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
             <span style="font-weight: 600; font-size: 14px;">工作区工具栏：</span>
-            <cgo-button variant="glass" icon="sparkle" size="sm">液态玻璃</cgo-button>
             <cgo-button variant="primary" icon="add" size="sm">新增项目</cgo-button>
             <cgo-button variant="info" icon="refresh" size="sm">刷新数据</cgo-button>
             <cgo-button variant="danger" icon="delete" size="sm">批量清理</cgo-button>
@@ -261,8 +231,8 @@
             </div>
         </div>
 
-        <!-- 数据表格 / 操作主区域 -->
-        <div class="table-container">
+        <!-- 数据表格 / 操作主区域 (Tier B 底板) -->
+        <div class="table-container glass-panel" style="padding: 0; margin-bottom: 0;">
             <table id="toolDataTable">
                 <thead>
                     <tr>
