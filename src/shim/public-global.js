@@ -18,3 +18,4 @@ export function installGlobalShim(global) {
 }
 
 export { configureGlobalShim, initImgIconWrappers };
+

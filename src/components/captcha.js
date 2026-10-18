@@ -73,43 +73,167 @@ export class CgoCaptcha extends LitElement {
             gap: 8px;
         }
         .zoom-btn {
-            width: 38px;
-            height: 38px;
+            position: relative;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            width: 36px;
+            height: 36px;
             padding: 0;
-            border: 1px solid var(--border-color, #dee2e6);
+            border: none;
             border-radius: var(--radius-sm, 6px);
-            background: var(--btn-info-bg, #e9ecef);
-            color: var(--btn-info-text, #495057);
+            background-color: var(--btn-info-bg, #f1f3f5);
+            color: var(--text-main, #00263b);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
             cursor: pointer;
             flex-shrink: 0;
+            user-select: none;
+            overflow: hidden;
+            isolation: isolate;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            transition:
+                color var(--dur-fast, 140ms) ease,
+                background-color var(--dur-fast, 140ms) ease,
+                box-shadow var(--dur-fast, 140ms) ease,
+                transform var(--dur-micro, 100ms) cubic-bezier(0.23, 1, 0.32, 1),
+                opacity var(--dur-fast, 140ms) ease;
         }
+
+        /* 1px 双轴微光描边 (Layer 2 Masked 1px Hairline Rim Light, 与 cgo-button 一致，作为唯一精致描边) */
+        .zoom-btn::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background:
+                linear-gradient(to right,
+                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 0,
+                    rgba(0, 0, 0, 0) var(--lg-rim-side, 3px),
+                    rgba(0, 0, 0, 0) calc(100% - var(--lg-rim-side, 3px)),
+                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 100%),
+                linear-gradient(to bottom,
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) 0,
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) var(--lg-rim-hold, 1px),
+                    rgba(255, 255, 255, 0) 8px,
+                    rgba(0, 0, 0, 0.02) calc(100% - 4px),
+                    rgba(0, 0, 0, 0.12) 100%);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 2;
+            opacity: 0.64;
+            transition: opacity var(--dur-fast, 140ms) ease;
+        }
+
         .zoom-btn:hover {
-            background: var(--btn-info-hover, #dee2e6);
+            background-color: var(--btn-info-hover, #e9ecef);
             color: var(--text-main, #00263b);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
         }
+
+        .zoom-btn:hover::before {
+            opacity: 0.75;
+        }
+
+        .zoom-btn:active {
+            transform: scale(0.98);
+            background-color: #dee2e6;
+        }
+
+        .zoom-btn:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--bg-color, #ffffff), 0 0 0 4px var(--primary-color, #006098);
+        }
+
+        :host([zoomed]) .zoom-btn {
+            background-color: var(--btn-info-hover, #e9ecef);
+            color: var(--primary-color, #006098);
+        }
+
+        /* 暗色模式适配 */
+        :host-context([data-theme='dark']) .zoom-btn {
+            background-color: var(--btn-info-bg, #262729);
+            color: var(--text-main, #e5e8ea);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+        }
+
+        :host-context([data-theme='dark']) .zoom-btn::before {
+            background:
+                linear-gradient(to bottom,
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 1.5)) 0,
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 1.5)) 1px,
+                    rgba(255, 255, 255, 0) 8px,
+                    rgba(255, 255, 255, 0) calc(100% - 4px),
+                    rgba(255, 255, 255, 0.08) 100%);
+        }
+
+        :host-context([data-theme='dark']) .zoom-btn:hover {
+            background-color: var(--btn-info-hover, #323438);
+            color: #ffffff;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+        }
+
+        :host-context([data-theme='dark']) .zoom-btn:active {
+            background-color: #383a3c;
+        }
+
+        :host-context([data-theme='dark']) .zoom-btn:focus-visible {
+            box-shadow: 0 0 0 2px var(--bg-color, #1a1a1a), 0 0 0 4px var(--primary-hover, #0070b0);
+        }
+
+        :host-context([data-theme='dark']):host([zoomed]) .zoom-btn {
+            background-color: var(--btn-info-hover, #323438);
+            color: var(--primary-color, #4dabf7);
+        }
+
         .zoom-btn svg {
-            width: 19px;
-            height: 19px;
+            position: relative;
+            z-index: 3;
+            width: 18px;
+            height: 18px;
+            display: block;
+            color: inherit;
         }
+
         .box {
             width: 120px;
             height: 36px;
+            box-sizing: border-box;
             cursor: pointer;
             border: 1px solid var(--border-color, #dee2e6);
-            border-radius: var(--radius-xs, 4px);
+            border-radius: var(--radius-sm, 6px);
             overflow: hidden;
             transform-origin: left center;
             transition:
                 transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 0.2s ease;
+                box-shadow 0.2s ease,
+                border-color 0.2s ease;
         }
+
+        .box:hover {
+            border-color: var(--border-hover, #ced4da);
+        }
+
+        :host-context([data-theme='dark']) .box {
+            border-color: var(--border-color, #383a3c);
+        }
+
+        :host-context([data-theme='dark']) .box:hover {
+            border-color: var(--border-hover, #44474b);
+        }
+
         :host([zoomed]) .box {
             transform: scale(1.65);
             box-shadow: var(--shadow-lg, 0 8px 32px rgba(0, 0, 0, 0.12));
             z-index: 3;
+        }
+
+        :host-context([data-theme='dark']):host([zoomed]) .box {
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
         }
     `;
 

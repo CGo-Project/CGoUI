@@ -55,7 +55,7 @@ export const DEMO_TRANSLATIONS = [
   ["本页面中的名称、站点、文案与插画均用于 CGoUI 开源演示，不代表、仿冒或暗示任何真实轨道交通运营商、政府机构或商业实体的官方产品与背书。", "Names, stations, copy and artwork on this page are used solely for the CGoUI open-source demo. They do not represent, imitate or imply an official product, affiliation or endorsement by any real transit operator, government agency or commercial entity.", "このページの名称、駅、文章、イラストはCGoUIのオープンソースデモ専用です。実在する交通事業者、政府機関、企業の公式製品・提携・推奨を表現、模倣、示唆するものではありません。"],
 
   ["普通功能对话框", "Standard Dialog", "標準ダイアログ"],
-  ["这是一个普通的配置或数据编辑对话框。在移动端（宽度 <= 600px）下，它将自动切换为底置的抽屉式拉出浮层。", "A standard configuration or data-editing dialog. On mobile (width <= 600px), it automatically changes to a bottom-sheet drawer.", "一般的な設定・データ編集ダイアログです。モバイル（幅 <= 600px）では自動的に下部のボトムシートへ切り替わります。"],
+  ["这是一个普通的配置或数据编辑对话框。在移动端（宽度 <= 640px）下，它将自动切换为底置的抽屉式拉出浮层。", "A standard configuration or data-editing dialog. On mobile (width <= 640px), it automatically changes to a bottom-sheet drawer.", "一般的な設定・データ編集ダイアログです。モバイル（幅 <= 640px）では自動的に下部のボトムシートへ切り替わります。"],
   ["配置项名称", "Setting name", "設定項目名"],
   ["帮助 / 关于弹窗", "Help / About modal", "ヘルプ / Aboutモーダル"],
   ["配色系统", "Color system", "カラーシステム"],

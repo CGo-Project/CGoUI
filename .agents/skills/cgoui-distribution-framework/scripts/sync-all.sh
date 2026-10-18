@@ -25,9 +25,13 @@ WEBTOOLS_DIR="$ROOT_DIR/CGo-Web-Tools"
 MAP_DIR="$WEBTOOLS_DIR/map"
 F_SPACE_DIR="$ROOT_DIR/F_Space_Class/web"
 
+TIMESTAMP="${CGOUI_VERSION:-$(date +"%y%m%d.%H%M%S")}"
+export CGOUI_VERSION="$TIMESTAMP"
+
 echo "========================================================"
 echo " [CGoUI Sync-All] 开始跨项目构建与分发工作流"
 echo " 根目录: $ROOT_DIR"
+echo " 统一构建时间戳版本号: $TIMESTAMP"
 echo "========================================================"
 
 # 1. 构建与校验 CGoUI
@@ -49,8 +53,7 @@ cp "$CGO_UI_DIR/styles/cgo_element.css" "$OPENMAP_DIR/css/cgo_element.css"
 cp "$CGO_UI_DIR/styles/cgo_ui.css" "$OPENMAP_DIR/css/cgo_ui.css"
 cp "$CGO_UI_DIR/styles/cgo_components.css" "$OPENMAP_DIR/css/cgo_components.css"
 
-TIMESTAMP=$(date +"%y%m%d.%H%M")
-echo "  - 生成新时间戳版本号: $TIMESTAMP"
+echo "  - 应用时间戳版本号: $TIMESTAMP"
 
 # 更新 sw.js
 sed -i '' -E "s/const CACHE_NAME = 'cgo-openmap-v[0-9.]+';/const CACHE_NAME = 'cgo-openmap-v$TIMESTAMP';/g" "$OPENMAP_DIR/sw.js"

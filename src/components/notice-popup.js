@@ -15,7 +15,7 @@ export class CgoNoticePopup extends LitElement {
     static styles = css`
         :host {
             position: fixed;
-            z-index: 10010;
+            z-index: 100100;
             display: flex;
             flex-direction: column;
             gap: 10px;
@@ -47,13 +47,14 @@ export class CgoNoticePopup extends LitElement {
             pointer-events: auto;
             transform: translateX(125%);
             opacity: 0;
+            /* C-03: max-height clip用于初始霯路，但不动画它，避免 Reflow */
             max-height: 0;
             overflow: hidden;
             transition: 
-                transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-                opacity 0.35s ease-out,
-                max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1),
-                margin-bottom 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                /* C-01: 入场保留弹性超调曲线（仅入场，退出改用 ease-in） */
+                transform 0.4s cubic-bezier(0.34, 1.3, 0.64, 1),
+                opacity 0.3s ease-out;
+            /* C-03: max-height/margin-bottom 不列入 transition，通过 JS 切换类名现志居高 */
         }
 
         .popup-item.show {
@@ -64,11 +65,16 @@ export class CgoNoticePopup extends LitElement {
         }
 
         .popup-item.leaving {
+            /* C-01: 退出曲线改为干脱的 ease-in，不再反弹 */
             transform: translateX(125%);
             opacity: 0;
             max-height: 0 !important;
             margin-bottom: -10px !important;
             overflow: hidden !important;
+            /* 退出时覆盖入场的弹性曲线 */
+            transition:
+                transform 0.2s cubic-bezier(0.4, 0, 1, 1),
+                opacity 0.15s ease-in !important;
         }
 
         .toast-card {
@@ -84,15 +90,43 @@ export class CgoNoticePopup extends LitElement {
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
             border: 1px solid rgba(0, 0, 0, 0.05);
             background: var(--text-main, #00263b);
-            color: var(--bg-color, #f8f9fa);
+            color: #ffffff;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 10px;
         }
 
+        :host-context([glass-mode="liquid"]) .toast-card,
+        :host-context([glass-mode="blur"]) .toast-card,
+        :host-context([data-glass-mode="liquid"]) .toast-card,
+        :host-context([data-glass-mode="blur"]) .toast-card {
+            border: none;
+            background: rgba(0, 38, 59, 0.85);
+            backdrop-filter: blur(14px) saturate(140%);
+            -webkit-backdrop-filter: blur(14px) saturate(140%);
+            box-shadow:
+                0 0 0 0.5px rgba(255, 255, 255, 0.1),
+                0 10px 30px -4px rgba(0, 0, 0, 0.35),
+                inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+        :host-context([data-theme="dark"][glass-mode="liquid"]) .toast-card,
+        :host-context([data-theme="dark"][glass-mode="blur"]) .toast-card,
+        :host-context([data-theme="dark"][data-glass-mode="liquid"]) .toast-card,
+        :host-context([data-theme="dark"][data-glass-mode="blur"]) .toast-card {
+            border: none;
+            background: rgba(24, 26, 28, 0.85);
+            backdrop-filter: blur(14px) saturate(140%);
+            -webkit-backdrop-filter: blur(14px) saturate(140%);
+            box-shadow:
+                0 0 0 0.5px rgba(255, 255, 255, 0.12),
+                0 12px 34px -4px rgba(0, 0, 0, 0.5),
+                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+
         .toast-message {
             flex: 1;
+            color: #ffffff;
         }
 
         .toast-progress-ring {
@@ -104,19 +138,26 @@ export class CgoNoticePopup extends LitElement {
             --border-color: rgba(255, 255, 255, 0.25);
         }
 
+        .toast-card.info {
+            background: var(--primary-color) !important;
+            color: #ffffff !important;
+        }
+
         .toast-card.success {
-            background: var(--success-color, #34a853);
-            color: #ffffff;
+            background: var(--success-color) !important;
+            color: #ffffff !important;
         }
 
-        .toast-card.danger {
-            background: var(--danger-color, #ea4335);
-            color: #ffffff;
+        .toast-card.danger,
+        .toast-card.error {
+            background: var(--danger-color) !important;
+            color: #ffffff !important;
         }
 
-        .toast-card.warning {
-            background: var(--warning-color, #f59e0b);
-            color: #ffffff;
+        .toast-card.warning,
+        .toast-card.warn {
+            background: var(--warning-color) !important;
+            color: #ffffff !important;
         }
     `;
 

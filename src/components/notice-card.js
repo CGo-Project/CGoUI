@@ -18,6 +18,7 @@ const CATEGORY_NAMES = {
 
 /**
  * <cgo-notice-card> — CGoPush 标准通知卡片组件
+ * 具备完整的液态玻璃效果与多主题自适应能力。
  */
 export class CgoNoticeCard extends LitElement {
     static properties = {
@@ -72,6 +73,37 @@ export class CgoNoticeCard extends LitElement {
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
         }
 
+        /* 完整的液态玻璃效果 (全面覆盖独立卡片、通知中心内卡片与 popup 气泡) */
+        :host-context([glass-mode="liquid"]) .notice-card,
+        :host-context([glass-mode="blur"]) .notice-card,
+        :host-context([data-glass-mode="liquid"]) .notice-card,
+        :host-context([data-glass-mode="blur"]) .notice-card {
+            border: none;
+            background: rgba(255, 255, 255, 0.82);
+            backdrop-filter: blur(14px) saturate(135%);
+            -webkit-backdrop-filter: blur(14px) saturate(135%);
+            box-shadow:
+                0 0 0 0.5px rgba(0, 0, 0, 0.06),
+                0 14px 34px -6px rgba(0, 38, 59, 0.14),
+                0 3px 8px -2px rgba(0, 38, 59, 0.06),
+                inset 0 1px 1px 0 rgba(255, 255, 255, 0.85);
+        }
+
+        :host-context([data-theme="dark"][glass-mode="liquid"]) .notice-card,
+        :host-context([data-theme="dark"][glass-mode="blur"]) .notice-card,
+        :host-context([data-theme="dark"][data-glass-mode="liquid"]) .notice-card,
+        :host-context([data-theme="dark"][data-glass-mode="blur"]) .notice-card {
+            border: none;
+            background: rgba(28, 30, 32, 0.82);
+            backdrop-filter: blur(14px) saturate(135%);
+            -webkit-backdrop-filter: blur(14px) saturate(135%);
+            box-shadow:
+                0 0 0 0.5px rgba(255, 255, 255, 0.1),
+                0 18px 40px -6px rgba(0, 0, 0, 0.6),
+                0 4px 10px -2px rgba(0, 0, 0, 0.4),
+                inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+        }
+
         .header {
             font-size: 11px;
             font-weight: 600;
@@ -103,6 +135,10 @@ export class CgoNoticeCard extends LitElement {
             word-break: break-word;
         }
 
+        :host-context([data-theme="dark"]) .title {
+            color: var(--text-main, #f1f5f9);
+        }
+
         :host(:not([popup])) .title {
             font-size: 14px;
             margin-bottom: 6px;
@@ -114,6 +150,10 @@ export class CgoNoticeCard extends LitElement {
             color: var(--text-light, #666666);
             margin-top: 6px;
             word-break: break-word;
+        }
+
+        :host-context([data-theme="dark"]) .content-body {
+            color: var(--text-light, #a0b0b9);
         }
 
         :host([popup]) .content-body {
@@ -154,10 +194,22 @@ export class CgoNoticeCard extends LitElement {
             transition: all 0.18s ease;
         }
 
+        :host-context([data-theme="dark"]) .action-btn {
+            border-color: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+        }
+
         .action-btn:hover {
             background: var(--tab-hover, rgba(0, 0, 0, 0.06));
             border-color: var(--primary-color, #006098);
             color: var(--primary-color, #006098);
+        }
+
+        :host-context([data-theme="dark"]) .action-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: var(--primary-color, #38bdf8);
+            color: var(--primary-color, #38bdf8);
         }
 
         .action-btn.primary {
@@ -209,6 +261,11 @@ export class CgoNoticeCard extends LitElement {
         .close-btn:hover {
             background: rgba(0, 0, 0, 0.16);
             color: var(--danger-color, #ea4335);
+        }
+
+        :host-context([data-theme="dark"]) .close-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            color: var(--danger-color, #f87171);
         }
 
         /* 倒计时进度圆环 */

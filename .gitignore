@@ -1,5 +1,6 @@
 node_modules/
 dist/
+site/
 .DS_Store
 .npmrc
 .env
@@ -8,4 +9,4 @@ dist/
 coverage/
 *.tgz
 .npm-cache/
-/site
+scratch/

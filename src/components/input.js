@@ -28,15 +28,17 @@ export class CgoInput extends LitElement {
             height: 38px;
             padding: 8px 12px;
             border: 1px solid var(--border-color, #dee2e6);
-            border-radius: var(--radius-sm, 6px);
+            border-radius: var(--radius-md, 8px);
             background: var(--card-bg, #fff);
             color: var(--text-main, #00263b);
             font: inherit;
             font-size: 14px;
             box-sizing: border-box;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
             transition:
-                border-color var(--transition-base, 0.2s ease),
-                box-shadow var(--transition-base, 0.2s ease);
+                border-color var(--dur-fast, 140ms) ease,
+                box-shadow var(--dur-fast, 140ms) ease,
+                background-color var(--dur-fast, 140ms) ease;
         }
         input::placeholder {
             color: transparent;
@@ -47,13 +49,46 @@ export class CgoInput extends LitElement {
         }
         input:focus {
             outline: none;
-            border-color: var(--primary-color, #00263b);
-            box-shadow: 0 0 0 3px rgba(0, 29, 49, 0.12);
+            border-color: var(--primary-color, #006098);
+            box-shadow:
+                0 0 0 3.5px rgba(0, 96, 152, 0.14),
+                0 1px 2px rgba(0, 96, 152, 0.08);
+        }
+        :host-context([data-theme='dark']) input {
+            background: var(--card-bg, #1e2023);
+            border-color: var(--border-color, rgba(255, 255, 255, 0.14));
+            color: var(--text-main, #e5e8ea);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+        :host-context([data-theme='dark']) input:focus {
+            border-color: var(--primary-color, #4dabf7);
+            box-shadow:
+                0 0 0 3.5px rgba(77, 171, 247, 0.22),
+                0 1px 3px rgba(0, 0, 0, 0.35);
+        }
+        :host([state='success']) input {
+            border-color: var(--success-color, #34a853);
+        }
+        :host([state='success']) input:focus {
+            border-color: var(--success-color, #34a853);
+            box-shadow:
+                0 0 0 3.5px rgba(52, 168, 83, 0.18),
+                0 1px 2px rgba(52, 168, 83, 0.08);
+        }
+        :host([state='danger']) input {
+            border-color: var(--danger-color, #ea4335);
+        }
+        :host([state='danger']) input:focus {
+            border-color: var(--danger-color, #ea4335);
+            box-shadow:
+                0 0 0 3.5px rgba(234, 67, 53, 0.18),
+                0 1px 2px rgba(234, 67, 53, 0.08);
         }
         input:disabled {
             background: var(--btn-info-bg, #e9ecef);
             color: var(--text-light, #636f75);
             cursor: not-allowed;
+            box-shadow: none;
         }
         .hint {
             margin-top: 5px;

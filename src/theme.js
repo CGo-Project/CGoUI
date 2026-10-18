@@ -433,6 +433,263 @@ function applyThemeColorCSS(palette) {
 `;
 }
 
+export function injectLiquidGlassFilter() {
+    if (typeof document === 'undefined') return;
+    if (document.getElementById('glass-distortion') || document.getElementById('cgo-glass-svg')) return;
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.id = 'cgo-glass-svg';
+    svg.setAttribute('style', 'position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none;');
+    svg.setAttribute('aria-hidden', 'true');
+    svg.innerHTML = `
+        <defs>
+            <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox" color-interpolation-filters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" seed="5" result="turbulence" />
+                <feComponentTransfer in="turbulence" result="mapped">
+                    <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
+                    <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
+                    <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
+                </feComponentTransfer>
+                <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
+                <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lighting-color="white" result="specLight">
+                    <fePointLight x="-200" y="-200" z="300" />
+                </feSpecularLighting>
+                <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
+                <feDisplacementMap in="SourceGraphic" in2="softMap" scale="20" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    `;
+    const attach = () => {
+        if (!document.getElementById('glass-distortion') && !document.getElementById('cgo-glass-svg')) {
+            (document.body || document.documentElement).appendChild(svg);
+        }
+    };
+    if (document.body) {
+        attach();
+    } else {
+        document.addEventListener('DOMContentLoaded', attach, { once: true });
+    }
+}
+
+export function setGlassMode(mode) {
+    if (typeof document === 'undefined') return;
+    if (mode === 'flat' || mode === 'none') {
+        document.documentElement.setAttribute('glass-mode', 'flat');
+    } else if (mode === 'blur') {
+        document.documentElement.setAttribute('glass-mode', 'blur');
+    } else if (mode === 'liquid') {
+        document.documentElement.setAttribute('glass-mode', 'liquid');
+    } else if (!mode) {
+        document.documentElement.setAttribute('glass-mode', 'liquid');
+    }
+}
+
+export function getGlassMode() {
+    if (typeof document === 'undefined') return 'liquid';
+    return (
+        document.documentElement.getAttribute('glass-mode') ||
+        getComputedStyle(document.documentElement).getPropertyValue('--cgo-glass-default')?.trim() ||
+        'liquid'
+    );
+}
+
+export function setDefaultGlassMode(mode) {
+    if (typeof document === 'undefined') return;
+    document.documentElement.style.setProperty('--cgo-glass-default', mode);
+}
+
+/* ───────── 顶栏模式（吸顶 Classic vs 悬浮 Floating） ───────── */
+
+export function autoHeaderModeStorageKey() {
+    let prefix = '';
+    try {
+        if (typeof window !== 'undefined' && window.location && window.location.pathname) {
+            const path = window.location.pathname;
+            const normalized = path
+                .replace(/\.html$/, '')
+                .replace(/\/index$/, '')
+                .replace(/^\//, '')
+                .replace(/\/$/, '');
+            prefix = normalized ? normalized.replace(/[^a-zA-Z0-9_-]/g, '_') + '_' : 'root_';
+        }
+    } catch (e) {}
+    return prefix + 'cgo_header_mode';
+}
+
+let _headerModeStorageKey = autoHeaderModeStorageKey();
+
+export function setHeaderModeStorageKey(key) {
+    if (key) _headerModeStorageKey = key;
+}
+
+export function getHeaderModeStorageKey() {
+    return _headerModeStorageKey;
+}
+
+export function setHeaderMode(mode) {
+    if (typeof document === 'undefined') return;
+    const normalized = mode === 'classic' ? 'classic' : 'floating';
+    if (normalized === 'classic') {
+        document.documentElement.setAttribute('header-mode', 'classic');
+    } else {
+        document.documentElement.setAttribute('header-mode', 'floating');
+    }
+    try {
+        localStorage.setItem(_headerModeStorageKey, normalized);
+    } catch (e) {}
+    // 通知所有 cgo-header-toggle 组件同步状态
+    document.querySelectorAll('cgo-header-toggle').forEach((el) => el._sync && el._sync(normalized));
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('cgo-header-mode-change', { detail: { mode: normalized } }));
+    }
+    return normalized;
+}
+
+export function getHeaderMode() {
+    if (typeof document === 'undefined') return 'floating';
+    return (
+        document.documentElement.getAttribute('header-mode') ||
+        getComputedStyle(document.documentElement).getPropertyValue('--cgo-header-default')?.trim() ||
+        'floating'
+    );
+}
+
+export function toggleHeaderMode() {
+    const next = getHeaderMode() === 'classic' ? 'floating' : 'classic';
+    setHeaderMode(next);
+    return next;
+}
+
+export function setDefaultHeaderMode(mode) {
+    if (typeof document === 'undefined') return;
+    document.documentElement.style.setProperty('--cgo-header-default', mode);
+}
+
+/**
+ * 自动将原本 CGoUI 1.0 的整体标题栏升级为 2.0 分体浮动双岛标题栏
+ * 当网页升级引入 CGoUI 2.0 时，无需手动重写旧 HTML，自动将 .tool-header
+ * 转换为由 .header-island-left 和 .header-island-right 构成的 2.0 双岛结构。
+ * 若处于 classic 模式，双岛在 CSS 中自动穿透呈现（display: contents），100% 保持 1.0 经典吸顶效果。
+ */
+export function autoUpgradeHeader(root = (typeof document !== 'undefined' ? document : null)) {
+    if (!root || typeof document === 'undefined') return;
+
+    // 自动确保移动端状态栏防穿透保护层就绪
+    try {
+        if (document.body && !document.querySelector('.mobile-status-bar-fill')) {
+            const fill = document.createElement('div');
+            fill.className = 'mobile-status-bar-fill';
+            fill.setAttribute('aria-hidden', 'true');
+            document.body.prepend(fill);
+        }
+    } catch (e) {}
+
+    const headers = [];
+    if (root.matches && root.matches('.tool-header')) {
+        headers.push(root);
+    }
+    if (root.querySelectorAll) {
+        root.querySelectorAll('.tool-header').forEach((el) => headers.push(el));
+    }
+
+    headers.forEach((header) => {
+        if (!header || header.dataset.cgoHeaderUpgraded === 'true') return;
+        // 如果页面或 header 显式指定 classic 模式，保持 1.0 经典吸顶合并结构，不进行双岛重构
+        if (
+            header.getAttribute('header-mode') === 'classic' ||
+            header.classList.contains('classic-header') ||
+            document.documentElement.getAttribute('header-mode') === 'classic'
+        ) {
+            return;
+        }
+        // 如果已经包含 header-island，说明已经是 2.0 规范的双岛结构
+        if (header.querySelector('.header-island')) return;
+
+        const left = header.querySelector(':scope > .header-left, .header-left');
+        const center = header.querySelector(':scope > .header-center, .header-center');
+        const right = header.querySelector(':scope > .header-right, .header-right');
+
+        // 如果既无 left 也无 center 也无 right，则不贸然改造未知自定义内容
+        if (!left && !center && !right) return;
+
+        const isGlass = header.classList.contains('glass-surface');
+
+        // 构建左侧浮动岛 (header-island-left)
+        const leftIsland = document.createElement('div');
+        leftIsland.className = 'header-island header-island-left' + (isGlass ? ' glass-surface' : '');
+
+        if (left) {
+            leftIsland.appendChild(left);
+        }
+
+        if (left && center) {
+            const divider = document.createElement('div');
+            divider.className = 'header-island-divider';
+            divider.setAttribute('aria-hidden', 'true');
+            leftIsland.appendChild(divider);
+        }
+
+        if (center) {
+            leftIsland.appendChild(center);
+        }
+
+        // 构建右侧浮动岛 (header-island-right)
+        const rightIsland = document.createElement('div');
+        rightIsland.className = 'header-island header-island-right' + (isGlass ? ' glass-surface' : '');
+
+        if (right) {
+            rightIsland.appendChild(right);
+        }
+
+        // 收集可能遗留在 header 顶层的其他子节点（如弹窗/注入项等），避免丢失
+        const remainingNodes = Array.from(header.childNodes).filter((node) => {
+            return node !== left && node !== center && node !== right;
+        });
+
+        // 清空当前 header 内容并装配双岛
+        header.innerHTML = '';
+        header.appendChild(leftIsland);
+        header.appendChild(rightIsland);
+
+        // 将其他非核心节点重新追加到 header 底层
+        remainingNodes.forEach((node) => {
+            if (node.nodeType === 3 && !node.textContent.trim()) return;
+            header.appendChild(node);
+        });
+
+        header.dataset.cgoHeaderUpgraded = 'true';
+    });
+}
+
+/* ───────── 背景模式（纯色 Solid vs 渐变 Gradient） ───────── */
+
+export function setBgMode(mode) {
+    if (typeof document === 'undefined') return 'solid';
+    const normalized = mode === 'gradient' ? 'gradient' : 'solid';
+    if (normalized === 'gradient') {
+        document.documentElement.setAttribute('bg-mode', 'gradient');
+    } else {
+        document.documentElement.setAttribute('bg-mode', 'solid');
+    }
+    if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('cgo-bg-mode-change', { detail: { mode: normalized } }));
+    }
+    return normalized;
+}
+
+export function getBgMode() {
+    if (typeof document === 'undefined') return 'solid';
+    return (
+        document.documentElement.getAttribute('bg-mode') ||
+        getComputedStyle(document.documentElement).getPropertyValue('--cgo-bg-default')?.trim() ||
+        'solid'
+    );
+}
+
+export function setDefaultBgMode(mode) {
+    if (typeof document === 'undefined') return;
+    document.documentElement.style.setProperty('--cgo-bg-default', mode);
+}
+
 export function initTheme() {
     if (_inited) return;
     _inited = true;
@@ -448,6 +705,9 @@ export function initTheme() {
     } catch (e) {
         console.warn('Failed to auto-inject cgo_clr.css:', e);
     }
+
+    // 自动确保 Liquid Glass 光学折射 SVG 滤镜管线就绪
+    injectLiquidGlassFilter();
 
     checkEmbedMode();
     initMessageListener();
@@ -468,4 +728,70 @@ export function initTheme() {
             }
         }
     } catch (e) {}
+
+    // 恢复本地存储的顶栏模式（按页面/应用隔离键），若本地无记录则遵循 HTML 声明或默认 floating
+    try {
+        const declaredMode = document.documentElement.getAttribute('header-mode');
+        if (declaredMode === 'classic') {
+            // 页面静态声明 classic 经典吸顶合并标题栏时优先保障生效，避免被历史 floating 缓存覆盖
+            setHeaderMode('classic');
+        } else if (declaredMode === 'floating') {
+            // 页面静态声明 floating 分体双岛悬浮标题栏时优先保障生效，避免被历史 classic 缓存覆盖
+            setHeaderMode('floating');
+        } else {
+            const savedHeaderMode = localStorage.getItem(_headerModeStorageKey);
+            if (savedHeaderMode) {
+                setHeaderMode(savedHeaderMode);
+            } else {
+                const current = getHeaderMode();
+                if (current) {
+                    if (!document.documentElement.hasAttribute('header-mode')) {
+                        document.documentElement.setAttribute('header-mode', current);
+                    }
+                    document.querySelectorAll('cgo-header-toggle').forEach((el) => el._sync && el._sync(current));
+                }
+            }
+        }
+    } catch (e) {}
+
+    // 初始化玻璃模式，若未显式声明则默认设置为 liquid
+    try {
+        const currentGlass = getGlassMode();
+        if (currentGlass && !document.documentElement.hasAttribute('glass-mode')) {
+            document.documentElement.setAttribute('glass-mode', currentGlass);
+        }
+    } catch (e) {}
+
+    // 自动将升级到 CGoUI 2.0 的旧版 1.0 整体标题栏升级为 2.0 分体浮动双岛标题栏
+    const runHeaderUpgrade = () => {
+        autoUpgradeHeader(document);
+    };
+    if (typeof document !== 'undefined') {
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', runHeaderUpgrade, { once: true });
+        } else {
+            runHeaderUpgrade();
+        }
+        if (typeof MutationObserver !== 'undefined' && !document._cgoHeaderObserver) {
+            document._cgoHeaderObserver = true;
+            const observer = new MutationObserver((mutations) => {
+                for (const mutation of mutations) {
+                    for (const node of mutation.addedNodes) {
+                        if (node.nodeType === 1) {
+                            if (node.matches && node.matches('.tool-header')) {
+                                autoUpgradeHeader(node);
+                            } else if (node.querySelectorAll) {
+                                autoUpgradeHeader(node);
+                            }
+                        }
+                    }
+                }
+            });
+            const target = document.documentElement || document.body;
+            if (target) {
+                observer.observe(target, { childList: true, subtree: true });
+            }
+        }
+    }
 }
+

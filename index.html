@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" glass-mode="liquid" header-mode="floating" bg-mode="gradient">
 
 <head>
     <meta charset="UTF-8">
@@ -17,7 +17,7 @@
     <title>Central Go 前端视觉库</title>
 
     <!-- CGoUI 核心 Bundle 与文档路由最高优先级预加载 -->
-    <link rel="modulepreload" href="./dist/cgo-ui.js">
+    <link rel="modulepreload" href="./dist/cgo-ui.js?v=261018.235700">
     <link rel="modulepreload" href="./docs/docs.js?v=260804.000001">
 
     <!-- Google Fonts -->
@@ -35,7 +35,10 @@
 
     <style>
         /* Web Components 元素未注册前的占位与防无样式闪烁 */
-        cgo-icon:not(:defined), cgo-side-nav:not(:defined), cgo-theme-toggle:not(:defined) {
+        cgo-icon:not(:defined),
+        cgo-side-nav:not(:defined),
+        cgo-toolbar-select:not(:defined),
+        cgo-theme-toggle:not(:defined) {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -43,26 +46,105 @@
             opacity: 0.6;
         }
 
+        cgo-toolbar-option {
+            display: none !important;
+        }
+
+        /* 仅在文档站首页固定语言选择器宽度为展示「繁體中文（香港）」的宽度，其他项目保持 auto */
+        #cgo-i18n-language-select {
+            width: 154px !important;
+        }
+
         /* ===== 文档站布局 ===== */
         body {
             margin: 0;
+            min-height: 100vh;
         }
 
         .doc-shell {
             display: flex;
             height: calc(100dvh - 60px);
             overflow: hidden;
+            transition: height 0.25s ease;
+        }
+
+        /* 悬浮菜单栏模式下的文档站布局自适应（桌面端左右并排浮动架构） */
+        :root[header-mode="floating"] .doc-shell,
+        body[header-mode="floating"] .doc-shell {
+            height: 100dvh;
+        }
+
+        @media (min-width: 641px) {
+
+            :root[header-mode="floating"] .doc-shell,
+            body[header-mode="floating"] .doc-shell {
+                height: 100dvh;
+                padding: 0;
+                display: flex;
+            }
+
+            :root[header-mode="floating"] cgo-side-nav,
+            body[header-mode="floating"] cgo-side-nav {
+                height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 104px);
+                width: var(--cgo-nav-width, 280px);
+                flex-shrink: 0;
+                margin-top: calc(env(safe-area-inset-top, 0px) + 84px);
+                margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 20px);
+                margin-left: calc(20px + env(safe-area-inset-left, 0px));
+                margin-right: 0;
+                padding-top: 0;
+                z-index: 1000;
+            }
+
+            :root[header-mode="floating"] .doc-main,
+            body[header-mode="floating"] .doc-main {
+                flex: 1;
+                min-width: 0;
+                max-width: none;
+                height: 100dvh;
+                overflow-y: auto;
+                overscroll-behavior: contain;
+                box-sizing: border-box;
+                padding-top: calc(env(safe-area-inset-top, 0px) + 88px);
+                padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
+                padding-left: 36px;
+                padding-right: calc(36px + env(safe-area-inset-right, 0px));
+            }
+        }
+
+        @media (max-width: 640px) {
+
+            :root[header-mode="floating"] .doc-shell,
+            body[header-mode="floating"] .doc-shell {
+                height: 100dvh;
+                display: flex;
+                flex-direction: column;
+                padding: 0;
+            }
+
+            :root[header-mode="floating"] cgo-side-nav,
+            body[header-mode="floating"] cgo-side-nav {
+                margin-top: calc(env(safe-area-inset-top, 0px) + 72px);
+                margin-left: calc(10px + env(safe-area-inset-left, 0px));
+                margin-right: calc(10px + env(safe-area-inset-right, 0px));
+                width: calc(100% - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+                max-width: calc(100% - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+                flex-shrink: 0;
+                box-sizing: border-box;
+                z-index: 1000;
+            }
+
+            :root[header-mode="floating"] .doc-main,
+            body[header-mode="floating"] .doc-main {
+                padding-top: 20px;
+            }
         }
 
         /* 文档站侧边导航组件定制 */
         cgo-side-nav {
             flex-shrink: 0;
-            position: sticky;
-            top: 0;
             height: 100%;
-            --sidenav-width: 280px;
-            --sidenav-bg: var(--bg-color);
-            --sidenav-border: var(--border-color);
+            --sidenav-width: var(--cgo-nav-width, 280px);
             --sidenav-item-px: 16px;
             --sidenav-item-gap: 2px;
         }
@@ -77,8 +159,8 @@
         }
 
         .doc-h1 {
-            font-size: 30px;
-            font-weight: 800;
+            font-size: 28px;
+            font-weight: 700;
             margin: 0 0 6px;
             display: flex;
             align-items: center;
@@ -102,17 +184,24 @@
 
         .doc-lead {
             color: var(--text-light);
-            font-size: 15px;
+            font-size: 14px;
             margin: 0 0 28px;
             line-height: 1.7;
         }
 
         .doc-h2 {
-            font-size: 18px;
+            font-size: 22px;
             font-weight: 700;
             margin: 36px 0 14px;
             padding-bottom: 8px;
             border-bottom: 1px solid var(--border-color);
+        }
+
+        .doc-h3 {
+            font-size: 18px;
+            font-weight: 600;
+            margin: 20px 0 10px;
+            color: var(--text-main);
         }
 
         /* 实例演示卡 */
@@ -245,61 +334,91 @@
         /* 基础页：色板 / token / 图标 */
         .swatch-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 14px;
         }
 
         .swatch-grid.compact {
-            grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
         }
 
         .swatch {
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            overflow: hidden;
-            background: var(--card-bg);
+            border-radius: var(--radius-lg, 12px) !important;
             color: var(--text-main);
             text-align: left;
             cursor: pointer;
             font: inherit;
-            padding: 0;
+            padding: 12px !important;
+            margin-bottom: 0 !important;
             display: flex;
             flex-direction: column;
-            transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+            border: none !important;
+            background: transparent !important;
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+            transition: transform var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1)),
+                        box-shadow var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1));
         }
 
-        .swatch:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--primary-color);
+        .swatch:active {
+            transform: scale(0.97) !important;
         }
 
         .swatch-color {
-            height: 60px;
+            width: 100%;
+            height: 52px;
+            border-radius: var(--radius-md, 8px) !important;
             flex-shrink: 0;
+            position: relative;
+            z-index: 3 !important;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.06);
+        }
+
+        [data-theme='dark'] .swatch-color {
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.25);
         }
 
         .swatch-meta {
-            padding: 8px 10px;
+            margin-top: 10px;
+            padding: 0;
             font-size: 12px;
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            position: relative;
+            z-index: 3 !important;
         }
 
         .swatch-meta b {
             display: block;
-            font-family: var(--font-mono);
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.3;
         }
 
         .swatch-meta span {
+            display: block;
             color: var(--text-light);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            word-break: break-all;
+            line-height: 1.25;
+            opacity: 0.9;
         }
 
         .swatch-meta em {
             display: block;
             color: var(--text-light);
+            font-family: var(--font-mono);
+            font-size: 11px;
             font-style: normal;
-            margin-top: 3px;
-            opacity: 0.85;
+            margin-top: 2px;
+            opacity: 0.8;
+            line-height: 1.3;
         }
 
         .color-group-title {
@@ -316,19 +435,20 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: center;
             gap: 8px;
             padding: 14px 6px;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
+            border-radius: var(--radius-md) !important;
             cursor: pointer;
-            transition: all var(--transition-base);
             text-align: center;
+            border: none !important;
+            background: transparent !important;
         }
 
-        .icon-cell:hover {
-            border-color: var(--primary-color);
-            background: var(--info-bg);
-            transform: translateY(-2px);
+        .icon-cell cgo-icon,
+        .icon-cell span {
+            position: relative;
+            z-index: 3;
         }
 
         .icon-cell span {
@@ -336,6 +456,7 @@
             color: var(--text-light);
             font-family: var(--font-mono);
             word-break: break-all;
+            line-height: 1.3;
         }
 
         .token-row {
@@ -418,7 +539,7 @@
             color: #00263b;
         }
 
-        @media (max-width: 768px) {
+        @media (max-width: 640px) {
             .doc-shell {
                 flex-direction: column;
             }
@@ -437,11 +558,82 @@
 
         /* ===== 文档站演示区辅助样式（原 legacy-helpers.css） ===== */
         .preview-box {
-            background: var(--bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
+            position: relative;
+            border: none;
+            background: transparent;
+            border-radius: var(--radius-lg, 12px);
             padding: 24px;
             margin-bottom: 8px;
+            overflow: hidden;
+            isolation: isolate;
+            box-shadow: var(--glass-shadow);
+        }
+
+        .preview-box .liquid-glass-effect {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            border-radius: inherit;
+            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
+            -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
+            filter: var(--glass-refraction-filter, url(#glass-distortion));
+            pointer-events: none;
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .preview-box:not(:has(.liquid-glass-effect)) {
+            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+        }
+
+        .preview-box::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            border-radius: inherit;
+            background: var(--glass-bg, rgba(255, 255, 255, 0.60));
+            pointer-events: none;
+        }
+
+        [data-theme='dark'] .preview-box::after,
+        :root:not([data-theme='light']) .preview-box::after {
+            background: var(--glass-bg, rgba(31, 32, 34, 0.60));
+        }
+
+        .preview-box::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background:
+                linear-gradient(to right,
+                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 0,
+                    rgba(0, 0, 0, 0) var(--lg-rim-side, 4px),
+                    rgba(0, 0, 0, 0) calc(100% - var(--lg-rim-side, 4px)),
+                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 100%),
+                linear-gradient(to bottom,
+                    rgba(255, 255, 255, var(--lg-rim-lit, 0.95)) 0,
+                    rgba(255, 255, 255, var(--lg-rim-lit, 0.95)) var(--lg-rim-hold, 1px),
+                    rgba(255, 255, 255, 0) var(--lg-rim-fade, 12px),
+                    rgba(255, 255, 255, 0) calc(100% - var(--lg-rim-fade, 12px)),
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.4)) calc(100% - var(--lg-rim-hold, 1px)),
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.4)) 100%);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .preview-box>* {
+            position: relative;
+            z-index: 3;
         }
 
         .metro-palette-header {
@@ -468,18 +660,98 @@
         }
 
         .compare-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 10px;
+            position: relative;
+            border: none;
+            background: transparent;
+            border-radius: var(--radius-lg, 12px);
             overflow: hidden;
-            box-shadow: var(--shadow-xs);
+            isolation: isolate;
+            box-shadow: var(--glass-shadow);
             display: flex;
             flex-direction: column;
+            transition: box-shadow var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1));
         }
 
         .compare-card:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
+            box-shadow: var(--glass-shadow-hover);
+        }
+
+        .compare-card .liquid-glass-effect {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            border-radius: inherit;
+            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
+            -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
+            filter: var(--glass-refraction-filter, url(#glass-distortion));
+            pointer-events: none;
+            overflow: hidden;
+            isolation: isolate;
+        }
+
+        .compare-card:not(:has(.liquid-glass-effect)) {
+            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
+        }
+
+        .compare-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            border-radius: inherit;
+            background: var(--glass-bg, rgba(255, 255, 255, 0.60));
+            pointer-events: none;
+            transition: background-color 0.25s ease;
+        }
+
+        .compare-card:hover::after {
+            background: var(--glass-bg-hover, rgba(255, 255, 255, 0.68));
+        }
+
+        [data-theme='dark'] .compare-card::after,
+        :root:not([data-theme='light']) .compare-card::after {
+            background: var(--glass-bg, rgba(31, 32, 34, 0.60));
+        }
+
+        [data-theme='dark'] .compare-card:hover::after,
+        :root:not([data-theme='light']) .compare-card:hover::after {
+            background: var(--glass-bg-hover, rgba(38, 40, 44, 0.68));
+        }
+
+        .compare-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background:
+                linear-gradient(to right,
+                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 0,
+                    rgba(0, 0, 0, 0) var(--lg-rim-side, 4px),
+                    rgba(0, 0, 0, 0) calc(100% - var(--lg-rim-side, 4px)),
+                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 100%),
+                linear-gradient(to bottom,
+                    rgba(255, 255, 255, var(--lg-rim-lit, 0.95)) 0,
+                    rgba(255, 255, 255, var(--lg-rim-lit, 0.95)) var(--lg-rim-hold, 1px),
+                    rgba(255, 255, 255, 0) var(--lg-rim-fade, 12px),
+                    rgba(255, 255, 255, 0) calc(100% - var(--lg-rim-fade, 12px)),
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.4)) calc(100% - var(--lg-rim-hold, 1px)),
+                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.4)) 100%);
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            z-index: 2;
+            transition: opacity 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+        }
+
+        .compare-card>* {
+            position: relative;
+            z-index: 3;
         }
 
         .compare-header {
@@ -537,49 +809,72 @@
 
         .line-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 12px;
         }
 
         .line-swatch {
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            overflow: hidden;
-            background: var(--card-bg);
+            border-radius: var(--radius-lg, 12px) !important;
+            color: var(--text-main);
             text-align: left;
             cursor: pointer;
             font: inherit;
-            padding: 0;
+            padding: 12px !important;
+            margin-bottom: 0 !important;
             display: flex;
             flex-direction: column;
-            transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+            border: none !important;
+            background: transparent !important;
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+            transition: transform var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1)),
+                        box-shadow var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1));
         }
 
-        .line-swatch:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-md);
-            border-color: var(--primary-color);
+        .line-swatch:active {
+            transform: scale(0.97) !important;
         }
 
         .line-swatch-color {
-            height: 50px;
+            width: 100%;
+            height: 48px;
+            border-radius: var(--radius-md, 8px) !important;
             flex-shrink: 0;
+            position: relative;
+            z-index: 3 !important;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.06);
+        }
+
+        [data-theme='dark'] .line-swatch-color {
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12), 0 2px 6px rgba(0, 0, 0, 0.25);
         }
 
         .line-swatch-meta {
-            padding: 8px 10px;
+            margin-top: 8px;
+            padding: 0;
             font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            position: relative;
+            z-index: 3 !important;
         }
 
         .line-swatch-meta b {
             display: block;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--text-main);
+            line-height: 1.3;
         }
 
         .line-swatch-meta span {
             font-family: var(--font-mono);
             font-size: 11px;
             color: var(--text-light);
+            word-break: break-all;
+            opacity: 0.9;
         }
 
         .filter-tags {
@@ -621,47 +916,91 @@
     </style>
 </head>
 
-<header class="tool-header">
-    <div class="header-left">
-        <button class="btn btn-info" onclick="history.back()" title="返回上一页">
-            <cgo-icon name="back"></cgo-icon>
-            <span>返回</span>
-        </button>
-        <a href="../index.html" class="btn btn-primary" title="返回主页">
-            <cgo-icon name="home"></cgo-icon>
-            <span>主页</span>
-        </a>
+<body>
+    <!-- 苹果 Liquid Glass: Lucas Romero Di Benedetto 核心物理折射滤镜管线 -->
+    <svg id="cgo-liquid-glass-filters" aria-hidden="true"
+        style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;"
+        xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox"
+                color-interpolation-filters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency="0.01 0.01" numOctaves="1" seed="5"
+                    result="turbulence" />
+                <feComponentTransfer in="turbulence" result="mapped">
+                    <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5" />
+                    <feFuncG type="gamma" amplitude="0" exponent="1" offset="0" />
+                    <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5" />
+                </feComponentTransfer>
+                <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap" />
+                <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100"
+                    lighting-color="white" result="specLight">
+                    <fePointLight x="-200" y="-200" z="300" />
+                </feSpecularLighting>
+                <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage" />
+                <feDisplacementMap in="SourceGraphic" in2="softMap" scale="20" xChannelSelector="R"
+                    yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
+
+    <!-- 移动端顶部状态栏/信号栏实色安全区保护层：遮挡页面滚动穿透内容 -->
+    <div class="mobile-status-bar-fill" aria-hidden="true"></div>
+
+    <header class="tool-header">
+        <div class="header-island header-island-left glass-surface">
+            <div class="header-left">
+                <button class="btn btn-info" onclick="history.back()" title="返回上一页">
+                    <cgo-icon name="back"></cgo-icon>
+                    <span>返回</span>
+                </button>
+                <a href="../index.html" class="btn btn-primary" title="返回主页">
+                    <cgo-icon name="home"></cgo-icon>
+                    <span>主页</span>
+                </a>
+            </div>
+            <div class="header-island-divider" aria-hidden="true"></div>
+            <div class="header-center">
+                <img src="./design.png" alt="Logo" class="header-logo">
+                <span class="app-title">前端视觉<span style="font-weight:400;color:var(--text-light);font-size:13px;">
+                        组件库</span></span>
+            </div>
+        </div>
+
+        <div class="header-island header-island-right glass-surface">
+            <div class="header-right">
+                <cgo-toolbar-select id="cgo-i18n-language-select" data-cgo-i18n-switch="select" value="zh" style="width: 154px;">
+                    <cgo-toolbar-option value="zh">简体中文</cgo-toolbar-option>
+                    <cgo-toolbar-option value="en">English</cgo-toolbar-option>
+                    <cgo-toolbar-option value="ja">日本語</cgo-toolbar-option>
+                    <cgo-toolbar-option value="ko">한국어</cgo-toolbar-option>
+                    <cgo-toolbar-option value="zh-HK">繁體中文（香港）</cgo-toolbar-option>
+                    <cgo-toolbar-option value="zh-TW">繁體中文（台灣）</cgo-toolbar-option>
+                </cgo-toolbar-select>
+                <cgo-theme-toggle></cgo-theme-toggle>
+            </div>
+        </div>
+    </header>
+
+    <div class="doc-shell">
+        <cgo-side-nav id="doc-nav"></cgo-side-nav>
+        <main id="doc-main" class="doc-main"></main>
     </div>
 
-    <div class="header-center">
-        <img src="./design.png" alt="Logo" class="header-logo">
-        <span class="app-title">前端视觉<span style="font-weight:400;color:var(--text-light);font-size:13px;">
-                组件库</span></span>
-    </div>
+    <!-- 网站语言：locale=en / locale=ja / locale=ko / locale=zh-HK / locale=zh-TW 使用同一份文档内容，避免多份页面漂移。 -->
+    <script>
+        window.__CGO_LOCALE__ = new URLSearchParams(location.search).get('locale') || 'zh';
+        window.__CGO_LOCALE_SOURCE__ = location.href;
+        window.__CGO_I18N_SITE_ROOT__ = new URL('./', location.href).href;
+        const initialLangSelect = document.getElementById('cgo-i18n-language-select');
+        if (initialLangSelect) initialLangSelect.value = window.__CGO_LOCALE__;
+    </script>
+    <script type="module" src="./i18n/runtime.js"></script>
 
-    <div class="header-right">
-        <cgo-theme-toggle></cgo-theme-toggle>
-    </div>
-</header>
+    <!-- CGoUI Web Components 统一 bundle -->
+    <script type="module" src="./dist/cgo-ui.js?v=261018.235700"></script>
 
-<div class="doc-shell">
-    <cgo-side-nav id="doc-nav"></cgo-side-nav>
-    <main id="doc-main" class="doc-main"></main>
-</div>
-
-<!-- 网站语言：locale=en / locale=ja / locale=ko / locale=zh-HK / locale=zh-TW 使用同一份文档内容，避免多份页面漂移。 -->
-<script>
-    window.__CGO_LOCALE__ = new URLSearchParams(location.search).get('locale') || 'zh';
-    window.__CGO_LOCALE_SOURCE__ = location.href;
-    window.__CGO_I18N_SITE_ROOT__ = new URL('./', location.href).href;
-</script>
-<script type="module" src="./i18n/runtime.js"></script>
-
-<!-- CGoUI Web Components 统一 bundle -->
-<script type="module" src="./dist/cgo-ui.js"></script>
-
-<!-- 文档站数据与路由 -->
-<script type="module" src="./docs/docs.js?v=260804.000001"></script>
+    <!-- 文档站数据与路由 -->
+    <script type="module" src="./docs/docs.js?v=260804.000001"></script>
 </body>
 
 </html>

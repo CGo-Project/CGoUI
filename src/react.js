@@ -23,6 +23,7 @@ import { CgoAvatar as CgoAvatarClass } from './components/avatar.js';
 import { CgoChatBubble as CgoChatBubbleClass } from './components/chat-bubble.js';
 import { CgoCaptcha as CgoCaptchaClass } from './components/captcha.js';
 import { CgoThemeToggle as CgoThemeToggleClass } from './components/theme-toggle.js';
+import { CgoHeaderToggle as CgoHeaderToggleClass } from './components/header-toggle.js';
 import { CgoSideNav as CgoSideNavClass, CgoNavItem as CgoNavItemClass } from './components/side-nav.js';
 import { CgoToolbarSelect as CgoToolbarSelectClass } from './components/toolbar-select.js';
 import { CgoNoticeCard as CgoNoticeCardClass } from './components/notice-card.js';
@@ -152,6 +153,12 @@ export const CgoThemeToggle = createComponent({
     react: React,
     tagName: 'cgo-theme-toggle',
     elementClass: CgoThemeToggleClass,
+});
+
+export const CgoHeaderToggle = createComponent({
+    react: React,
+    tagName: 'cgo-header-toggle',
+    elementClass: CgoHeaderToggleClass,
 });
 
 export const CgoSideNav = createComponent({ react: React, tagName: 'cgo-side-nav', elementClass: CgoSideNavClass });

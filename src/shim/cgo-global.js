@@ -19,6 +19,17 @@ import {
     generateThemePalette,
     setThemeColorStorageKey,
     getThemeColorStorageKey,
+    injectLiquidGlassFilter,
+    setGlassMode,
+    getGlassMode,
+    setDefaultGlassMode,
+    setHeaderMode,
+    getHeaderMode,
+    toggleHeaderMode,
+    setDefaultHeaderMode,
+    setHeaderModeStorageKey,
+    getHeaderModeStorageKey,
+    autoUpgradeHeader,
 } from '../theme.js';
 
 const DEFAULT_SHIM_CONFIG = Object.freeze({
@@ -369,6 +380,17 @@ export function installGlobalShim(global = window) {
         applyTheme,
         setThemeColorStorageKey,
         getThemeColorStorageKey,
+        setGlassMode,
+        getGlassMode,
+        setDefaultGlassMode,
+        injectLiquidGlassFilter,
+        setHeaderMode,
+        getHeaderMode,
+        toggleHeaderMode,
+        setDefaultHeaderMode,
+        setHeaderModeStorageKey,
+        getHeaderModeStorageKey,
+        autoUpgradeHeader,
     };
     CGO.setThemeColor = setThemeColor;
     CGO.resetThemeColor = resetThemeColor;
@@ -376,6 +398,17 @@ export function installGlobalShim(global = window) {
     CGO.generateThemePalette = generateThemePalette;
     CGO.setThemeColorStorageKey = setThemeColorStorageKey;
     CGO.getThemeColorStorageKey = getThemeColorStorageKey;
+    CGO.setGlassMode = setGlassMode;
+    CGO.getGlassMode = getGlassMode;
+    CGO.setDefaultGlassMode = setDefaultGlassMode;
+    CGO.injectLiquidGlassFilter = injectLiquidGlassFilter;
+    CGO.setHeaderMode = setHeaderMode;
+    CGO.getHeaderMode = getHeaderMode;
+    CGO.toggleHeaderMode = toggleHeaderMode;
+    CGO.setDefaultHeaderMode = setDefaultHeaderMode;
+    CGO.setHeaderModeStorageKey = setHeaderModeStorageKey;
+    CGO.getHeaderModeStorageKey = getHeaderModeStorageKey;
+    CGO.autoUpgradeHeader = autoUpgradeHeader;
     CGO.initImgIconWrappers = initImgIconWrappers;
     global.CGO = CGO;
 
@@ -389,12 +422,13 @@ export function installGlobalShim(global = window) {
     global.ToolTheme.setThemeColorStorageKey = setThemeColorStorageKey;
     global.ToolTheme.getThemeColorStorageKey = getThemeColorStorageKey;
 
-    // 旧版自动行为：DOM 就绪后渲染 data-icon、初始化旧 .dropdown、绑定图片渐进加载
+    // 旧版自动行为：DOM 就绪后渲染 data-icon、初始化旧 .dropdown、绑定图片渐进加载、自动升级旧标题栏
     const autorun = () => {
         renderIcons();
         initDropdowns(document);
         bindLegacyThemeButton();
         initImgIconWrappers(document);
+        autoUpgradeHeader(document);
     };
     initImgIconWrappers(document);
     if (document.readyState === 'loading') {
@@ -446,3 +480,4 @@ export function initImgIconWrappers(root = document) {
         observer.observe(document.documentElement || document.body, { childList: true, subtree: true });
     }
 }
+

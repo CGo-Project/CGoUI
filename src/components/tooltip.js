@@ -2,7 +2,8 @@ import { LitElement, html, css } from 'lit';
 
 /**
  * <cgo-tooltip text="说明文字"><button>悬停我</button></cgo-tooltip>
- * 悬停在被包裹内容上时，于上方显示气泡。移植自 cgo_element.css §12 的 [data-tooltip]。
+ * 悬停在被包裹内容上时，于上方/下方显示轻量气泡。
+ * 遵循极简干净清爽规范：单层纯净边缘、柔和微阴影、无杂乱玻璃重影。
  */
 export class CgoTooltip extends LitElement {
     static properties = {
@@ -15,29 +16,74 @@ export class CgoTooltip extends LitElement {
             position: relative;
             display: inline-flex;
         }
+
         .bubble {
             position: absolute;
-            bottom: calc(100% + 8px);
+            bottom: calc(100% + 7px);
             left: 50%;
-            transform: translateX(-50%);
-            padding: 5px 10px;
-            border-radius: var(--radius-xs, 4px);
-            background: rgba(0, 0, 0, 0.82);
-            color: #fff;
-            font-size: var(--text-sm, 12px);
-            font-family: var(--font-sans, system-ui, sans-serif);
+            transform: translate(-50%, 3px);
+            padding: 5px 9px;
+            border-radius: var(--radius-sm, 6px);
+            background: rgba(18, 20, 24, 0.94);
+            color: #ffffff;
+            font-size: var(--text-xs, 12px);
+            font-weight: 500;
+            line-height: 1.4;
+            font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+            letter-spacing: 0.01em;
             white-space: nowrap;
             pointer-events: none;
             opacity: 0;
-            transition: opacity var(--transition-base, 0.2s ease);
+            visibility: hidden;
+            border: none;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.16), 0 1px 2px rgba(0, 0, 0, 0.08);
+            transition:
+                opacity 140ms ease,
+                transform 140ms cubic-bezier(0.16, 1, 0.3, 1),
+                visibility 140ms;
             z-index: 200;
+            box-sizing: border-box;
         }
+
         .bubble.bottom {
             bottom: auto;
-            top: calc(100% + 8px);
+            top: calc(100% + 7px);
+            transform: translate(-50%, -3px);
         }
+
         :host(:hover) .bubble {
             opacity: 1;
+            visibility: visible;
+            transform: translate(-50%, 0);
+        }
+
+        /* 暗色模式下：略微提亮背景并赋予极细单层柔和边缘，避免与深色底色完全混融，绝无双层套圈 */
+        :host-context([data-theme='dark']) .bubble {
+            background: rgba(38, 40, 45, 0.96);
+            color: #f3f4f6;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+        }
+
+        /* 在 glass 容器模式下保持极简干净，仅保留极轻微的背景微透与自然单层描边，绝无复杂玻璃套框 */
+        :host-context([glass-mode='liquid']) .bubble,
+        :host-context([glass-mode='blur']) .bubble,
+        :host-context([data-glass-mode='liquid']) .bubble,
+        :host-context([data-glass-mode='blur']) .bubble {
+            background: rgba(18, 20, 24, 0.92);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: none;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.22);
+        }
+
+        :host-context([data-theme='dark']):host-context([glass-mode='liquid']) .bubble,
+        :host-context([data-theme='dark']):host-context([glass-mode='blur']) .bubble,
+        :host-context([data-theme='dark']):host-context([data-glass-mode='liquid']) .bubble,
+        :host-context([data-theme='dark']):host-context([data-glass-mode='blur']) .bubble {
+            background: rgba(38, 40, 45, 0.92);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
         }
     `;
 

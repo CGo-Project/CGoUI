@@ -1,0 +1,1768 @@
+<!DOCTYPE html>
+<html lang="zh-CN" glass-mode="liquid">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <meta name="description" content="CGoUI Ribbon 效率类界面模板 Demo - 仿微软 Office Ribbon 布局、右侧辅助侧边栏与底部状态栏">
+    <title>Ribbon 效率类界面模板 - CGoUI Demo</title>
+
+    <!-- ===== 0. 防闪烁主题脚本（Anti-Flicker，必须最先注入）===== -->
+    <script>
+      (function() {
+        var t = localStorage.getItem('app-theme');
+        document.documentElement.setAttribute('data-theme', t || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+      })();
+    </script>
+
+    <!--
+      ===== 1. CGoUI 样式体系引入 =====
+      本地路径（放于项目根目录 cgoui/ 文件夹中，脚本取自 dist/ 打包产物）：
+        cgoui/styles/cgo_clr.css
+        cgoui/styles/cgo_element.css
+        cgoui/styles/cgo_ui.css
+        cgoui/styles/cgo_components.css
+        cgoui/cgo-ui.js
+      CDN 路径：https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@latest/dist/styles/
+    -->
+    <link rel="stylesheet" href="../styles/cgo_clr.css">
+    <link rel="stylesheet" href="../styles/cgo_element.css">
+    <link rel="stylesheet" href="../styles/cgo_ui.css">
+    <link rel="stylesheet" href="../styles/cgo_components.css">
+
+    <!-- ===== 2. CGoUI 模块脚本（ES Module 引入）===== -->
+    <!-- CDN 方式: <script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@latest/dist/cgo-ui.js"></script> -->
+    <script type="module" src="../dist/cgo-ui.js"></script>
+
+    <style>
+        /* ==========================================================================
+           0. Web Components 防闪烁 (FOUC 防护) 与基础变量
+           ========================================================================== */
+        cgo-icon:not(:defined),
+        cgo-button:not(:defined),
+        cgo-theme-toggle:not(:defined),
+        cgo-badge:not(:defined),
+        cgo-card:not(:defined) {
+            display: inline-flex;
+            visibility: visible;
+            opacity: 0.6;
+        }
+
+        :root {
+            --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Noto Sans SC', sans-serif;
+            --title-bar-height: 38px;
+            --ribbon-tabs-height: 36px;
+            --ribbon-toolbar-height: 88px;
+
+            /* 字号标准阶梯 */
+            --font-size-2xs: 9px;
+            --font-size-xs: 11px;
+            --font-size-base-sub: 12px;
+            --font-size-base: 14px;
+            --font-size-md: 16px;
+
+            /* CGoUI Ribbon 专属视觉 Token 映射 */
+            --office-primary: var(--primary-color, #00263b);
+            --office-primary-dark: var(--text-main, #00263b);
+            --office-primary-light: rgba(0, 38, 59, 0.08);
+            --office-ribbon-bg: var(--card-bg, #ffffff);
+            --office-border: var(--border-color, #dee2e6);
+            --office-hover: var(--bg-color, #f8f9fa);
+
+            /* 工业级交互动效缓动曲线 */
+            --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+            --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+            --ease-btn: cubic-bezier(0.16, 1, 0.3, 1);
+
+            --dur-fast: 160ms;
+            --dur-base: 220ms;
+            --dur-slow: 300ms;
+        }
+
+        [data-theme="dark"] {
+            --office-primary: var(--primary-color, #38bdf8);
+            --office-primary-dark: var(--text-main, #e6edf3);
+            --office-primary-light: rgba(56, 189, 248, 0.12);
+            --office-ribbon-bg: var(--card-bg, #161a22);
+            --office-border: var(--border-color, #30363d);
+            --office-hover: var(--bg-color, #21262d);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body.office-app-shell {
+            font-family: var(--font-sans);
+            background-color: var(--bg-color, #f8f9fa);
+            color: var(--text-main, #00263b);
+            height: 100vh;
+            height: 100dvh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* ==========================================================================
+           1. 顶部标题栏 (Title Bar)
+           ========================================================================== */
+        .office-title-bar {
+            height: var(--title-bar-height);
+            background: var(--card-bg, #ffffff);
+            border-bottom: 1px solid var(--office-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px;
+            flex-shrink: 0;
+            z-index: 50;
+        }
+
+        .title-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .office-app-icon {
+            width: 22px;
+            height: 22px;
+            color: var(--office-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .office-doc-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: var(--font-size-base, 14px);
+            font-weight: 600;
+        }
+
+        .app-brand {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        .doc-sep {
+            color: var(--text-light);
+            opacity: 0.5;
+        }
+
+        .doc-name {
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .title-bar-center {
+            display: flex;
+            align-items: center;
+        }
+
+        .global-quick-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--office-ribbon-bg);
+            border: 1px solid var(--office-border);
+            border-radius: 6px;
+            padding: 3px 8px;
+            font-size: var(--font-size-base-sub, 12px);
+        }
+
+        .pill-label {
+            color: var(--text-light);
+            font-size: 11px;
+        }
+
+        .title-dropdown {
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: var(--font-size-base-sub, 12px);
+            font-weight: 600;
+            cursor: pointer;
+            outline: none;
+            max-width: 220px;
+        }
+
+        .title-quick-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--office-primary);
+            display: flex;
+            align-items: center;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: background-color var(--dur-fast) var(--ease-out);
+        }
+
+        .title-quick-btn:hover {
+            background: var(--office-primary-light);
+        }
+
+        .title-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .title-bar-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 3px 6px;
+            color: var(--text-main);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: var(--font-size-base-sub, 12px);
+            transition: all var(--dur-fast) var(--ease-out);
+        }
+
+        .title-bar-btn:hover {
+            background: var(--office-hover);
+            border-color: var(--office-border);
+        }
+
+        /* ==========================================================================
+           2. 微软 Office 风格 Ribbon 功能区 (Ribbon Container)
+           ========================================================================== */
+        .office-ribbon-container {
+            background: var(--office-ribbon-bg);
+            border-bottom: 1px solid var(--office-border);
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            z-index: 40;
+            position: relative;
+            transition: box-shadow var(--dur-fast) var(--ease-out);
+        }
+
+        /* 选项卡标题行 */
+        .ribbon-tabs-row {
+            min-height: var(--ribbon-tabs-height);
+            display: flex;
+            align-items: stretch;
+            justify-content: space-between;
+            padding: 0 10px;
+            border-bottom: 1px solid var(--office-border);
+            background: var(--card-bg, #ffffff);
+            user-select: none;
+            gap: 6px;
+        }
+
+        .ribbon-tabs-left {
+            display: flex;
+            align-items: stretch;
+            gap: 4px;
+            overflow-x: auto;
+            scrollbar-width: none;
+            flex: 1;
+        }
+
+        .ribbon-tabs-left::-webkit-scrollbar {
+            display: none;
+        }
+
+        .ribbon-tab-btn {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid transparent;
+            color: var(--text-light);
+            font-family: inherit;
+            font-size: var(--font-size-base-sub, 12px);
+            font-weight: 600;
+            padding: 7px clamp(8px, 1.2vw, 16px);
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 4px 4px 0 0;
+            white-space: nowrap;
+            transition: color var(--dur-fast) ease, background-color var(--dur-fast) ease, border-color var(--dur-fast) var(--ease-btn), transform 100ms var(--ease-btn);
+        }
+
+        .ribbon-tab-btn:hover {
+            color: var(--text-main);
+            background: var(--office-hover);
+        }
+
+        .ribbon-tab-btn.active {
+            color: var(--office-primary);
+            border-bottom-color: var(--office-primary);
+            background: var(--office-ribbon-bg);
+            font-weight: 700;
+        }
+
+        .ribbon-tab-btn:active {
+            transform: scale(0.98);
+        }
+
+        /* 选项卡右侧折叠按钮 */
+        .ribbon-tabs-right {
+            display: flex;
+            align-items: center;
+            padding-left: 6px;
+            flex-shrink: 0;
+        }
+
+        .ribbon-collapse-toggle-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-light);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-family: inherit;
+            transition: background-color var(--dur-fast) ease, color var(--dur-fast) ease, transform 100ms var(--ease-btn);
+        }
+
+        .ribbon-collapse-toggle-btn:hover {
+            background: var(--office-hover);
+            color: var(--text-main);
+        }
+
+        .ribbon-collapse-toggle-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Ribbon 工具栏主体：固定高度与平滑折叠 */
+        .ribbon-toolbar-body {
+            height: var(--ribbon-toolbar-height);
+            min-height: var(--ribbon-toolbar-height);
+            max-height: var(--ribbon-toolbar-height);
+            display: flex;
+            align-items: stretch;
+            padding: 6px 12px;
+            gap: 0;
+            overflow-x: auto;
+            overflow-y: hidden;
+            scrollbar-width: thin;
+            box-sizing: border-box;
+            transition: max-height var(--dur-slow) var(--ease-btn), opacity var(--dur-base) ease, padding var(--dur-base) ease;
+        }
+
+        /* 折叠收起状态 */
+        .office-ribbon-container.collapsed .ribbon-toolbar-body {
+            max-height: 0;
+            min-height: 0;
+            height: 0;
+            padding-top: 0;
+            padding-bottom: 0;
+            opacity: 0;
+            pointer-events: none;
+            overflow: hidden;
+            border-bottom: none;
+        }
+
+        /* 选项卡工具内容组 */
+        .ribbon-tab-content-group {
+            display: none;
+            align-items: stretch;
+            gap: 0;
+            flex: 1;
+            min-width: max-content;
+            height: 100%;
+        }
+
+        .ribbon-tab-content-group.active {
+            display: flex;
+            animation: ribbonTabFadeIn var(--dur-base) var(--ease-out) forwards;
+        }
+
+        @keyframes ribbonTabFadeIn {
+            from { opacity: 0; transform: translateY(-3px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* 命令分组卡片 */
+        .ribbon-group {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 0 8px;
+            min-width: fit-content;
+            flex-shrink: 0;
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        .ribbon-group-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex: 1;
+            height: 54px;
+            min-width: fit-content;
+        }
+
+        .ribbon-group-label {
+            text-align: center;
+            font-size: 10.5px;
+            color: var(--text-light);
+            letter-spacing: 0.3px;
+            padding-top: 2px;
+            margin-top: 2px;
+            height: 16px;
+            line-height: 16px;
+            white-space: nowrap;
+            user-select: none;
+            border-top: 1px dashed rgba(0, 0, 0, 0.08);
+        }
+
+        [data-theme="dark"] .ribbon-group-label {
+            border-top-color: rgba(255, 255, 255, 0.08);
+        }
+
+        /* 分隔竖线 */
+        .ribbon-divider {
+            width: 1px;
+            background: var(--office-border);
+            margin: 6px 4px;
+            flex-shrink: 0;
+            align-self: stretch;
+        }
+
+        /* 大图标动作按钮 */
+        .ribbon-action-btn-lg {
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 4px 6px;
+            cursor: pointer;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: var(--font-size-base-sub, 12px);
+            font-weight: 600;
+            min-width: 76px;
+            width: 76px;
+            height: 54px;
+            min-height: 54px;
+            gap: 3px;
+            white-space: nowrap;
+            box-sizing: border-box;
+            transition: transform 120ms var(--ease-btn), background-color var(--dur-fast) ease, border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
+        }
+
+        .ribbon-action-btn-lg.btn-wide {
+            min-width: 96px;
+            width: 96px;
+        }
+
+        .ribbon-action-btn-lg .btn-text {
+            display: inline-block;
+            white-space: nowrap;
+            line-height: 1.25;
+            text-align: center;
+            font-size: 11px;
+        }
+
+        .ribbon-action-btn-lg:hover:not(:disabled) {
+            background: var(--card-bg, #ffffff);
+            border-color: var(--office-border);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        }
+
+        .ribbon-action-btn-lg:active:not(:disabled) {
+            transform: scale(0.98);
+            transition: transform 100ms cubic-bezier(0.23, 1, 0.32, 1);
+            background: var(--office-hover);
+        }
+
+        .ribbon-action-btn-lg .ribbon-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            color: var(--office-primary);
+            transition: transform var(--dur-fast) var(--ease-btn);
+        }
+
+        .ribbon-action-btn-lg:hover:not(:disabled) .ribbon-icon {
+            transform: none;
+        }
+
+        .ribbon-action-btn-lg.highlight-action {
+            background: var(--office-primary-light);
+            border-color: var(--office-primary);
+            color: var(--office-primary);
+        }
+
+        .ribbon-action-btn-lg.primary-action {
+            background: var(--office-primary);
+            color: #ffffff;
+            border-color: var(--office-primary);
+        }
+
+        .ribbon-action-btn-lg.primary-action .ribbon-icon {
+            color: #ffffff;
+        }
+
+        .ribbon-action-btn-lg.primary-action:hover:not(:disabled) {
+            opacity: 0.92;
+            box-shadow: 0 2px 6px rgba(0, 38, 59, 0.25);
+        }
+
+        /* 纵向紧凑按钮组 */
+        .ribbon-v-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            justify-content: center;
+            min-width: 86px;
+            width: 86px;
+            height: 54px;
+            box-sizing: border-box;
+        }
+
+        .ribbon-btn-sm {
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            padding: 2px 8px;
+            height: 25px;
+            font-size: 11px;
+            font-family: inherit;
+            font-weight: 500;
+            color: var(--text-main);
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+            white-space: nowrap;
+            width: 100%;
+            box-sizing: border-box;
+            transition: color var(--dur-fast) ease, background-color var(--dur-fast) ease, border-color var(--dur-fast) ease, transform 100ms var(--ease-btn);
+        }
+
+        .ribbon-btn-sm:hover {
+            background: var(--card-bg, #ffffff);
+            border-color: var(--office-border);
+        }
+
+        .ribbon-btn-sm:active {
+            transform: scale(0.97);
+        }
+
+        .ribbon-btn-sm.danger:hover {
+            color: var(--danger-color, #dc3545);
+            background: rgba(220, 53, 69, 0.1);
+            border-color: rgba(220, 53, 69, 0.25);
+        }
+
+        /* 参数调节滑块盒子 */
+        .ribbon-param-box {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 4px;
+            padding: 2px 6px;
+            width: 144px;
+            min-width: 144px;
+            max-width: 144px;
+            height: 54px;
+            box-sizing: border-box;
+        }
+
+        .ribbon-param-box .param-label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--text-light);
+            height: 16px;
+        }
+
+        .ribbon-param-box .param-label-row strong {
+            color: var(--office-primary);
+            font-weight: 700;
+            cursor: pointer;
+            padding: 0 4px;
+            border-radius: 3px;
+        }
+
+        .param-slider-row {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            width: 100%;
+        }
+
+        .param-step-btn {
+            width: 18px;
+            height: 18px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-light);
+            transition: all var(--dur-fast) var(--ease-btn);
+            flex-shrink: 0;
+        }
+
+        .param-step-btn:hover {
+            background: var(--office-hover);
+            color: var(--text-main);
+            transform: scale(1.1);
+        }
+
+        .ribbon-param-box input[type="range"] {
+            flex: 1;
+            min-width: 0;
+            height: 4px;
+            appearance: none;
+            -webkit-appearance: none;
+            background: var(--office-border, #dee2e6);
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .ribbon-param-box input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 12px;
+            height: 12px;
+            background: var(--office-primary, #00263b);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+            transition: transform var(--dur-fast) var(--ease-btn);
+        }
+
+        .ribbon-param-box input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.25);
+        }
+
+        /* ==========================================================================
+           3. 主要工作区 (Main Workspace)
+           ========================================================================== */
+        .office-main-workspace {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 0;
+        }
+
+        .main-canvas-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        /* 顶部上下文焦点条/操作指引条 */
+        .workspace-focus-bar {
+            height: 36px;
+            background: var(--office-ribbon-bg);
+            border-bottom: 1px solid var(--office-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            font-size: var(--font-size-base-sub, 12px);
+            flex-shrink: 0;
+            z-index: 25;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+        }
+
+        .focus-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .focus-bar-right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* 画布/视口核心区域 */
+        .cgo-canvas-viewport {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-color, #f8f9fa);
+            cursor: default;
+        }
+
+        /* 工程蓝图点阵背景 */
+        .cgo-blueprint-grid {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background-image: 
+                radial-gradient(var(--office-border) 1.2px, transparent 1.2px),
+                linear-gradient(to right, rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+            background-size: 24px 24px, 120px 120px, 120px 120px;
+        }
+
+        [data-theme="dark"] .cgo-blueprint-grid {
+            background-image: 
+                radial-gradient(rgba(255, 255, 255, 0.12) 1.2px, transparent 1.2px),
+                linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+        }
+
+        /* 画布内部卡片节点层展示 */
+        .canvas-nodes-layer {
+            position: absolute;
+            inset: 16px;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: flex-start;
+            gap: 16px;
+            overflow: auto;
+            pointer-events: auto;
+        }
+
+        .demo-node-card {
+            width: 280px;
+            background: var(--card-bg, #ffffff);
+            border: 1px solid var(--office-border);
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            transition: all var(--dur-fast) var(--ease-out);
+        }
+
+        .demo-node-card:hover {
+            border-color: var(--office-primary);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .demo-node-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: var(--font-size-base, 14px);
+            font-weight: 700;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--office-border);
+        }
+
+        .demo-node-body {
+            font-size: var(--font-size-base-sub, 12px);
+            color: var(--text-light);
+            line-height: 1.5;
+        }
+
+        /* 视口浮动快速缩放工具栏 */
+        .freeform-zoom-toolbar {
+            position: absolute;
+            bottom: 16px;
+            right: 20px;
+            background: var(--card-bg, #ffffff);
+            border: 1px solid var(--office-border);
+            border-radius: 8px;
+            padding: 4px 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+            z-index: 30;
+        }
+
+        /* ==========================================================================
+           4. 工作区右侧辅助列表区 (Auxiliary Sidebar Inspector)
+           ========================================================================== */
+        .aux-list-sidebar {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 360px;
+            max-width: 85vw;
+            background: var(--card-bg, #ffffff);
+            border-left: 1px solid var(--office-border);
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.08);
+            z-index: 35;
+            display: flex;
+            flex-direction: column;
+            transition: transform var(--dur-slow) var(--ease-btn), box-shadow var(--dur-slow) ease;
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+
+        .aux-list-sidebar.collapsed {
+            transform: translateX(100%);
+            pointer-events: none;
+            box-shadow: none;
+        }
+
+        /* 侧边栏 Header */
+        .sidebar-header {
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 14px;
+            background: var(--office-ribbon-bg);
+            border-bottom: 1px solid var(--office-border);
+            flex-shrink: 0;
+        }
+
+        .sidebar-header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: var(--font-size-base, 14px);
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .sidebar-collapse-btn {
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: all var(--dur-fast) var(--ease-out);
+        }
+
+        .sidebar-collapse-btn:hover {
+            background: var(--office-hover);
+            color: var(--text-main);
+            border-color: var(--office-border);
+        }
+
+        /* 侧边栏工具栏 */
+        .sidebar-toolbar {
+            padding: 10px 12px;
+            background: var(--card-bg, #ffffff);
+            border-bottom: 1px solid var(--office-border);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-search-row input {
+            width: 100%;
+            height: 30px;
+            padding: 0 8px;
+            font-size: var(--font-size-base-sub, 12px);
+            border: 1px solid var(--office-border);
+            border-radius: 4px;
+            background: var(--bg-color, #f8f9fa);
+            color: var(--text-main);
+            outline: none;
+            transition: border-color var(--dur-fast) var(--ease-out);
+        }
+
+        .sidebar-search-row input:focus {
+            border-color: var(--office-primary);
+            background: var(--card-bg, #ffffff);
+        }
+
+        /* 侧边栏列表卡片滚动区 */
+        .sidebar-cards-scroll-wrap {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-height: 0;
+        }
+
+        .aux-item-card {
+            background: var(--bg-color, #f8f9fa);
+            border: 1px solid var(--office-border);
+            border-radius: 6px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: all var(--dur-fast) var(--ease-out);
+            cursor: pointer;
+        }
+
+        .aux-item-card:hover {
+            border-color: var(--office-primary);
+            background: var(--card-bg, #ffffff);
+            transform: translateX(-2px);
+        }
+
+        .aux-item-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: var(--font-size-base-sub, 12px);
+            font-weight: 700;
+        }
+
+        .aux-item-desc {
+            font-size: 11px;
+            color: var(--text-light);
+            line-height: 1.4;
+        }
+
+        /* 侧边栏收起时右上角浮动按钮 */
+        .sidebar-floating-toggle-btn {
+            position: absolute;
+            top: 48px;
+            right: 14px;
+            z-index: 30;
+            height: 32px;
+            padding: 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: var(--card-bg, #ffffff);
+            border: 1px solid var(--office-border);
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.1);
+            color: var(--office-primary);
+            font-size: 11.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all var(--dur-fast) var(--ease-btn);
+            backdrop-filter: blur(8px);
+        }
+
+        .sidebar-floating-toggle-btn.hidden {
+            display: none !important;
+        }
+
+        .sidebar-floating-toggle-btn:hover {
+            background: var(--office-hover);
+            transform: translateX(-3px);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14);
+        }
+
+        /* ==========================================================================
+           5. 底部状态栏 (Bottom Status Bar)
+           ========================================================================== */
+        .office-status-bar {
+            height: 32px;
+            background-color: var(--card-bg, #ffffff);
+            border-top: 1px solid var(--office-border);
+            padding: 0 14px;
+            font-size: var(--font-size-base-sub, 12px);
+            color: var(--text-light);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+            gap: 12px;
+            z-index: 60;
+            user-select: none;
+        }
+
+        .status-left,
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .status-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+            font-size: 11.5px;
+            color: var(--text-light);
+        }
+
+        .status-divider {
+            color: var(--office-border);
+            font-size: 11px;
+            opacity: 0.7;
+            margin: 0 2px;
+        }
+
+        .status-badge-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 7px;
+            border-radius: 4px;
+            background: var(--office-primary-light);
+            border: 1px solid var(--office-border);
+            color: var(--text-main);
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--dur-fast) var(--ease-btn);
+        }
+
+        .status-badge-item:hover {
+            background: var(--office-hover);
+            border-color: var(--office-primary);
+        }
+
+        .zoom-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .zoom-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-light);
+            padding: 2px;
+            border-radius: 3px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--dur-fast) var(--ease-btn);
+        }
+
+        .zoom-btn:hover {
+            color: var(--office-primary);
+            background: var(--office-hover);
+        }
+
+        .zoom-slider {
+            width: 80px;
+            height: 4px;
+            appearance: none;
+            -webkit-appearance: none;
+            background: var(--office-border);
+            border-radius: 2px;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .zoom-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 10px;
+            height: 10px;
+            background: var(--office-primary);
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .zoom-val-text {
+            min-width: 38px;
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+            cursor: pointer;
+        }
+
+        /* ==========================================================================
+           6. 响应式布局自适应 (Responsive Breakpoints)
+           ========================================================================== */
+        @media (max-width: 900px) {
+            .ribbon-action-btn-lg {
+                min-width: 64px;
+                width: 64px;
+            }
+            .ribbon-action-btn-lg .btn-text {
+                font-size: 10px;
+            }
+            #ribbonCollapseLabel {
+                display: none;
+            }
+            .aux-list-sidebar {
+                width: 300px;
+            }
+        }
+
+        @media (max-width: 680px) {
+            .title-bar-center {
+                display: none;
+            }
+            .status-item:not(.always-show) {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body class="office-app-shell">
+    <!-- Liquid Glass 硬件加速空间折射滤镜管线 -->
+    <svg id="cgo-liquid-glass-filters" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden;pointer-events:none;" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+            <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%">
+                <feTurbulence type="fractalNoise" baseFrequency="0.025 0.025" numOctaves="1" result="noise" />
+                <feDisplacementMap in="SourceGraphic" in2="noise" scale="20" xChannelSelector="R" yChannelSelector="G" />
+            </filter>
+        </defs>
+    </svg>
+
+    <!-- 移动端顶部状态栏/信号栏实色安全区保护层：遮挡页面滚动穿透内容 -->
+    <div class="mobile-status-bar-fill" aria-hidden="true"></div>
+
+    <!-- =====================================================================
+         1. 顶部标题栏 (Title Bar)
+         左侧：应用图标 + 标题
+         中间：全局快速选项或工作模式切换器
+         右侧：设置、选项菜单与主题切换
+         ===================================================================== -->
+    <header class="office-title-bar">
+        <div class="title-bar-left">
+            <div class="office-app-icon">
+                <cgo-icon name="design" size="22"></cgo-icon>
+            </div>
+            <div class="office-doc-title">
+                <span class="app-brand">CGo WorkBench</span>
+                <span class="doc-sep">/</span>
+                <span class="doc-name">工程拓扑项目_v1.0</span>
+            </div>
+        </div>
+
+        <div class="title-bar-center">
+            <div class="global-quick-pill">
+                <span class="pill-label">工作模式:</span>
+                <select class="title-dropdown" id="globalModeSelect">
+                    <option value="topo">标准拓扑编辑模式</option>
+                    <option value="batch">批量矩阵计算模式</option>
+                    <option value="inspect">工程审计检查模式</option>
+                </select>
+                <button class="title-quick-btn" id="quickRunBtn" title="快速运行当前工程">
+                    <cgo-icon name="play" size="14"></cgo-icon>
+                </button>
+            </div>
+        </div>
+
+        <div class="title-bar-right">
+            <button class="title-bar-btn" title="工程全局参数设置" onclick="alert('打开工程设置')">
+                <cgo-icon name="settings" size="16"></cgo-icon>
+            </button>
+            <div class="dropdown options-dropdown">
+                <button class="title-bar-btn dropbtn" title="选项与帮助">
+                    <cgo-icon name="more-horiz" size="16"></cgo-icon>
+                </button>
+                <div class="dropdown-content">
+                    <a href="javascript:void(0)" onclick="alert('CGoUI Ribbon Template Demo')">
+                        <cgo-icon name="info" size="14"></cgo-icon><span>关于本工程</span>
+                    </a>
+                    <a href="javascript:void(0)" onclick="alert('查看帮助文档')">
+                        <cgo-icon name="help" size="14"></cgo-icon><span>使用手册</span>
+                    </a>
+                </div>
+            </div>
+            <cgo-theme-toggle></cgo-theme-toggle>
+        </div>
+    </header>
+
+    <!-- =====================================================================
+         2. 微软 Office 风格 Ribbon 功能区 (Ribbon Container)
+         包含：选项卡切换行、右侧折叠按钮、多分组命令工具栏
+         ===================================================================== -->
+    <nav class="office-ribbon-container" id="officeRibbonContainer">
+        <!-- 选项卡行 -->
+        <div class="ribbon-tabs-row" id="ribbonTabsRow">
+            <div class="ribbon-tabs-left">
+                <button class="ribbon-tab-btn active" id="tabBtn_home" onclick="switchRibbonTab('home')"
+                    ondblclick="toggleRibbonCollapse()" title="开始功能组 (双击可折叠/展开功能区)">
+                    <cgo-icon name="home" size="14"></cgo-icon>
+                    <span>开始</span>
+                </button>
+                <button class="ribbon-tab-btn" id="tabBtn_edit" onclick="switchRibbonTab('edit')"
+                    ondblclick="toggleRibbonCollapse()" title="节点与连线编辑 (双击可折叠/展开功能区)">
+                    <cgo-icon name="edit" size="14"></cgo-icon>
+                    <span>编辑与构建</span>
+                </button>
+                <button class="ribbon-tab-btn" id="tabBtn_view" onclick="switchRibbonTab('view')"
+                    ondblclick="toggleRibbonCollapse()" title="视图与窗口排版 (双击可折叠/展开功能区)">
+                    <cgo-icon name="eye" size="14"></cgo-icon>
+                    <span>视图与视口</span>
+                </button>
+                <button class="ribbon-tab-btn" id="tabBtn_tools" onclick="switchRibbonTab('tools')"
+                    ondblclick="toggleRibbonCollapse()" title="工程与数据工具 (双击可折叠/展开功能区)">
+                    <cgo-icon name="sparkle" size="14"></cgo-icon>
+                    <span>分析工具</span>
+                </button>
+            </div>
+
+            <div class="ribbon-tabs-right">
+                <button class="ribbon-collapse-toggle-btn" id="ribbonCollapseBtn" onclick="toggleRibbonCollapse()"
+                    title="折叠/展开功能区 (双击选项卡亦可)">
+                    <cgo-icon name="expand-less" size="13" id="ribbonCollapseIcon"></cgo-icon>
+                    <span id="ribbonCollapseLabel">折叠功能区</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Ribbon 工具栏主体内容 -->
+        <div class="ribbon-toolbar-body" id="ribbonToolbarBody">
+
+            <!-- ==================== TAB 1: 开始 (Home) ==================== -->
+            <div class="ribbon-tab-content-group active" id="ribbonGroupSet_home">
+                <!-- 分组 1: 节点操作 -->
+                <div class="ribbon-group">
+                    <div class="ribbon-group-controls">
+                        <button class="ribbon-action-btn-lg primary-action" onclick="addDemoNode()" title="向画布中心追加节点">
+                            <div class="ribbon-icon"><cgo-icon name="add" size="20"></cgo-icon></div>
+                            <span class="btn-text">添加节点</span>
+                        </button>
+                        <button class="ribbon-action-btn-lg highlight-action" onclick="loadDemoTemplate()" title="载入标准工程预设模板">
+                            <div class="ribbon-icon"><cgo-icon name="sparkle" size="20"></cgo-icon></div>
+                            <span class="btn-text">预设模板</span>
+                        </button>
+                        <div class="ribbon-v-stack">
+                            <button class="ribbon-btn-sm" onclick="alert('复制选中节点')">
+                                <cgo-icon name="copy" size="12"></cgo-icon> <span>复制节点</span>
+                            </button>
+                            <button class="ribbon-btn-sm danger" onclick="clearAllNodes()">
+                                <cgo-icon name="delete" size="12"></cgo-icon> <span>清空节点</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="ribbon-group-label">节点创作</div>
+                </div>
+
+                <div class="ribbon-divider"></div>
+
+                <!-- 分组 2: 布局与对齐 -->
+                <div class="ribbon-group">
+                    <div class="ribbon-group-controls">
+                        <button class="ribbon-action-btn-lg" onclick="autoAlignNodes()" title="自动根据层级树排版所有元素">
+                            <div class="ribbon-icon"><cgo-icon name="refresh" size="20"></cgo-icon></div>
+                            <span class="btn-text">智能排版</span>
+                        </button>
+                        <button class="ribbon-action-btn-lg" onclick="alert('过滤筛选视图')" title="应用拓扑条件过滤">
+                            <div class="ribbon-icon"><cgo-icon name="filter" size="20"></cgo-icon></div>
+                            <span class="btn-text">筛选过滤</span>
+                        </button>
+                        <div class="ribbon-v-stack">
+                            <button class="ribbon-btn-sm" onclick="alert('撤销上一步操作')">
+                                <cgo-icon name="undo" size="12"></cgo-icon> <span>撤销操作</span>
+                            </button>
+                            <button class="ribbon-btn-sm" onclick="alert('重做下一步操作')">
+                                <cgo-icon name="redo" size="12"></cgo-icon> <span>重做操作</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="ribbon-group-label">排版拓扑</div>
+                </div>
+
+                <div class="ribbon-divider"></div>
+
+                <!-- 分组 3: 运行与工程 -->
+                <div class="ribbon-group">
+                    <div class="ribbon-group-controls">
+                        <button class="ribbon-action-btn-lg btn-wide primary-action" onclick="runPipelineBatch()" title="批量启动整网管线计算">
+                            <div class="ribbon-icon"><cgo-icon name="play" size="20"></cgo-icon></div>
+                            <span class="btn-text">批量执行管线</span>
+                        </button>
+                        <button class="ribbon-action-btn-lg btn-wide" onclick="alert('打包导出 ZIP')" title="打包下载工程文件与产物">
+                            <div class="ribbon-icon"><cgo-icon name="export-zip" size="20"></cgo-icon></div>
+                            <span class="btn-text">打包导出 ZIP</span>
+                        </button>
+                        <button class="ribbon-action-btn-lg" onclick="alert('保存工程状态')" title="保存当前拓扑配置">
+                            <div class="ribbon-icon"><cgo-icon name="save" size="20"></cgo-icon></div>
+                            <span class="btn-text">保存工程</span>
+                        </button>
+                        <div class="ribbon-v-stack">
+                            <button class="ribbon-btn-sm" onclick="alert('导入配置 JSON')">
+                                <cgo-icon name="upload" size="12"></cgo-icon> <span>导入 JSON</span>
+                            </button>
+                            <button class="ribbon-btn-sm" onclick="alert('导出配置 JSON')">
+                                <cgo-icon name="download" size="12"></cgo-icon> <span>导出 JSON</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="ribbon-group-label">母带工程与导出</div>
+                </div>
+
+                <div class="ribbon-divider"></div>
+
+                <!-- 分组 4: 参数配置 -->
+                <div class="ribbon-group">
+                    <div class="ribbon-group-controls">
+                        <div class="ribbon-param-box">
+                            <div class="param-label-row">
+                                <span>执行增益:</span>
+                                <strong id="speedVal" onclick="resetParam(1.0)" title="点击恢复 1.0x 标准">1.0x</strong>
+                            </div>
+                            <div class="param-slider-row">
+                                <button class="param-step-btn" onclick="stepParam(-0.1)" title="步进减少">
+                                    <cgo-icon name="zoom-out" size="11"></cgo-icon>
+                                </button>
+                                <input type="range" id="speedSlider" min="0.5" max="2.0" step="0.1" value="1.0"
+                                    oninput="onParamChange(this.value)">
+                                <button class="param-step-btn" onclick="stepParam(0.1)" title="步进增加">
+                                    <cgo-icon name="zoom-in" size="11"></cgo-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ribbon-group-label">运行参数</div>
+                </div>
+            </div>
+
+            <!-- ==================== TAB 2: 编辑与构建 (Edit) ==================== -->
+            <div class="ribbon-tab-content-group" id="ribbonGroupSet_edit">
+                <div class="ribbon-group">
+                    <div class="ribbon-group-controls">
+                        <button class="ribbon-action-btn-lg primary-action" onclick="addDemoNode()">
+                            <div class="ribbon-icon"><cgo-icon name="add" size="20"></cgo-icon></div>
+                            <span class="btn-text">追加节点</span>
+                        </button>
+                        <button class="ribbon-action-btn-lg" onclick="alert('批量重命名')">
+                            <div class="ribbon-icon"><cgo-icon name="edit" size="20"></cgo-icon></div>
+                            <span class="btn-text">批量重命名</span>
+                        </button>
+                    </div>
+                    <div class="ribbon-group-label">批量修改</div>
+                </div>
+                <div class="ribbon-divider"></div>
+                <div class="ribbon-group">
+                    <div class="ribbon-group-controls">
+                        <button class="ribbon-action-btn-lg" onclick="toggleSidebar(true)">
+                            <div class="ribbon-icon"><cgo-icon name="view-list" size="20"></cgo-icon></div>
+                            <span class="btn-text">检查侧栏</span>
+                        </button>
+                    </div>
+                    <div class="ribbon-group-label">视图切换</div>
+                </div>
+            </div>
+
+            <!-- ==================== TAB 3: 视图与视口 (View) ==================== -->
+            <div class="ribbon-tab-content-group" id="ribbonGroupSet_view">
+                <div class="ribbon-group">
+                    <div class="ribbon-group-controls">
+                        <button class="ribbon-action-btn-lg" onclick="zoomCanvas(1.15)">
+                            <div class="ribbon-icon"><cgo-icon name="zoom-in" size="20"></cgo-icon></div>
+                            <span class="btn-text">放大视口</span>
+                        </button>
+                        <button class="ribbon-action-btn-lg" onclick="zoomCanvas(0.85)">
+                            <div class="ribbon-icon"><cgo-icon name="zoom-out" size="20"></cgo-icon></div>
+                            <span class="btn-text">缩小视口</span>
+                        </button>
+                        <button class="ribbon-action-btn-lg" onclick="resetZoom()">
+                            <div class="ribbon-icon"><cgo-icon name="zoom-reset" size="20"></cgo-icon></div>
+                            <span class="btn-text">重置 100%</span>
+                        </button>
+                    </div>
+                    <div class="ribbon-group-label">缩放视口</div>
+                </div>
+                <div class="ribbon-divider"></div>
+                <div class="ribbon-group">
+                    <div class="ribbon-group-controls">
+                        <button class="ribbon-action-btn-lg" onclick="toggleSidebar()">
+                            <div class="ribbon-icon"><cgo-icon name="view-list" size="20"></cgo-icon></div>
+                            <span class="btn-text">切换侧边栏</span>
+                        </button>
+                    </div>
+                    <div class="ribbon-group-label">面板显示</div>
+                </div>
+            </div>
+
+            <!-- ==================== TAB 4: 分析工具 (Tools) ==================== -->
+            <div class="ribbon-tab-content-group" id="ribbonGroupSet_tools">
+                <div class="ribbon-group">
+                    <div class="ribbon-group-controls">
+                        <button class="ribbon-action-btn-lg highlight-action" onclick="alert('完整性检查通过：未发现悬空回路')">
+                            <div class="ribbon-icon"><cgo-icon name="check-circle" size="20"></cgo-icon></div>
+                            <span class="btn-text">链路诊断</span>
+                        </button>
+                        <button class="ribbon-action-btn-lg" onclick="alert('导出完整日志')">
+                            <div class="ribbon-icon"><cgo-icon name="download" size="20"></cgo-icon></div>
+                            <span class="btn-text">导出运行日志</span>
+                        </button>
+                    </div>
+                    <div class="ribbon-group-label">诊断与统计</div>
+                </div>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- =====================================================================
+         3. 下方主要工作区 (Main Workspace) 与右侧辅助侧边栏
+         ===================================================================== -->
+    <main class="office-main-workspace" id="officeMainWorkspace">
+
+        <!-- 视图工作区画布包装层 -->
+        <section class="main-canvas-wrapper" id="mainCanvasWrapper">
+
+            <!-- 顶部上下文导引条 (Focus/Tip Bar) -->
+            <div class="workspace-focus-bar">
+                <div class="focus-bar-left">
+                    <cgo-badge variant="primary">活动拓扑</cgo-badge>
+                    <strong>主管道网络 01</strong>
+                    <span style="color: var(--text-light); font-size: 11px;">状态：就绪 · 6 个节点在线</span>
+                </div>
+                <div class="focus-bar-right">
+                    <button class="ribbon-btn-sm" onclick="addDemoNode()">
+                        <cgo-icon name="add" size="12"></cgo-icon> <span>追加节点</span>
+                    </button>
+                    <button class="ribbon-btn-sm" onclick="toggleSidebar(true)">
+                        <cgo-icon name="view-list" size="12"></cgo-icon> <span>展开清单</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 画布核心视口 (支持缩放与背景点阵) -->
+            <div class="cgo-canvas-viewport" id="canvasViewport">
+                <div class="cgo-blueprint-grid"></div>
+
+                <!-- 节点元素层 -->
+                <div class="canvas-nodes-layer" id="canvasNodesLayer">
+                    <div class="demo-node-card">
+                        <div class="demo-node-header">
+                            <span>输入数据源 A</span>
+                            <cgo-badge variant="success" pill>在线</cgo-badge>
+                        </div>
+                        <div class="demo-node-body">
+                            接收外部实时传感器流数据，采样率 48kHz，无延迟丢包。
+                        </div>
+                    </div>
+
+                    <div class="demo-node-card">
+                        <div class="demo-node-header">
+                            <span>计算管道中枢 B</span>
+                            <cgo-badge variant="info" pill>计算中</cgo-badge>
+                        </div>
+                        <div class="demo-node-body">
+                            执行双精度矩阵分解与低延迟拓扑分支路由运算。
+                        </div>
+                    </div>
+
+                    <div class="demo-node-card">
+                        <div class="demo-node-header">
+                            <span>母带输出通道 C</span>
+                            <cgo-badge variant="primary" pill>输出端</cgo-badge>
+                        </div>
+                        <div class="demo-node-body">
+                            打包为最终交付文件，支持一键 ZIP 压缩与热下载。
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 视口右下角浮动缩放控制面板 -->
+                <div class="freeform-zoom-toolbar">
+                    <button class="zoom-btn" onclick="zoomCanvas(0.85)" title="缩小">
+                        <cgo-icon name="zoom-out" size="13"></cgo-icon>
+                    </button>
+                    <span class="zoom-val-text" id="canvasFloatZoomVal" onclick="resetZoom()">100%</span>
+                    <button class="zoom-btn" onclick="zoomCanvas(1.15)" title="放大">
+                        <cgo-icon name="zoom-in" size="13"></cgo-icon>
+                    </button>
+                    <button class="zoom-btn" onclick="resetZoom()" title="重置">
+                        <cgo-icon name="zoom-reset" size="13"></cgo-icon>
+                    </button>
+                </div>
+            </div>
+
+            <!-- =================================================================
+                 4. 工作区右侧常驻展开/折叠辅助列表区 (Auxiliary Sidebar)
+                 ================================================================= -->
+            <aside class="aux-list-sidebar" id="auxListSidebar">
+                <div class="sidebar-header">
+                    <div class="sidebar-header-left">
+                        <cgo-icon name="view-list" size="16"></cgo-icon>
+                        <strong>任务与产物清单</strong>
+                        <cgo-badge variant="info" id="sidebarCountBadge">3 项</cgo-badge>
+                    </div>
+                    <div class="sidebar-header-right">
+                        <button class="sidebar-collapse-btn" onclick="toggleSidebar(false)" title="收起辅助侧边栏">
+                            <cgo-icon name="chevron-right" size="14"></cgo-icon>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="sidebar-toolbar">
+                    <div style="display: flex; gap: 6px;">
+                        <cgo-button variant="primary" size="sm" icon="play" style="flex: 1;" onclick="runPipelineBatch()">批量运行</cgo-button>
+                        <cgo-button variant="info" size="sm" icon="export-zip" onclick="alert('导出所选任务')">导出</cgo-button>
+                    </div>
+                    <div class="sidebar-search-row">
+                        <input type="text" id="auxSearchInput" placeholder="搜索任务项 (站名/ID)..." oninput="filterAuxList(this.value)">
+                    </div>
+                </div>
+
+                <div class="sidebar-cards-scroll-wrap" id="auxCardsContainer">
+                    <div class="aux-item-card" onclick="alert('聚焦任务 #01')">
+                        <div class="aux-item-title">
+                            <span>任务 #01: 始发站主链路</span>
+                            <cgo-badge variant="success">已就绪</cgo-badge>
+                        </div>
+                        <div class="aux-item-desc">输入源 A -> 计算中枢 B -> 终点 C</div>
+                    </div>
+                    <div class="aux-item-card" onclick="alert('聚焦任务 #02')">
+                        <div class="aux-item-title">
+                            <span>任务 #02: 支线换乘联络线</span>
+                            <cgo-badge variant="info">运行中</cgo-badge>
+                        </div>
+                        <div class="aux-item-desc">备用通道中继透传测试，数据正常</div>
+                    </div>
+                    <div class="aux-item-card" onclick="alert('聚焦任务 #03')">
+                        <div class="aux-item-title">
+                            <span>任务 #03: 环线闭环校验</span>
+                            <cgo-badge variant="primary">已排队</cgo-badge>
+                        </div>
+                        <div class="aux-item-desc">等待上一批次运算释放 GPU 显存</div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- 侧边栏收起时的浮动展开按钮 -->
+            <button class="sidebar-floating-toggle-btn hidden" id="sidebarFloatingToggleBtn" onclick="toggleSidebar(true)" title="展开辅助清单侧栏">
+                <cgo-icon name="view-list" size="14"></cgo-icon>
+                <span id="floatingBadge">3 项</span>
+                <cgo-icon name="chevron-left" size="12"></cgo-icon>
+            </button>
+
+        </section>
+
+    </main>
+
+    <!-- =====================================================================
+         5. 全局底部状态底栏 (Bottom Status Bar)
+         左侧：算力环境、模型/服务状态、统计指标徽章
+         右侧：缩放控制器与重置
+         ===================================================================== -->
+    <footer class="office-status-bar" id="appStatusBar">
+        <div class="status-left">
+            <div class="status-badge-item always-show" onclick="alert('硬件环境：Metal / WebGL 硬件加速正常')">
+                <cgo-icon name="view-grid" size="13"></cgo-icon>
+                <span>GPU / Metal 加速已就绪</span>
+            </div>
+            <div class="status-badge-item" onclick="alert('引擎版本：CGo Engine v2.4')">
+                <cgo-icon name="sparkle" size="13"></cgo-icon>
+                <span>拓扑分析引擎: 在线</span>
+            </div>
+            <span class="status-divider">｜</span>
+            <span class="status-item">
+                <span>活动节点:</span> <cgo-badge id="statusNodeBadge">3</cgo-badge>
+            </span>
+            <span class="status-item">
+                <span>检测通路:</span> <cgo-badge variant="success" id="statusTrackBadge">3 条</cgo-badge>
+            </span>
+        </div>
+
+        <div class="status-right">
+            <div class="zoom-controls">
+                <button class="zoom-btn" onclick="zoomCanvas(0.85)" title="缩小">
+                    <cgo-icon name="zoom-out" size="13"></cgo-icon>
+                </button>
+                <input type="range" class="zoom-slider" id="bottomZoomSlider" min="0.5" max="2.0" step="0.05" value="1.0"
+                    oninput="handleZoomInput(this.value)">
+                <button class="zoom-btn" onclick="zoomCanvas(1.15)" title="放大">
+                    <cgo-icon name="zoom-in" size="13"></cgo-icon>
+                </button>
+                <span class="zoom-val-text" id="statusZoomVal" onclick="resetZoom()" title="点击恢复 100%">100%</span>
+                <button class="zoom-btn" onclick="resetZoom()" title="重置 100%">
+                    <cgo-icon name="zoom-reset" size="13"></cgo-icon>
+                </button>
+            </div>
+        </div>
+    </footer>
+
+    <!-- =====================================================================
+         6. 页面交互控制脚本 (Tab 切换、Ribbon 折叠、侧栏展开收起、缩放交互)
+         ===================================================================== -->
+    <script>
+        // 1. Ribbon 选项卡切换
+        function switchRibbonTab(tabId) {
+            // 切换按钮激活态
+            document.querySelectorAll('.ribbon-tab-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById('tabBtn_' + tabId);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            // 切换工具栏主体内容组
+            document.querySelectorAll('.ribbon-tab-content-group').forEach(group => group.classList.remove('active'));
+            const activeGroup = document.getElementById('ribbonGroupSet_' + tabId);
+            if (activeGroup) activeGroup.classList.add('active');
+
+            // 如果当前处于折叠状态，点击选项卡自动展开
+            const ribbonContainer = document.getElementById('officeRibbonContainer');
+            if (ribbonContainer && ribbonContainer.classList.contains('collapsed')) {
+                toggleRibbonCollapse();
+            }
+        }
+
+        // 2. Ribbon 折叠 / 展开切换
+        function toggleRibbonCollapse() {
+            const ribbonContainer = document.getElementById('officeRibbonContainer');
+            const collapseIcon = document.getElementById('ribbonCollapseIcon');
+            const collapseLabel = document.getElementById('ribbonCollapseLabel');
+
+            if (!ribbonContainer) return;
+            const isCollapsed = ribbonContainer.classList.toggle('collapsed');
+
+            if (collapseIcon) {
+                collapseIcon.setAttribute('name', isCollapsed ? 'expand-more' : 'expand-less');
+            }
+            if (collapseLabel) {
+                collapseLabel.textContent = isCollapsed ? '展开功能区' : '折叠功能区';
+            }
+        }
+
+        // 3. 右侧辅助侧边栏展开与收起
+        function toggleSidebar(forceState) {
+            const sidebar = document.getElementById('auxListSidebar');
+            const floatingBtn = document.getElementById('sidebarFloatingToggleBtn');
+            if (!sidebar) return;
+
+            const shouldShow = typeof forceState === 'boolean' 
+                ? forceState 
+                : sidebar.classList.contains('collapsed');
+
+            if (shouldShow) {
+                sidebar.classList.remove('collapsed');
+                if (floatingBtn) floatingBtn.classList.add('hidden');
+            } else {
+                sidebar.classList.add('collapsed');
+                if (floatingBtn) floatingBtn.classList.remove('hidden');
+            }
+        }
+
+        // 4. 视口与状态栏缩放控制联动
+        let currentZoom = 1.0;
+
+        function updateZoomUI(zoom) {
+            currentZoom = Math.min(Math.max(zoom, 0.5), 2.0);
+            const pct = Math.round(currentZoom * 100) + '%';
+            
+            const floatZoomVal = document.getElementById('canvasFloatZoomVal');
+            const statusZoomVal = document.getElementById('statusZoomVal');
+            const bottomZoomSlider = document.getElementById('bottomZoomSlider');
+            const nodesLayer = document.getElementById('canvasNodesLayer');
+
+            if (floatZoomVal) floatZoomVal.textContent = pct;
+            if (statusZoomVal) statusZoomVal.textContent = pct;
+            if (bottomZoomSlider) bottomZoomSlider.value = currentZoom.toFixed(2);
+            if (nodesLayer) {
+                nodesLayer.style.transform = `scale(${currentZoom})`;
+                nodesLayer.style.transformOrigin = '0 0';
+            }
+        }
+
+        function zoomCanvas(factor) {
+            updateZoomUI(currentZoom * factor);
+        }
+
+        function handleZoomInput(val) {
+            updateZoomUI(parseFloat(val));
+        }
+
+        function resetZoom() {
+            updateZoomUI(1.0);
+        }
+
+        // 5. 辅助列表过滤
+        function filterAuxList(query) {
+            const q = (query || '').trim().toLowerCase();
+            const cards = document.querySelectorAll('#auxCardsContainer .aux-item-card');
+            cards.forEach(card => {
+                const text = card.textContent.toLowerCase();
+                card.style.display = text.includes(q) ? 'flex' : 'none';
+            });
+        }
+
+        // 6. 演示交互操作
+        function addDemoNode() {
+            const container = document.getElementById('canvasNodesLayer');
+            if (!container) return;
+            const count = container.querySelectorAll('.demo-node-card').length + 1;
+            const card = document.createElement('div');
+            card.className = 'demo-node-card';
+            card.innerHTML = `
+                <div class="demo-node-header">
+                    <span>处理单元 #${count}</span>
+                    <cgo-badge variant="info" pill>新建</cgo-badge>
+                </div>
+                <div class="demo-node-body">
+                    动态追加的工作流算子卡片，支持与前后级进行拓扑搭线。
+                </div>
+            `;
+            container.appendChild(card);
+            
+            const badge = document.getElementById('statusNodeBadge');
+            if (badge) badge.textContent = count;
+        }
+
+        function clearAllNodes() {
+            const container = document.getElementById('canvasNodesLayer');
+            if (container) container.innerHTML = '';
+            const badge = document.getElementById('statusNodeBadge');
+            if (badge) badge.textContent = '0';
+        }
+
+        function loadDemoTemplate() {
+            clearAllNodes();
+            addDemoNode();
+            addDemoNode();
+            addDemoNode();
+        }
+
+        function autoAlignNodes() {
+            const cards = document.querySelectorAll('.demo-node-card');
+            cards.forEach((card, idx) => {
+                card.style.animation = 'ribbonTabFadeIn 0.3s ease forwards';
+            });
+        }
+
+        function runPipelineBatch() {
+            alert('🚀 正在启动全流程流水线计算...');
+        }
+
+        function stepParam(delta) {
+            const slider = document.getElementById('speedSlider');
+            if (!slider) return;
+            let val = parseFloat(slider.value) + delta;
+            val = Math.min(Math.max(val, 0.5), 2.0);
+            slider.value = val.toFixed(1);
+            onParamChange(slider.value);
+        }
+
+        function resetParam(val) {
+            const slider = document.getElementById('speedSlider');
+            if (slider) slider.value = val;
+            onParamChange(val);
+        }
+
+        function onParamChange(val) {
+            const num = parseFloat(val).toFixed(1);
+            const strong = document.getElementById('speedVal');
+            if (strong) strong.textContent = num + 'x';
+        }
+    </script>
+</body>
+
+</html>

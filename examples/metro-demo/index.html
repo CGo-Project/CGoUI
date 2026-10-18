@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="color-scheme" content="light dark">
   <meta name="description" content="CGoUI generic metro interface demonstration using fictional transit content and project-generated artwork.">
   <title>Metro Demo · CGoUI</title>
@@ -140,20 +140,19 @@
       line-height: 1.65;
     }
 
-    @media (max-width: 860px) {
-      .hero, .content-grid { grid-template-columns: 1fr; }
-      .service-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    }
-
-    @media (max-width: 520px) {
+    @media (max-width: 640px) {
       .demo-shell { width: min(100% - 20px, 1180px); padding-top: 14px; }
       .demo-header { align-items: flex-start; }
+      .hero, .content-grid { grid-template-columns: 1fr; }
       .service-grid, .art-grid, .route-actions { grid-template-columns: 1fr; }
       .hero-media, .hero-media img { min-height: 280px; }
     }
   </style>
 </head>
 <body>
+  <!-- 移动端顶部状态栏/信号栏实色安全区保护层：遮挡页面滚动穿透内容 -->
+  <div class="mobile-status-bar-fill" aria-hidden="true"></div>
+
   <div class="demo-shell">
     <header class="demo-header">
       <div class="brand">
