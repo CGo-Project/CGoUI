@@ -1,6 +1,11 @@
 import { LitElement, html, css } from 'lit';
 import './button.js';
 import './icon.js';
+import {
+    glassRefractionStyles,
+    tierBPanelUnderlayRules,
+    tierBPanelUnderlayDarkRules,
+} from '../styles/glass-shared.js';
 
 export class CgoPreferenceItem extends LitElement {
     static properties = {
@@ -21,7 +26,7 @@ export class CgoPreferenceItem extends LitElement {
 
         /* ===== Card B (Tier B) 规范底板 =====
            Layer 0: 折射磨砂层 (.glass-refraction)
-           Layer 1: 0.82 高不透明度底色衬底层 (::after)
+           Layer 1: 0.9 高不透明度底色衬底层 (::after)
            Layer 2: 弱化微光单向顶弧圈 (::before)
            Layer 3: 锐利内容交互层 (.left, .middle, .right) */
         .item {
@@ -45,39 +50,19 @@ export class CgoPreferenceItem extends LitElement {
                 transform var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1));
         }
 
-        /* Layer 0: 折射磨砂层 (Tier B 规范: 14px 模糊 + 135% 饱和度 + SVG 空间折射) */
-        .glass-refraction {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            border-radius: inherit;
-            backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
-            -webkit-backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
-            filter: var(--glass-refraction-filter, url(#glass-distortion));
-            pointer-events: none;
-            overflow: hidden;
-            isolation: isolate;
-        }
+        /* Layer 0: 折射磨砂层 (Tier B 规范) */
+        ${glassRefractionStyles}
 
-        /* Layer 1: 半透明底色衬底层 (Tier B 规范: 0.82 高不透明衬底) */
+        /* Layer 1: 半透明底色衬底层 (Tier B 规范: 0.9 高不透明衬底) */
         .item::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-            border-radius: inherit;
-            background: var(--glass-bg-panel, rgba(255, 255, 255, 0.82));
-            pointer-events: none;
-            transition: background-color 0.25s ease;
+            ${tierBPanelUnderlayRules}
         }
 
         :host-context([data-theme='dark']) .item::after {
-            background: var(--glass-bg-panel, rgba(31, 32, 34, 0.82));
+            ${tierBPanelUnderlayDarkRules}
         }
 
-        /* Layer 2: 弱化微光圈 (Tier B 规范: 顶部柔和单向光，与 0.82 高不透明底板自然融合，零实体边框) */
+        /* Layer 2: 弱化微光圈 (Tier B 规范: 顶部柔和单向光，与 0.9 高不透明底板自然融合，零实体边框) */
         .item::before {
             content: '';
             position: absolute;

@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { hairlineRimLightRules, hairlineRimDarkRules } from '../styles/glass-shared.js';
 
 /**
  * <cgo-badge variant="primary">NEW</cgo-badge>
@@ -38,41 +39,11 @@ export class CgoBadge extends LitElement {
 
         /* 同步 cgo-button 精致 1px 双轴微光描边 (Layer 2 Masked 1px Hairline Rim Light) */
         .badge::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background:
-                linear-gradient(to right,
-                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 0,
-                    rgba(0, 0, 0, 0) var(--lg-rim-side, 3px),
-                    rgba(0, 0, 0, 0) calc(100% - var(--lg-rim-side, 3px)),
-                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 100%),
-                linear-gradient(to bottom,
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) 0,
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) var(--lg-rim-hold, 1px),
-                    rgba(255, 255, 255, 0) 8px,
-                    rgba(0, 0, 0, 0.02) calc(100% - 4px),
-                    rgba(0, 0, 0, 0.12) 100%);
-            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            z-index: 2;
-            opacity: 0.64;
-            transition: opacity var(--dur-fast, 140ms) ease;
+            ${hairlineRimLightRules}
         }
 
         :host-context([data-theme='dark']) .badge::before {
-            background:
-                linear-gradient(to bottom,
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 1.5)) 0,
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 1.5)) 1px,
-                    rgba(255, 255, 255, 0) 8px,
-                    rgba(255, 255, 255, 0) calc(100% - 4px),
-                    rgba(255, 255, 255, 0.08) 100%);
+            ${hairlineRimDarkRules}
         }
 
         /* 保证徽章内容在 Layer 3 (z-index: 3) 绝对清晰 */

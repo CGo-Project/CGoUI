@@ -17,8 +17,8 @@
     <title>Central Go 前端视觉库</title>
 
     <!-- CGoUI 核心 Bundle 与文档路由最高优先级预加载 -->
-    <link rel="modulepreload" href="./dist/cgo-ui.js?v=261018.235700">
-    <link rel="modulepreload" href="./docs/docs.js?v=260804.000001">
+    <link rel="modulepreload" href="./dist/cgo-ui.js?v=261019.114123">
+    <link rel="modulepreload" href="./docs/docs.js?v=261019.114123">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.loli.net">
@@ -50,9 +50,11 @@
             display: none !important;
         }
 
-        /* 仅在文档站首页固定语言选择器宽度为展示「繁體中文（香港）」的宽度，其他项目保持 auto */
-        #cgo-i18n-language-select {
-            width: 154px !important;
+        /* 仅在文档站首页桌面端固定语言选择器宽度为展示「繁體中文（香港）」的宽度，移动端保持自适应 */
+        @media (min-width: 641px) {
+            #cgo-i18n-language-select {
+                width: 154px !important;
+            }
         }
 
         /* ===== 文档站布局 ===== */
@@ -113,6 +115,24 @@
         }
 
         @media (max-width: 640px) {
+            #cgo-i18n-language-select {
+                width: auto !important;
+                max-width: 104px !important;
+            }
+
+            .header-center .app-title span {
+                display: none !important;
+            }
+
+            .header-center .header-logo {
+                width: 22px;
+                height: 22px;
+            }
+
+            .tool-header .header-left,
+            .tool-header .header-right {
+                gap: 4px;
+            }
 
             :root[header-mode="floating"] .doc-shell,
             body[header-mode="floating"] .doc-shell {
@@ -120,13 +140,16 @@
                 display: flex;
                 flex-direction: column;
                 padding: 0;
+                overflow: hidden;
             }
 
             :root[header-mode="floating"] cgo-side-nav,
             body[header-mode="floating"] cgo-side-nav {
+                height: auto !important;
                 margin-top: calc(env(safe-area-inset-top, 0px) + 72px);
                 margin-left: calc(10px + env(safe-area-inset-left, 0px));
                 margin-right: calc(10px + env(safe-area-inset-right, 0px));
+                margin-bottom: 6px;
                 width: calc(100% - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
                 max-width: calc(100% - 20px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
                 flex-shrink: 0;
@@ -136,7 +159,17 @@
 
             :root[header-mode="floating"] .doc-main,
             body[header-mode="floating"] .doc-main {
-                padding-top: 20px;
+                flex: 1;
+                min-height: 0;
+                padding: 12px 16px 80px;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .api-table {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
             }
         }
 
@@ -574,10 +607,8 @@
             inset: 0;
             z-index: 0;
             border-radius: inherit;
-            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
-            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
-            backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
-            -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
+            backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%));
+            -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%));
             filter: var(--glass-refraction-filter, url(#glass-distortion));
             pointer-events: none;
             overflow: hidden;
@@ -681,10 +712,8 @@
             inset: 0;
             z-index: 0;
             border-radius: inherit;
-            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
-            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
-            backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
-            -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
+            backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%));
+            -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%));
             filter: var(--glass-refraction-filter, url(#glass-distortion));
             pointer-events: none;
             overflow: hidden;
@@ -997,10 +1026,10 @@
     <script type="module" src="./i18n/runtime.js"></script>
 
     <!-- CGoUI Web Components 统一 bundle -->
-    <script type="module" src="./dist/cgo-ui.js?v=261018.235700"></script>
+    <script type="module" src="./dist/cgo-ui.js?v=261019.114123"></script>
 
     <!-- 文档站数据与路由 -->
-    <script type="module" src="./docs/docs.js?v=260804.000001"></script>
+    <script type="module" src="./docs/docs.js?v=261019.114123"></script>
 </body>
 
 </html>

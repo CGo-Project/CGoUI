@@ -1,8 +1,3 @@
-import { EXPANDED_TRANSLATIONS } from './catalog-expanded.js';
-import { EXTRA_TRANSLATIONS } from './catalog-extra.js';
-import { GAP_TRANSLATIONS } from './catalog-gap.js';
-import { REPAIR_TRANSLATIONS } from './catalog-repair.js';
-
 const SUPPORTED_LOCALES = ['zh', 'en', 'ja', 'ko', 'zh-HK', 'zh-TW'];
 const LOCALE_ALIASES = {
   'zh-cn': 'zh',
@@ -35,26 +30,46 @@ const translatedAttributes = new WeakMap();
 const switcherId = 'cgo-i18n-language-switcher';
 const HAN_RE = /[\u3400-\u9fff]/;
 
-// Keep targeted runtime overrides first: the generated catalogue may contain an older
-// partial translation for the same source string (for example, a group title with an
-// English suffix), while component-emitted strings live only in the supplemental list.
-// The gap catalogue is deliberately loaded here so newly audited code examples are
-// available on a cold page load as well as after a Vite hot update.
-const entries = [...REPAIR_TRANSLATIONS, ...EXTRA_TRANSLATIONS, ...GAP_TRANSLATIONS, ...EXPANDED_TRANSLATIONS]
-  .filter((row) => row[0] && row[localeIndex] !== undefined)
-  .sort((a, b) => b[0].length - a[0].length);
+let entries = [];
 const entriesByInitial = new Map();
-for (const row of entries) {
-  const initial = row[0][0];
-  const bucket = entriesByInitial.get(initial) || [];
-  bucket.push(row);
-  entriesByInitial.set(initial, bucket);
+let directTranslationSources = new Set();
+
+async function loadDictionaries() {
+  const [
+    { REPAIR_TRANSLATIONS },
+    { EXTRA_TRANSLATIONS },
+    { GAP_TRANSLATIONS },
+    { EXPANDED_TRANSLATIONS },
+  ] = await Promise.all([
+    import('./catalog-repair.js'),
+    import('./catalog-extra.js'),
+    import('./catalog-gap.js'),
+    import('./catalog-expanded.js'),
+  ]);
+
+  entries = [...REPAIR_TRANSLATIONS, ...EXTRA_TRANSLATIONS, ...GAP_TRANSLATIONS, ...EXPANDED_TRANSLATIONS]
+    .filter((row) => row[0] && row[localeIndex] !== undefined)
+    .sort((a, b) => b[0].length - a[0].length);
+
+  for (const row of entries) {
+    const initial = row[0][0];
+    const bucket = entriesByInitial.get(initial) || [];
+    bucket.push(row);
+    entriesByInitial.set(initial, bucket);
+  }
+
+  directTranslationSources = new Set(
+    EXTRA_TRANSLATIONS
+      .filter((row) => row[0] && !HAN_RE.test(row[0]))
+      .map((row) => row[0]),
+  );
 }
-const directTranslationSources = new Set(
-  EXTRA_TRANSLATIONS
-    .filter((row) => row[0] && !HAN_RE.test(row[0]))
-    .map((row) => row[0]),
-);
+
+// 仅在非默认中文语言环境（en, ja, ko, zh-HK, zh-TW）时才按需加载 540 KB 的大词典，
+// 默认中文环境下免除 540 KB 网络加载与数万个数组对象解析开销。
+if (locale !== 'zh') {
+  await loadDictionaries();
+}
 
 const translatableAttributes = [
   'title',
@@ -182,6 +197,7 @@ function applyFallbackPatterns(value) {
 
 function translateString(input, { code = false } = {}) {
   if (!input || typeof input !== 'string') return input;
+  if (locale === 'zh') return input;
   let original = input;
   let protectedCode = null;
   if (code) {
@@ -220,6 +236,7 @@ function inCodeContext(node) {
 }
 
 function translateTextNode(node) {
+  if (locale === 'zh') return;
   const current = node.nodeValue;
   if (!current || (!HAN_RE.test(current) && !directTranslationSources.has(current.trim()))) return;
   const seen = translatedTextNodes.get(node);
@@ -237,6 +254,7 @@ function translateTextNode(node) {
 }
 
 function translateAttribute(element, name) {
+  if (locale === 'zh') return;
   if (!element.hasAttribute?.(name)) return;
   const current = element.getAttribute(name);
   if (!current || (!HAN_RE.test(current) && !directTranslationSources.has(current.trim()))) return;

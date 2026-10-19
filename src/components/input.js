@@ -35,17 +35,24 @@ export class CgoInput extends LitElement {
             font-size: 14px;
             box-sizing: border-box;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+            -webkit-tap-highlight-color: transparent;
             transition:
                 border-color var(--dur-fast, 140ms) ease,
                 box-shadow var(--dur-fast, 140ms) ease,
                 background-color var(--dur-fast, 140ms) ease;
         }
+        @media (pointer: coarse), (max-width: 640px) {
+            input {
+                font-size: 16px; /* 防止 iOS Safari 聚焦输入框时强制缩放视口 */
+            }
+        }
         input::placeholder {
-            color: transparent;
+            color: var(--text-light, #636f75);
+            opacity: 0.5;
+            transition: opacity var(--dur-fast, 140ms) ease;
         }
         input:focus::placeholder {
-            color: var(--text-light, #636f75);
-            opacity: 0.65;
+            opacity: 0.75;
         }
         input:focus {
             outline: none;

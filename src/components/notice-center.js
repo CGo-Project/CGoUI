@@ -1,6 +1,13 @@
 import { LitElement, html, css } from 'lit';
 import { injectLiquidGlassFilter } from '../theme.js';
 import './notice-card.js';
+import {
+    glassRefractionStyles,
+    tierBPanelUnderlayRules,
+    tierBPanelUnderlayDarkRules,
+    tierBRimWeakRules,
+    tierBRimWeakDarkRules,
+} from '../styles/glass-shared.js';
 
 const NOTIF_ICON = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>`;
 
@@ -37,82 +44,48 @@ export class CgoNoticeCenter extends LitElement {
             box-sizing: border-box;
         }
 
-        /* 遵循 Tier B 不可交互底板规范 (0.82 衬底，柔和微光圈，与下拉菜单 dropdown 统一外观) */
+        /* 遵循 Tier B 不可交互底板规范 (0.9 衬底，柔和微光圈，与下拉菜单 dropdown 统一外观) */
         .center-panel {
             position: relative;
             width: 100%;
             background: transparent;
             border: none;
             border-radius: var(--radius-lg, 12px);
-            box-shadow: var(--glass-shadow, 0 8px 24px rgba(0, 38, 59, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04));
+            box-shadow: var(--glass-shadow);
             box-sizing: border-box;
             max-height: var(--panel-max-height, 480px);
             overflow: hidden;
             isolation: isolate;
-            transition: box-shadow 0.25s ease;
+            transition: box-shadow var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1));
+            backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
+            -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
         }
 
         :host-context([data-theme='dark']) .center-panel {
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.3);
+            color: var(--text-main, #e6edf3);
+            box-shadow: var(--glass-shadow);
         }
 
         /* Layer 0: 折射磨砂层 (Tier B 规范: 14px 模糊 + 135% 饱和度 + SVG 空间折射) */
-        .glass-refraction {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            border-radius: inherit;
-            backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
-            -webkit-backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
-            filter: var(--glass-refraction-filter, url(#glass-distortion));
-            pointer-events: none;
-            overflow: hidden;
-            isolation: isolate;
-        }
+        /* Layer 0: 折射磨砂层 (Tier B 规范) */
+        ${glassRefractionStyles}
 
-        /* Layer 1: 半透明底色衬底层 (Tier B 规范: 0.82 固定) */
+        /* Layer 1: 半透明底色衬底层 (Tier B 规范: 0.9 固定) */
         .center-panel::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-            border-radius: inherit;
-            background: var(--glass-bg-panel, rgba(255, 255, 255, 0.82));
-            pointer-events: none;
-            transition: background-color 0.25s ease;
+            ${tierBPanelUnderlayRules}
         }
 
         :host-context([data-theme='dark']) .center-panel::after {
-            background: var(--glass-bg-panel, rgba(31, 32, 34, 0.82));
+            ${tierBPanelUnderlayDarkRules}
         }
 
         /* Layer 2: 弱化微光圈 (Tier B 规范: 顶部柔和单向光，与下拉菜单完全统一) */
         .center-panel::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background: linear-gradient(to bottom,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45 * 0.75)) 0,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45 * 0.75)) var(--lg-rim-hold, 1px),
-                rgba(255, 255, 255, 0) var(--lg-rim-fade, 12px));
-            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            z-index: 2;
-            opacity: 0.8;
+            ${tierBRimWeakRules}
         }
 
         :host-context([data-theme='dark']) .center-panel::before {
-            background: linear-gradient(to bottom,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 0.45 * 1.5)) 0,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 0.45 * 1.5)) 1px,
-                rgba(255, 255, 255, 0) 8px);
+            ${tierBRimWeakDarkRules}
         }
 
         /* Layer 3: 面板实际内容区 */
@@ -206,21 +179,32 @@ export class CgoNoticeCenter extends LitElement {
             cursor: pointer;
             padding: 4px 8px;
             border-radius: var(--radius-xs, 4px);
-            transition: background 0.2s, color 0.2s;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition:
+                background-color var(--dur-fast, 140ms) ease,
+                color var(--dur-fast, 140ms) ease,
+                transform var(--dur-micro, 100ms) cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         :host-context([data-theme='dark']) .btn-clear {
             color: var(--text-light, #9ca3af);
         }
 
-        .btn-clear:hover {
-            background: var(--tab-hover, rgba(0, 0, 0, 0.06));
-            color: var(--danger-color, #dc3545);
-        }
+        @media (hover: hover) and (pointer: fine) {
+            .btn-clear:hover {
+                background: var(--tab-hover, rgba(0, 0, 0, 0.06));
+                color: var(--danger-color, #dc3545);
+            }
 
-        :host-context([data-theme='dark']) .btn-clear:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--danger-color, #f87171);
+            :host-context([data-theme='dark']) .btn-clear:hover {
+                background: rgba(255, 255, 255, 0.08);
+                color: var(--danger-color, #f87171);
+            }
+        }
+        .btn-clear:active {
+            transform: scale(0.97);
         }
 
         .btn-mute {
@@ -234,7 +218,14 @@ export class CgoNoticeCenter extends LitElement {
             padding: 3px 8px;
             border-radius: var(--radius-xs, 4px);
             cursor: pointer;
-            transition: all 0.2s ease;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition:
+                background-color var(--dur-fast, 140ms) ease,
+                color var(--dur-fast, 140ms) ease,
+                border-color var(--dur-fast, 140ms) ease,
+                transform var(--dur-micro, 100ms) cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         :host-context([data-theme='dark']) .btn-mute {
@@ -243,14 +234,19 @@ export class CgoNoticeCenter extends LitElement {
             border-color: rgba(255, 255, 255, 0.1);
         }
 
-        .btn-mute:hover {
-            background: var(--tab-hover, rgba(0, 0, 0, 0.08));
-            color: var(--text-main, #00263b);
-        }
+        @media (hover: hover) and (pointer: fine) {
+            .btn-mute:hover {
+                background: var(--tab-hover, rgba(0, 0, 0, 0.08));
+                color: var(--text-main, #00263b);
+            }
 
-        :host-context([data-theme='dark']) .btn-mute:hover {
-            background: rgba(255, 255, 255, 0.12);
-            color: #ffffff;
+            :host-context([data-theme='dark']) .btn-mute:hover {
+                background: rgba(255, 255, 255, 0.12);
+                color: #ffffff;
+            }
+        }
+        .btn-mute:active {
+            transform: scale(0.97);
         }
 
         .btn-mute.is-active {
@@ -270,13 +266,16 @@ export class CgoNoticeCenter extends LitElement {
         :host([glass-mode='none']) .center-panel {
             background: var(--card-bg, #ffffff);
             border: 1px solid var(--border-color, #dee2e6);
+            box-shadow: var(--shadow-sm, 0 2px 8px rgba(0, 0, 0, 0.06));
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
         }
         :host([glass-mode='flat']) .center-panel::before,
         :host([glass-mode='flat']) .center-panel::after,
         :host([glass-mode='none']) .center-panel::before,
-        :host([glass-mode='none']) .center-panel::after {
+        :host([glass-mode='none']) .center-panel::after,
+        :host([glass-mode='flat']) .glass-refraction,
+        :host([glass-mode='none']) .glass-refraction {
             display: none;
         }
         :host-context([data-theme='dark']):host([glass-mode='flat']) .center-panel,
@@ -292,6 +291,7 @@ export class CgoNoticeCenter extends LitElement {
         this.items = [];
         this.muted = false;
         this.maxHeight = '';
+        this.glassMode = '';
     }
 
     connectedCallback() {
@@ -326,12 +326,13 @@ export class CgoNoticeCenter extends LitElement {
     }
 
     render() {
+        const isFlat = this.glassMode === 'flat' || this.glassMode === 'none';
         const styleAttr = this.maxHeight ? `--panel-max-height: ${this.maxHeight};` : '';
         const itemList = Array.isArray(this.items) ? this.items : [];
 
         return html`
             <div class="center-panel" style="${styleAttr}">
-                <div class="glass-refraction" aria-hidden="true"></div>
+                ${!isFlat ? html`<div class="glass-refraction" aria-hidden="true"></div>` : null}
                 <div class="panel-content">
                     <div class="panel-title">${this.title}</div>
 

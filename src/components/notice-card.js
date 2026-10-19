@@ -1,4 +1,12 @@
 import { LitElement, html, css } from 'lit';
+import { injectLiquidGlassFilter } from '../theme.js';
+import {
+    glassRefractionStyles,
+    tierCSurfaceUnderlayRules,
+    tierCSurfaceUnderlayDarkRules,
+    tierCRimRules,
+    tierCRimDarkRules,
+} from '../styles/glass-shared.js';
 import './spinner.js';
 import './icon.js';
 
@@ -18,7 +26,7 @@ const CATEGORY_NAMES = {
 
 /**
  * <cgo-notice-card> — CGoPush 标准通知卡片组件
- * 具备完整的液态玻璃效果与多主题自适应能力。
+ * 遵循次世代 Liquid Glass Tier C 规范，默认全量呈现 Card Tier C 液态玻璃质感与双轴微光圈。
  */
 export class CgoNoticeCard extends LitElement {
     static properties = {
@@ -30,7 +38,8 @@ export class CgoNoticeCard extends LitElement {
         closable: { type: Boolean, reflect: true },
         actions: { type: Array },
         customCatName: { type: String, attribute: 'cat-name' },
-        duration: { type: Number }
+        duration: { type: Number },
+        glassMode: { type: String, attribute: 'glass-mode', reflect: true }
     };
 
     static styles = css`
@@ -53,55 +62,96 @@ export class CgoNoticeCard extends LitElement {
             --cat-system: #a0b0b9;
         }
 
+        /* 遵循 Card Tier C 液态玻璃规范：透明底板、物理微光投影、零实体边框 */
         .notice-card {
             position: relative;
-            background: var(--card-bg, #ffffff);
+            background: transparent;
             color: var(--text-main, #00263b);
             border-radius: var(--radius-md, 10px);
-            border: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
-            box-shadow: var(--shadow-sm, 0 4px 15px rgba(0, 0, 0, 0.06));
+            border: none;
+            box-shadow: var(--glass-shadow);
             padding: 12px 14px;
-            transition: all 0.25s ease;
+            transition: box-shadow var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1)),
+                        transform var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1));
             overflow: hidden;
             box-sizing: border-box;
+            isolation: isolate;
+        }
+
+        :host-context([data-theme='dark']) .notice-card {
+            color: var(--text-main, #e6edf3);
+            box-shadow: var(--glass-shadow);
         }
 
         :host([popup]) .notice-card {
             width: 280px;
             max-width: 80vw;
-            padding-right: 34px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+            padding-right: 32px;
+            box-shadow:
+                0 0 0 0.5px rgba(0, 0, 0, 0.08),
+                0 12px 32px -6px rgba(0, 38, 59, 0.16),
+                0 4px 12px -2px rgba(0, 38, 59, 0.08),
+                inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
         }
 
-        /* 完整的液态玻璃效果 (全面覆盖独立卡片、通知中心内卡片与 popup 气泡) */
-        :host-context([glass-mode="liquid"]) .notice-card,
-        :host-context([glass-mode="blur"]) .notice-card,
-        :host-context([data-glass-mode="liquid"]) .notice-card,
-        :host-context([data-glass-mode="blur"]) .notice-card {
-            border: none;
-            background: rgba(255, 255, 255, 0.82);
-            backdrop-filter: blur(14px) saturate(135%);
-            -webkit-backdrop-filter: blur(14px) saturate(135%);
+        :host-context([data-theme='dark']):host([popup]) .notice-card {
             box-shadow:
-                0 0 0 0.5px rgba(0, 0, 0, 0.06),
-                0 14px 34px -6px rgba(0, 38, 59, 0.14),
-                0 3px 8px -2px rgba(0, 38, 59, 0.06),
-                inset 0 1px 1px 0 rgba(255, 255, 255, 0.85);
+                0 0 0 0.5px rgba(255, 255, 255, 0.15),
+                0 16px 36px -6px rgba(0, 0, 0, 0.45),
+                0 6px 14px -2px rgba(0, 0, 0, 0.3),
+                inset 0 1px 1px 0 rgba(255, 255, 255, 0.2);
         }
 
-        :host-context([data-theme="dark"][glass-mode="liquid"]) .notice-card,
-        :host-context([data-theme="dark"][glass-mode="blur"]) .notice-card,
-        :host-context([data-theme="dark"][data-glass-mode="liquid"]) .notice-card,
-        :host-context([data-theme="dark"][data-glass-mode="blur"]) .notice-card {
-            border: none;
-            background: rgba(28, 30, 32, 0.82);
-            backdrop-filter: blur(14px) saturate(135%);
-            -webkit-backdrop-filter: blur(14px) saturate(135%);
-            box-shadow:
-                0 0 0 0.5px rgba(255, 255, 255, 0.1),
-                0 18px 40px -6px rgba(0, 0, 0, 0.6),
-                0 4px 10px -2px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
+        /* Layer 0: 折射磨砂层 (Card Tier C 规范: 14px 高斯模糊 + 135% 饱和度 + SVG 空间微折射) */
+        ${glassRefractionStyles}
+
+        /* Layer 1: 半透明底色衬底层 (Card Tier C 规范: 0.72 固定，与 <cgo-card> 完全一致) */
+        .notice-card::after {
+            ${tierCSurfaceUnderlayRules}
+        }
+
+        :host-context([data-theme='dark']) .notice-card::after {
+            ${tierCSurfaceUnderlayDarkRules}
+        }
+
+        /* Layer 2: 完整双轴微光圈层 (Card Tier C 规范: 保留顶部 lit 0.95 物理微光，杜绝实体边框重影) */
+        .notice-card::before {
+            ${tierCRimRules}
+        }
+
+        :host-context([data-theme='dark']) .notice-card::before {
+            ${tierCRimDarkRules}
+        }
+
+        /* Layer 3: 内容容器 */
+        .card-content {
+            position: relative;
+            z-index: 3;
+        }
+
+        /* 传统扁平降级模式 */
+        :host([glass-mode='flat']) .notice-card,
+        :host([glass-mode='none']) .notice-card {
+            background: var(--card-bg, #ffffff);
+            border: 1px solid var(--border-color, rgba(0, 0, 0, 0.08));
+            box-shadow: var(--shadow-sm, 0 4px 15px rgba(0, 0, 0, 0.06));
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+
+        :host-context([data-theme='dark']):host([glass-mode='flat']) .notice-card,
+        :host-context([data-theme='dark']):host([glass-mode='none']) .notice-card {
+            background: var(--card-bg, #1e2022);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        :host([glass-mode='flat']) .notice-card::before,
+        :host([glass-mode='flat']) .notice-card::after,
+        :host([glass-mode='none']) .notice-card::before,
+        :host([glass-mode='none']) .notice-card::after,
+        :host([glass-mode='flat']) .glass-refraction,
+        :host([glass-mode='none']) .glass-refraction {
+            display: none;
         }
 
         .header {
@@ -191,7 +241,14 @@ export class CgoNoticeCard extends LitElement {
             background: var(--bg-color, #f8f9fa);
             color: var(--text-main, #00263b);
             cursor: pointer;
-            transition: all 0.18s ease;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            transition:
+                background-color var(--dur-fast, 140ms) ease,
+                color var(--dur-fast, 140ms) ease,
+                border-color var(--dur-fast, 140ms) ease,
+                transform var(--dur-micro, 100ms) cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         :host-context([data-theme="dark"]) .action-btn {
@@ -200,16 +257,22 @@ export class CgoNoticeCard extends LitElement {
             color: #ffffff;
         }
 
-        .action-btn:hover {
-            background: var(--tab-hover, rgba(0, 0, 0, 0.06));
-            border-color: var(--primary-color, #006098);
-            color: var(--primary-color, #006098);
+        @media (hover: hover) and (pointer: fine) {
+            .action-btn:hover {
+                background: var(--tab-hover, rgba(0, 0, 0, 0.06));
+                border-color: var(--primary-color, #006098);
+                color: var(--primary-color, #006098);
+            }
+
+            :host-context([data-theme="dark"]) .action-btn:hover {
+                background: rgba(255, 255, 255, 0.15);
+                border-color: var(--primary-color, #38bdf8);
+                color: var(--primary-color, #38bdf8);
+            }
         }
 
-        :host-context([data-theme="dark"]) .action-btn:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: var(--primary-color, #38bdf8);
-            color: var(--primary-color, #38bdf8);
+        .action-btn:active {
+            transform: scale(0.97);
         }
 
         .action-btn.primary {
@@ -218,17 +281,19 @@ export class CgoNoticeCard extends LitElement {
             border-color: transparent;
         }
 
-        .action-btn.primary:hover {
-            background: var(--primary-hover, #004d7a);
+        @media (hover: hover) and (pointer: fine) {
+            .action-btn.primary:hover {
+                background: var(--primary-hover, #004d7a);
+            }
         }
 
         /* 关闭按钮容器与圆形底色 */
         .close-container {
             position: absolute;
-            top: 8px;
-            right: 8px;
-            width: 18px;
-            height: 18px;
+            top: 10px;
+            right: 10px;
+            width: 20px;
+            height: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -236,10 +301,10 @@ export class CgoNoticeCard extends LitElement {
         }
 
         .close-btn {
-            width: 18px;
-            height: 18px;
+            width: 20px;
+            height: 20px;
             border-radius: 50%;
-            background: rgba(0, 0, 0, 0.08);
+            background: rgba(0, 0, 0, 0.06);
             color: var(--text-main, #00263b);
             border: none;
             display: flex;
@@ -252,6 +317,11 @@ export class CgoNoticeCard extends LitElement {
             z-index: 2;
         }
 
+        /* 当存在倒计时环时，按钮自身背景透明，让外圈倒计时环完整透出 */
+        .close-container.has-spinner .close-btn {
+            background: transparent;
+        }
+
         :host([data-theme='dark']) .close-btn,
         :host-context([data-theme='dark']) .close-btn {
             background: rgba(255, 255, 255, 0.15);
@@ -259,26 +329,29 @@ export class CgoNoticeCard extends LitElement {
         }
 
         .close-btn:hover {
-            background: rgba(0, 0, 0, 0.16);
+            background: rgba(0, 0, 0, 0.14) !important;
             color: var(--danger-color, #ea4335);
         }
 
         :host-context([data-theme="dark"]) .close-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.25) !important;
             color: var(--danger-color, #f87171);
         }
 
         /* 倒计时进度圆环 */
         .close-spinner {
             position: absolute;
-            top: 0;
-            left: 0;
-            width: 18px;
-            height: 18px;
+            inset: 0;
+            width: 20px;
+            height: 20px;
             pointer-events: none;
             z-index: 1;
             --primary-color: var(--cat-software, #0085c4);
-            --border-color: rgba(0, 0, 0, 0.12);
+            --border-color: rgba(0, 0, 0, 0.10);
+        }
+
+        :host-context([data-theme="dark"]) .close-spinner {
+            --border-color: rgba(255, 255, 255, 0.16);
         }
 
         .cat-operation .close-spinner { --primary-color: var(--cat-operation, #d29700); }
@@ -297,6 +370,12 @@ export class CgoNoticeCard extends LitElement {
         this.actions = [];
         this.customCatName = '';
         this.duration = 0;
+        this.glassMode = '';
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        injectLiquidGlassFilter();
     }
 
     _handleClose(e) {
@@ -326,15 +405,18 @@ export class CgoNoticeCard extends LitElement {
         const catName = this.customCatName || CATEGORY_NAMES[this.category] || '通知消息';
         const renderActions = Array.isArray(this.actions) && this.actions.length > 0;
         const hasCountdown = this.duration > 0;
+        const isFlat = this.glassMode === 'flat' || this.glassMode === 'none';
 
         return html`
             <div class="notice-card cat-${this.category}">
+                ${!isFlat ? html`<div class="glass-refraction" aria-hidden="true"></div>` : null}
+
                 ${this.closable ? html`
-                    <div class="close-container">
+                    <div class="close-container ${hasCountdown ? 'has-spinner' : ''}">
                         ${hasCountdown ? html`
                             <cgo-spinner
                                 mode="progress"
-                                size="18"
+                                size="20"
                                 duration="${this.duration}"
                                 fill-mode="fill"
                                 direction="cw"
@@ -342,41 +424,43 @@ export class CgoNoticeCard extends LitElement {
                             ></cgo-spinner>
                         ` : null}
                         <button class="close-btn" @click=${this._handleClose} title="关闭">
-                            <cgo-icon name="close" size="12"></cgo-icon>
+                            <cgo-icon name="close" size="11"></cgo-icon>
                         </button>
                     </div>
                 ` : null}
 
-                <div class="header">
-                    ${this.renderHeaderIcon()}
-                    <span>${catName}</span>
+                <div class="card-content">
+                    <div class="header">
+                        ${this.renderHeaderIcon()}
+                        <span>${catName}</span>
+                    </div>
+
+                    <div class="title">${this.noticeTitle}</div>
+
+                    ${this.content ? html`<div class="content-body">${this.content}</div>` : null}
+
+                    ${this.imageUrl ? html`
+                        <div class="image-wrap">
+                            <img src="${this.imageUrl}" alt="Notice Image" loading="lazy" />
+                        </div>
+                    ` : null}
+
+                    <slot></slot>
+
+                    ${renderActions ? html`
+                        <div class="actions">
+                            ${this.actions.map(act => {
+                                const label = typeof act === 'string' ? act : act.label || act.type;
+                                const isPrimary = typeof act === 'object' && act.primary;
+                                return html`
+                                    <button class="action-btn ${isPrimary ? 'primary' : ''}" @click=${(e) => this._handleAction(act, e)}>
+                                        ${label}
+                                    </button>
+                                `;
+                            })}
+                        </div>
+                    ` : null}
                 </div>
-
-                <div class="title">${this.noticeTitle}</div>
-
-                ${this.content ? html`<div class="content-body">${this.content}</div>` : null}
-
-                ${this.imageUrl ? html`
-                    <div class="image-wrap">
-                        <img src="${this.imageUrl}" alt="Notice Image" loading="lazy" />
-                    </div>
-                ` : null}
-
-                <slot></slot>
-
-                ${renderActions ? html`
-                    <div class="actions">
-                        ${this.actions.map(act => {
-                            const label = typeof act === 'string' ? act : act.label || act.type;
-                            const isPrimary = typeof act === 'object' && act.primary;
-                            return html`
-                                <button class="action-btn ${isPrimary ? 'primary' : ''}" @click=${(e) => this._handleAction(act, e)}>
-                                    ${label}
-                                </button>
-                            `;
-                        })}
-                    </div>
-                ` : null}
             </div>
         `;
     }

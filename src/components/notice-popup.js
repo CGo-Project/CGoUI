@@ -1,5 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { repeat } from 'lit/directives/repeat.js';
+import { injectLiquidGlassFilter } from '../theme.js';
 import './notice-card.js';
 import './spinner.js';
 
@@ -45,36 +46,47 @@ export class CgoNoticePopup extends LitElement {
 
         .popup-item {
             pointer-events: auto;
-            transform: translateX(125%);
+            transform: translateX(110%);
             opacity: 0;
-            /* C-03: max-height clip用于初始霯路，但不动画它，避免 Reflow */
-            max-height: 0;
-            overflow: hidden;
             transition: 
-                /* C-01: 入场保留弹性超调曲线（仅入场，退出改用 ease-in） */
-                transform 0.4s cubic-bezier(0.34, 1.3, 0.64, 1),
-                opacity 0.3s ease-out;
-            /* C-03: max-height/margin-bottom 不列入 transition，通过 JS 切换类名现志居高 */
+                transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.22s ease-out;
         }
 
         .popup-item.show {
-            transform: translateX(0);
+            transform: none;
             opacity: 1;
-            max-height: 400px;
-            overflow: visible;
         }
 
         .popup-item.leaving {
-            /* C-01: 退出曲线改为干脱的 ease-in，不再反弹 */
-            transform: translateX(125%);
+            transform: translateX(110%) scale(0.95);
             opacity: 0;
-            max-height: 0 !important;
-            margin-bottom: -10px !important;
-            overflow: hidden !important;
-            /* 退出时覆盖入场的弹性曲线 */
+            pointer-events: none;
             transition:
-                transform 0.2s cubic-bezier(0.4, 0, 1, 1),
-                opacity 0.15s ease-in !important;
+                transform 0.18s cubic-bezier(0.4, 0, 1, 1),
+                opacity 0.14s ease-in !important;
+        }
+
+        :host([position="top-left"]) .popup-item,
+        :host([position="bottom-left"]) .popup-item {
+            transform: translateX(-110%);
+        }
+
+        :host([position="top-left"]) .popup-item.show,
+        :host([position="bottom-left"]) .popup-item.show {
+            transform: none;
+        }
+
+        :host([position="top-left"]) .popup-item.leaving,
+        :host([position="bottom-left"]) .popup-item.leaving {
+            transform: translateX(-110%) scale(0.95);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .popup-item {
+                transition: opacity 0.15s ease !important;
+                transform: none !important;
+            }
         }
 
         .toast-card {
@@ -87,37 +99,23 @@ export class CgoNoticePopup extends LitElement {
             font-weight: 500;
             line-height: 1.4;
             word-break: break-word;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            background: var(--text-main, #00263b);
-            color: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-        }
-
-        :host-context([glass-mode="liquid"]) .toast-card,
-        :host-context([glass-mode="blur"]) .toast-card,
-        :host-context([data-glass-mode="liquid"]) .toast-card,
-        :host-context([data-glass-mode="blur"]) .toast-card {
             border: none;
             background: rgba(0, 38, 59, 0.85);
+            color: #ffffff;
             backdrop-filter: blur(14px) saturate(140%);
             -webkit-backdrop-filter: blur(14px) saturate(140%);
             box-shadow:
                 0 0 0 0.5px rgba(255, 255, 255, 0.1),
                 0 10px 30px -4px rgba(0, 0, 0, 0.35),
                 inset 0 1px 0 rgba(255, 255, 255, 0.25);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
         }
-        :host-context([data-theme="dark"][glass-mode="liquid"]) .toast-card,
-        :host-context([data-theme="dark"][glass-mode="blur"]) .toast-card,
-        :host-context([data-theme="dark"][data-glass-mode="liquid"]) .toast-card,
-        :host-context([data-theme="dark"][data-glass-mode="blur"]) .toast-card {
-            border: none;
+
+        :host-context([data-theme="dark"]) .toast-card {
             background: rgba(24, 26, 28, 0.85);
-            backdrop-filter: blur(14px) saturate(140%);
-            -webkit-backdrop-filter: blur(14px) saturate(140%);
             box-shadow:
                 0 0 0 0.5px rgba(255, 255, 255, 0.12),
                 0 12px 34px -4px rgba(0, 0, 0, 0.5),
@@ -166,6 +164,69 @@ export class CgoNoticePopup extends LitElement {
         this.position = 'top-right';
         this._popups = [];
         this._seq = 0;
+        this._onVisibilityChange = () => {
+            if (document.hidden) {
+                this._pauseAll();
+            } else {
+                this._resumeAll();
+            }
+        };
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        injectLiquidGlassFilter();
+        document.addEventListener('visibilitychange', this._onVisibilityChange);
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        document.removeEventListener('visibilitychange', this._onVisibilityChange);
+        this._clearAllTimers();
+    }
+
+    _clearAllTimers() {
+        this._popups.forEach(p => {
+            if (p.timerId) {
+                clearTimeout(p.timerId);
+                p.timerId = null;
+            }
+        });
+    }
+
+    _pauseItem(id) {
+        const p = this._popups.find(item => item.id === id);
+        if (!p || p.state === 'leaving' || !p.duration || p.paused) return;
+        if (p.timerId) {
+            clearTimeout(p.timerId);
+            p.timerId = null;
+        }
+        const elapsed = Date.now() - (p.startTime || Date.now());
+        p.remaining = Math.max(0, (p.remaining ?? p.duration) - elapsed);
+        p.paused = true;
+    }
+
+    _resumeItem(id) {
+        const p = this._popups.find(item => item.id === id);
+        if (!p || p.state === 'leaving' || !p.duration || !p.paused) return;
+        p.paused = false;
+        p.startTime = Date.now();
+        const rem = p.remaining ?? p.duration;
+        if (rem > 0) {
+            p.timerId = setTimeout(() => {
+                this.remove(id);
+            }, rem);
+        } else {
+            this.remove(id);
+        }
+    }
+
+    _pauseAll() {
+        this._popups.forEach(p => this._pauseItem(p.id));
+    }
+
+    _resumeAll() {
+        this._popups.forEach(p => this._resumeItem(p.id));
     }
 
     /**
@@ -183,6 +244,10 @@ export class CgoNoticePopup extends LitElement {
                 message: item.message || '',
                 type: item.type || 'info',
                 duration: duration || 3000,
+                remaining: duration || 3000,
+                startTime: Date.now(),
+                paused: false,
+                timerId: null,
                 state: 'entering'
             };
         } else {
@@ -195,6 +260,10 @@ export class CgoNoticePopup extends LitElement {
                 imageUrl: item.imageUrl || item.image || '',
                 actions: item.actions || [],
                 duration: duration,
+                remaining: duration,
+                startTime: Date.now(),
+                paused: false,
+                timerId: null,
                 state: 'entering'
             };
         }
@@ -206,8 +275,8 @@ export class CgoNoticePopup extends LitElement {
             this._popups = this._popups.map(p => p.id === id ? { ...p, state: 'show' } : p);
         });
 
-        if (duration > 0) {
-            setTimeout(() => {
+        if (duration > 0 && !document.hidden) {
+            popupItem.timerId = setTimeout(() => {
                 this.remove(id);
             }, duration);
         }
@@ -219,20 +288,26 @@ export class CgoNoticePopup extends LitElement {
      * 移除特定 ID 的气泡
      */
     remove(id) {
+        const item = this._popups.find(p => p.id === id);
+        if (item && item.timerId) {
+            clearTimeout(item.timerId);
+            item.timerId = null;
+        }
         this._popups = this._popups.map(p => p.id === id ? { ...p, state: 'leaving' } : p);
         setTimeout(() => {
             this._popups = this._popups.filter(p => p.id !== id);
-        }, 400);
+        }, 220);
     }
 
     /**
      * 清空所有气泡
      */
     clear() {
+        this._clearAllTimers();
         this._popups = this._popups.map(p => ({ ...p, state: 'leaving' }));
         setTimeout(() => {
             this._popups = [];
-        }, 400);
+        }, 220);
     }
 
     _handleItemClose(id, e) {
@@ -256,7 +331,9 @@ export class CgoNoticePopup extends LitElement {
     render() {
         return html`
             ${repeat(this._popups, p => p.id, p => html`
-                <div class="popup-item ${p.state}">
+                <div class="popup-item ${p.state}"
+                    @mouseenter=${() => this._pauseItem(p.id)}
+                    @mouseleave=${() => this._resumeItem(p.id)}>
                     ${p.isToast ? html`
                         <div class="toast-card ${p.type === 'success' ? 'success' : p.type === 'error' || p.type === 'danger' ? 'danger' : p.type === 'warning' ? 'warning' : 'info'}">
                             <span class="toast-message">${p.message}</span>

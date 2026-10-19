@@ -24,7 +24,7 @@ CGoUI 对所有液态玻璃卡片建立了严格的 3 档分级体系，彻底�
 | 档位 | 语义定位 | 典型标签 / 类名 | Layer 1 衬底透明度 | 鼠标悬停 (Hover) | 适用场景 |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Tier A** | **可交互卡片**<br>（操作入口） | `.tool-item`<br>`.glass-card` | 中低（`0.60` → hover `0.68`） | ✅ **允许**<br>微光增强 + 上移 `translateY(-4px)` + 阴影扩散 | 工具网格列表项、功能链接卡片、类似于含详细信息的立体按钮 |
-| **Tier B** | **不可交互底板**<br>（布局分栏 / 弹窗底板） | `.glass-panel`<br>`section.tool-card`<br>`<cgo-dropdown>` 基础面板<br>`<cgo-modal>` / `.help-dialog` 主面板<br>`<cgo-table>` 数据表格底板<br>`<cgo-notice-center>` 通知中心底板<br>`<cgo-avatar>` 圆形头像<br>`<cgo-chat-bubble>` 对话气泡 | 高（`0.82` 固定） | ❌ **绝对禁止**<br>零位移、零颜色变化、零高亮反应 | 正文各版块分栏、长文阅读容器、主工作台、承载文字/图表/按钮的背景底板、下拉菜单浮层面板、模态弹窗主面板、数据表格底板、通知中心面板、圆形头像底板、对话气泡底板 |
+| **Tier B** | **不可交互底板**<br>（布局分栏 / 弹窗底板） | `.glass-panel`<br>`section.tool-card`<br>`<cgo-dropdown>` 基础面板<br>`<cgo-modal>` / `.help-dialog` 主面板<br>`<cgo-table>` 数据表格底板<br>`<cgo-notice-center>` 通知中心底板<br>`<cgo-avatar>` 圆形头像<br>`<cgo-chat-bubble>` 对话气泡 | 高（`0.90` 固定） | ❌ **绝对禁止**<br>零位移、零颜色变化、零高亮反应 | 正文各版块分栏、长文阅读容器、主工作台、承载文字/图表/按钮的背景底板、下拉菜单浮层面板、模态弹窗主面板、数据表格底板、通知中心面板、圆形头像底板、对话气泡底板 |
 | **Tier C** | **不可交互强调板**<br>（浮动表面 / 弹窗内嵌卡片） | `.glass-surface`<br>`.header-island`<br>`<cgo-card>` (默认)<br>`.help-card` / `.help-data-info` | 中（`0.72` 固定） | ❌ **绝对禁止**<br>零位移、零颜色变化、零高亮反应 | 浮动双岛标题栏、底部悬浮操作胶囊、仪表盘顶层状态区、通用卡片默认形态、帮助弹窗内详细信息卡片 |
 
 ### 🚨 常见踩坑与反模式（Anti-Patterns）

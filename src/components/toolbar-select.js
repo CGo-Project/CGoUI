@@ -1,6 +1,16 @@
 import { LitElement, html, css } from 'lit';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { injectLiquidGlassFilter } from '../theme.js';
+import './icon.js';
+import {
+    hairlineRimLightRules,
+    hairlineRimDarkRules,
+    glassRefractionStyles,
+    tierBPanelUnderlayRules,
+    tierBPanelUnderlayDarkRules,
+    tierBRimWeakRules,
+    tierBRimWeakDarkRules,
+} from '../styles/glass-shared.js';
 
 /* 全局互斥：同一时刻只有一个 toolbar-select 展开 */
 const _openInstances = new Set();
@@ -78,31 +88,7 @@ export class CgoToolbarSelect extends LitElement {
 
         /* <cgo-button> 同款 1px 双轴微光描边 (Layer 2 Masked 1px Hairline Rim Light，唯一描边来源) */
         .trigger::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background:
-                linear-gradient(to right,
-                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 0,
-                    rgba(0, 0, 0, 0) var(--lg-rim-side, 3px),
-                    rgba(0, 0, 0, 0) calc(100% - var(--lg-rim-side, 3px)),
-                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 100%),
-                linear-gradient(to bottom,
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) 0,
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) var(--lg-rim-hold, 1px),
-                    rgba(255, 255, 255, 0) 8px,
-                    rgba(0, 0, 0, 0.02) calc(100% - 4px),
-                    rgba(0, 0, 0, 0.12) 100%);
-            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            z-index: 2;
-            opacity: 0.64;
-            transition: opacity var(--dur-fast, 140ms) ease;
+            ${hairlineRimLightRules}
         }
 
         .trigger:hover:not(:disabled)::before {
@@ -135,13 +121,7 @@ export class CgoToolbarSelect extends LitElement {
 
         :host([data-theme='dark']) .trigger::before,
         :host-context([data-theme='dark']) .trigger::before {
-            background:
-                linear-gradient(to bottom,
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 1.5)) 0,
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 1.5)) 1px,
-                    rgba(255, 255, 255, 0) 8px,
-                    rgba(255, 255, 255, 0) calc(100% - 4px),
-                    rgba(255, 255, 255, 0.08) 100%);
+            ${hairlineRimDarkRules}
         }
 
         /* 保证文字和箭头在 Layer 3 (z-index: 3) 绝对锐利清晰 */
@@ -164,10 +144,12 @@ export class CgoToolbarSelect extends LitElement {
         }
 
         .arrow {
-            width: 14px;
-            height: 14px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             opacity: 0.65;
             flex-shrink: 0;
+            color: inherit;
             transition: transform var(--dur-fast, 160ms) cubic-bezier(0.16, 1, 0.3, 1), opacity var(--dur-fast, 140ms) ease;
         }
 
@@ -230,65 +212,27 @@ export class CgoToolbarSelect extends LitElement {
             flex-direction: column;
         }
 
-        /* Layer 0: 折射磨砂层 (Tier B 规范: 14px 模糊 + 135% 饱和度 + SVG 空间折射) */
-        .glass-refraction {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            border-radius: inherit;
-            backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
-            -webkit-backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
-            filter: var(--glass-refraction-filter, url(#glass-distortion));
-            pointer-events: none;
-            overflow: hidden;
-            isolation: isolate;
-        }
+        /* Layer 0: 折射磨砂层 (Tier B 规范) */
+        ${glassRefractionStyles}
 
-        /* Layer 1: 半透明底色衬底层 (Tier B 规范: 0.82 固定) */
+        /* Layer 1: 半透明底色衬底层 (Tier B 规范: 0.9 固定) */
         .options::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-            border-radius: inherit;
-            background: var(--glass-bg-panel, rgba(255, 255, 255, 0.82));
-            pointer-events: none;
-            transition: background-color 0.25s ease;
+            ${tierBPanelUnderlayRules}
         }
 
         :host([data-theme='dark']) .options::after,
         :host-context([data-theme='dark']) .options::after {
-            background: var(--glass-bg-panel, rgba(31, 32, 34, 0.82));
+            ${tierBPanelUnderlayDarkRules}
         }
 
-        /* Layer 2: 弱化微光圈 (Tier B 规范: 顶部柔和单向光，与 0.82 高不透明底板自然融合，杜绝双层套圈) */
+        /* Layer 2: 弱化微光圈 (Tier B 规范: 顶部柔和单向光，与 0.9 高不透明底板自然融合，杜绝双层套圈) */
         .options::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background: linear-gradient(to bottom,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45 * 0.75)) 0,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45 * 0.75)) var(--lg-rim-hold, 1px),
-                rgba(255, 255, 255, 0) var(--lg-rim-fade, 12px));
-            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            z-index: 2;
-            opacity: 0.8;
+            ${tierBRimWeakRules}
         }
 
         :host([data-theme='dark']) .options::before,
         :host-context([data-theme='dark']) .options::before {
-            background: linear-gradient(to bottom,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 0.45 * 1.5)) 0,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 0.45 * 1.5)) 1px,
-                rgba(255, 255, 255, 0) 8px);
+            ${tierBRimWeakDarkRules}
         }
 
         :host([data-theme='dark']) .options,
@@ -633,17 +577,7 @@ export class CgoToolbarSelect extends LitElement {
         return html`
             <button class="trigger" type="button" ?disabled=${this.disabled} aria-expanded=${this.open} @click=${this._toggle}>
                 <span class="text ${isPlaceholder ? 'placeholder' : ''}">${this._label || this.placeholder || ''}</span>
-                <svg
-                    class="arrow"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                >
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
+                <cgo-icon class="arrow" name="expand-more" size="18" aria-hidden="true"></cgo-icon>
             </button>
             <div class="options">
                 ${!isFlat ? html`<div class="glass-refraction" aria-hidden="true"></div>` : null}

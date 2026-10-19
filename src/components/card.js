@@ -1,5 +1,10 @@
 import { LitElement, html, css } from 'lit';
 import { injectLiquidGlassFilter } from '../theme.js';
+import {
+    glassRefractionStyles,
+    tierCRimRules,
+    tierCRimDarkRules,
+} from '../styles/glass-shared.js';
 
 export class CgoCard extends LitElement {
     static properties = {
@@ -45,36 +50,19 @@ export class CgoCard extends LitElement {
             isolation: isolate;
         }
 
-        /* Layer 0: 折射磨砂层 (Tier C 默认: blur(14px) saturate(135%)) */
-        .glass-refraction {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            border-radius: inherit;
-            backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
-            -webkit-backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
-            filter: var(--glass-refraction-filter, url(#glass-distortion));
-            pointer-events: none;
-            overflow: hidden;
-            isolation: isolate;
-        }
+        /* Layer 0: 折射磨砂层 (Tier C 默认) */
+        ${glassRefractionStyles}
 
         /* Tier A Layer 0: 较轻模糊 (blur(5px) saturate(130%)) */
         .tier-a .glass-refraction {
-            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
-            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
-            backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
-            -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
+            backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%));
+            -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%));
         }
 
         /* Tier B Layer 0: 深度模糊与折射 (blur(14px) saturate(135%)) */
         .tier-b .glass-refraction {
-            backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
-            -webkit-backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
+            backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%));
+            -webkit-backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%));
         }
 
         /* Layer 1: 半透明底色衬底层 (默认 Tier C: 亮色 0.72, 暗色 0.72) */
@@ -112,27 +100,29 @@ export class CgoCard extends LitElement {
             background: var(--glass-bg-surface, rgba(31, 32, 34, 0.72)) !important;
         }
 
-        /* Tier B (.tier-b): 高不透明衬底 (0.82 固定)，严禁 hover 反应 */
+        /* Tier B (.tier-b): 高不透明衬底 (0.9 固定)，严禁 hover 反应 */
         .tier-b::after {
-            background: var(--glass-bg-panel, rgba(255, 255, 255, 0.82)) !important;
+            background: var(--glass-bg-panel, rgba(255, 255, 255, 0.9)) !important;
         }
         :host-context([data-theme='dark']) .tier-b::after {
-            background: var(--glass-bg-panel, rgba(31, 32, 34, 0.82)) !important;
+            background: var(--glass-bg-panel, rgba(31, 32, 34, 0.9)) !important;
         }
         .tier-b:hover {
             transform: none !important;
             box-shadow: var(--glass-shadow) !important;
         }
         .tier-b:hover::after {
-            background: var(--glass-bg-panel, rgba(255, 255, 255, 0.82)) !important;
+            background: var(--glass-bg-panel, rgba(255, 255, 255, 0.9)) !important;
         }
         :host-context([data-theme='dark']) .tier-b:hover::after {
-            background: var(--glass-bg-panel, rgba(31, 32, 34, 0.82)) !important;
+            background: var(--glass-bg-panel, rgba(31, 32, 34, 0.9)) !important;
         }
 
         /* Tier A (.tier-a): 可交互卡片 (0.60 -> hover 0.68 + translateY(-4px)) */
         .tier-a {
             cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
         .tier-a::after {
             background: var(--glass-bg, rgba(255, 255, 255, 0.60)) !important;
@@ -140,44 +130,29 @@ export class CgoCard extends LitElement {
         :host-context([data-theme='dark']) .tier-a::after {
             background: var(--glass-bg, rgba(31, 32, 34, 0.60)) !important;
         }
-        .tier-a:hover {
-            transform: translateY(-4px);
-            box-shadow: var(--glass-shadow-hover);
+        @media (hover: hover) and (pointer: fine) {
+            .tier-a:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--glass-shadow-hover);
+            }
+            .tier-a:hover::after {
+                background: var(--glass-bg-hover, rgba(255, 255, 255, 0.68)) !important;
+            }
+            :host-context([data-theme='dark']) .tier-a:hover::after {
+                background: var(--glass-bg-hover, rgba(38, 40, 44, 0.68)) !important;
+            }
         }
-        .tier-a:hover::after {
-            background: var(--glass-bg-hover, rgba(255, 255, 255, 0.68)) !important;
-        }
-        :host-context([data-theme='dark']) .tier-a:hover::after {
-            background: var(--glass-bg-hover, rgba(38, 40, 44, 0.68)) !important;
+        .tier-a:active {
+            transform: translateY(-2px) scale(0.985);
+            transition: transform var(--dur-micro, 100ms) cubic-bezier(0.16, 1, 0.3, 1);
         }
 
         /* Layer 2: 双轴微光圈层 (默认 Tier C: 完整双轴微光圈) */
         .card:not(.flat):not(.info):not(.danger)::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background:
-                linear-gradient(to right,
-                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 0,
-                    rgba(0, 0, 0, 0) var(--lg-rim-side, 4px),
-                    rgba(0, 0, 0, 0) calc(100% - var(--lg-rim-side, 4px)),
-                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 100%),
-                linear-gradient(to bottom,
-                    rgba(255, 255, 255, var(--lg-rim-lit, 0.95)) 0,
-                    rgba(255, 255, 255, var(--lg-rim-lit, 0.95)) var(--lg-rim-hold, 1px),
-                    rgba(255, 255, 255, 0) var(--lg-rim-fade, 12px),
-                    rgba(255, 255, 255, 0) calc(100% - var(--lg-rim-fade, 12px)),
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.4)) calc(100% - var(--lg-rim-hold, 1px)),
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.4)) 100%);
-            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            z-index: 2;
-            transition: opacity 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+            ${tierCRimRules}
+        }
+        :host-context([data-theme='dark']) .card:not(.flat):not(.info):not(.danger)::before {
+            ${tierCRimDarkRules}
         }
 
         /* Tier B 弱化微光圈 */

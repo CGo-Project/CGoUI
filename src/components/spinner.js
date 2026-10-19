@@ -98,11 +98,17 @@ export class CgoSpinner extends LitElement {
 
         /* Spinner 旋转动画 */
         .spin-cw {
-            animation: spin-cw-anim var(--spin-duration, 1s) linear infinite;
+            animation: spin-cw-anim var(--spin-duration, 0.75s) linear infinite;
         }
 
         .spin-ccw {
-            animation: spin-ccw-anim var(--spin-duration, 1s) linear infinite;
+            animation: spin-ccw-anim var(--spin-duration, 0.75s) linear infinite;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .spin-cw, .spin-ccw {
+                animation-duration: 2.5s !important;
+            }
         }
 
         @keyframes spin-cw-anim {
@@ -285,9 +291,9 @@ export class CgoSpinner extends LitElement {
 
     _getNormalizedSpeed() {
         const s = (this.speed || '').toLowerCase();
-        if (s === 'slow' || s === 'slow速' || s === '慢') return '2s';
-        if (s === 'fast' || s === 'fast速' || s === '快') return '0.5s';
-        return '1s'; // medium / default
+        if (s === 'slow' || s === 'slow速' || s === '慢') return '1.4s';
+        if (s === 'fast' || s === 'fast速' || s === '快') return '0.45s';
+        return '0.75s'; // medium / default
     }
 
     _getNormalizedDirection() {

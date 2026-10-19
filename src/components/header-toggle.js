@@ -29,10 +29,7 @@ export class CgoHeaderToggle extends LitElement {
             height: 18px;
             fill: currentColor;
             pointer-events: none;
-            transition: transform 0.2s ease;
-        }
-        button:active svg {
-            transform: scale(0.9);
+            transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
         }
         .tip {
             position: fixed;
@@ -47,7 +44,9 @@ export class CgoHeaderToggle extends LitElement {
             pointer-events: none;
             z-index: 11000;
             opacity: 0;
-            transition: all 0.3s ease;
+            transition:
+                opacity 160ms cubic-bezier(0.16, 1, 0.3, 1),
+                transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
             white-space: nowrap;
             box-shadow: var(--shadow-md, 0 4px 15px rgba(0, 0, 0, 0.12));
         }

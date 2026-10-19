@@ -11,6 +11,7 @@
 - [templates/tool_template.html](./tool_template.html)：**模板一：工具类页面**
 - [templates/info_template.html](./info_template.html)：**模板二：介绍类页面**
 - [templates/ribbon_template.html](./ribbon_template.html)：**模板三：Ribbon 效率类页面 (CAD/工坊/拓扑与节点工作台)**
+- [templates/ribbon.css](./ribbon.css)：**模板三配套样式库：解耦抽取的 Ribbon 专属功能区与复杂布局样式**
 - [templates/PROMPT.md](./PROMPT.md)：**AI 改装 Prompt：已有网页改装为 CGO UI 标准网页 Prompt 模板**
 - [templates/README.md](./README.md)：**模板规范与 AI Prompt 骨架说明（本文件）**
 
@@ -315,7 +316,7 @@ body.office-app-shell (100dvh 全屏固定受控视口，overflow: hidden)
 | **应用标题** | `.app-title` | Header 内部应用标题文本样式 |
 | **主容器** | `<main class="tool-container">` | 页面主体受控容器（悬浮模式下顶部自动避让 84px） |
 | **Tier A 可交互卡片** | `.glass-card` / `.tool-item` | 可点击入口卡片，允许微光增强 + 上移 `translateY(-4px)` + 阴影扩散 |
-| **Tier B 不可交互底板** | `.glass-panel` / `.tool-card.glass-panel` | 正文各版块分栏、主工作台、数据表格底板，固定 0.82 透明度，**严禁 hover 上浮位移** |
+| **Tier B 不可交互底板** | `.glass-panel` / `.tool-card.glass-panel` | 正文各版块分栏、主工作台、数据表格底板，固定 0.9 透明度，**严禁 hover 上浮位移** |
 | **Tier C 不可交互强调板** | `.glass-surface` / `.header-island` / `<cgo-card>` | 悬浮双岛、胶囊表面、浮动视口，固定 0.72 透明度，**严禁 hover 上浮位移** |
 | **数据表格** | `.modern-table` | 标准清爽数据表格 |
 | **Excel 表格** | `#colorTable` / `#toolDataTable` + `.table-container.glass-panel` | 包含 `sticky` 标题与固定首列的表格底板 |

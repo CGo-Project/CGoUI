@@ -30,6 +30,9 @@ import './components/side-nav.js';
 import './components/toolbar-select.js';
 import './components/notice-card.js';
 import './components/notice-center.js';
+import './components/notice-popup.js';
+import './components/captcha.js';
+import './components/toast.js';
 import { installGlobalShim } from './shim/public-global.js';
 import { initTheme } from './theme.js';
 

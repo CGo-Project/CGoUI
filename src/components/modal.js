@@ -1,10 +1,22 @@
 import { LitElement, html, css } from 'lit';
 import './icon.js';
 import { injectLiquidGlassFilter } from '../theme.js';
+import {
+    glassRefractionStyles,
+    tierBPanelUnderlayRules,
+    tierBPanelUnderlayDarkRules,
+    tierBRimWeakRules,
+    tierBRimWeakDarkRules,
+    tierCRimRules,
+    tierCRimDarkRules,
+    tierCSurfaceUnderlayRules,
+    tierCSurfaceUnderlayDarkRules,
+} from '../styles/glass-shared.js';
 
 /**
  * <cgo-modal open title="标题" max-width="420px">内容…</cgo-modal>
  * 遮罩 + 居中对话框 + 关闭按钮。遵循次世代 Liquid Glass Tier B 不可交互底板规范。
+ * 面板主题严格对齐 Tier B；若面板内容包含 card 类型，则内容对齐 Tier C 强调表面规范。
  * 事件: cgo-close（点击关闭按钮 / 遮罩 / Esc 时派发）。
  */
 export class CgoModal extends LitElement {
@@ -14,6 +26,7 @@ export class CgoModal extends LitElement {
         maxWidth: { type: String, attribute: 'max-width' },
         closeOnOverlay: { type: Boolean, attribute: 'close-on-overlay' },
         glassMode: { type: String, attribute: 'glass-mode', reflect: true },
+        tier: { type: String, reflect: true },
     };
 
     static styles = css`
@@ -41,7 +54,7 @@ export class CgoModal extends LitElement {
             }
         }
 
-        /* 遵循 Tier B 不可交互底板规范 (0.82 衬底，柔和顶部微光圈) */
+        /* 遵循 Tier B 不可交互底板规范 (0.9 衬底，柔和顶部微光圈，严禁 hover 任何位移动效) */
         .dialog {
             position: fixed;
             top: 50%;
@@ -59,67 +72,28 @@ export class CgoModal extends LitElement {
             isolation: isolate;
             display: flex;
             flex-direction: column;
-            animation: dialogIn 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
-            backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
+            animation: dialogIn 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+            overscroll-behavior: contain;
         }
 
-        /* Layer 0: 折射磨砂层 (Tier B 规范: 14px 模糊 + 135% 饱和度 + SVG 空间折射) */
-        .glass-refraction {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            border-radius: inherit;
-            backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
-            -webkit-backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
-            filter: var(--glass-refraction-filter, url(#glass-distortion));
-            pointer-events: none;
-            overflow: hidden;
-            isolation: isolate;
-        }
+        /* Layer 0: 折射磨砂层 (Tier B 规范: 14px 物理高斯模糊 + 135% 饱和度 + SVG 空间微折射) */
+        ${glassRefractionStyles}
 
-        /* Layer 1: 半透明底色衬底层 (Tier B 规范: 0.82 固定) */
+        /* Layer 1: 半透明底色衬底层 (Tier B 规范: 0.9 固定) */
         .dialog::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            z-index: 1;
-            border-radius: inherit;
-            background: var(--glass-bg-panel, rgba(255, 255, 255, 0.82));
-            pointer-events: none;
-            transition: background-color 0.25s ease;
+            ${tierBPanelUnderlayRules}
         }
         :host-context([data-theme='dark']) .dialog::after {
-            background: var(--glass-bg-panel, rgba(31, 32, 34, 0.82));
+            ${tierBPanelUnderlayDarkRules}
         }
 
-        /* Layer 2: 弱化微光圈 (Tier B 规范: 顶部柔和单向光，与 0.82 高不透明底板自然融合) */
+        /* Layer 2: 弱化微光圈 (Tier B 规范: 顶部柔和单向光，与 0.9 高不透明底板自然融合) */
         .dialog::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background: linear-gradient(to bottom,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45 * 0.75)) 0,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45 * 0.75)) var(--lg-rim-hold, 1px),
-                rgba(255, 255, 255, 0) var(--lg-rim-fade, 12px));
-            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            z-index: 2;
-            opacity: 0.8;
+            ${tierBRimWeakRules}
         }
 
         :host-context([data-theme='dark']) .dialog::before {
-            background: linear-gradient(to bottom,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 0.45 * 1.5)) 0,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 0.45 * 1.5)) 1px,
-                rgba(255, 255, 255, 0) 8px);
+            ${tierBRimWeakDarkRules}
         }
 
         :host-context([data-theme='dark']) .dialog {
@@ -155,7 +129,7 @@ export class CgoModal extends LitElement {
                 transform: translate(-50%, -50%) scale(1);
             }
         }
-        /* C-04: 弹窗退出动画 — 干脱收缩，不反弹 */
+        /* C-04: 弹窗退出动画 — 干脆收缩，不反弹 */
         @keyframes dialogOut {
             from {
                 opacity: 1;
@@ -167,15 +141,15 @@ export class CgoModal extends LitElement {
             }
         }
         .overlay.closing {
-            animation: overlayOut 0.2s ease-in forwards;
+            animation: overlayOut 0.18s cubic-bezier(0.4, 0, 1, 1) forwards;
         }
         @keyframes overlayOut {
             from { opacity: 1; }
             to { opacity: 0; }
         }
         .dialog.closing {
-            /* C-04: 出场使用 ease-in，无弹跨 */
-            animation: dialogOut 0.18s cubic-bezier(0.4, 0, 1, 1) forwards;
+            /* C-04: 出场使用 ease-in，无反弹 */
+            animation: dialogOut 0.16s cubic-bezier(0.4, 0, 1, 1) forwards;
         }
         .close {
             position: absolute;
@@ -188,11 +162,19 @@ export class CgoModal extends LitElement {
             line-height: 1;
             padding: 4px;
             z-index: 10;
-            transition: color 0.2s, transform 0.15s;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+            user-select: none;
+            transition: color 0.16s ease, transform 0.12s cubic-bezier(0.2, 0, 0, 1);
         }
-        .close:hover {
-            color: var(--text-main, #00263b);
-            transform: scale(1.08);
+        @media (hover: hover) and (pointer: fine) {
+            .close:hover {
+                color: var(--text-main, #00263b);
+                transform: scale(1.08);
+            }
+        }
+        .close:active {
+            transform: scale(0.92);
         }
         .title {
             position: relative;
@@ -207,19 +189,74 @@ export class CgoModal extends LitElement {
             z-index: 3;
             padding: 16px 25px 22px;
             overflow-y: auto;
+            overscroll-behavior-y: contain;
             color: var(--text-main, #00263b);
             font-family: var(--font-sans, system-ui, sans-serif);
             line-height: 1.6;
         }
+        ::slotted(p),
         .body::slotted(p) {
             margin: 0 0 10px;
         }
+        ::slotted(.dialog-buttons),
         .body::slotted(.dialog-buttons) {
             display: flex;
             justify-content: flex-end;
             gap: 10px;
             margin-top: 16px;
         }
+
+        /* ══════════════════════════════════════════════════════
+           面板内容如果包含 card 类型，则内容对齐 Tier C 强调表面规范
+           (固定 0.72 衬底 + 完整双轴微光圈 + 零 hover 位移抖动)
+           ══════════════════════════════════════════════════════ */
+        ::slotted(cgo-card),
+        .body::slotted(cgo-card) {
+            display: block;
+            margin-bottom: 12px;
+            --glass-bg-surface: rgba(255, 255, 255, 0.72);
+        }
+        :host-context([data-theme='dark']) ::slotted(cgo-card),
+        :host-context([data-theme='dark']) .body::slotted(cgo-card) {
+            --glass-bg-surface: rgba(31, 32, 34, 0.72);
+        }
+
+        ::slotted(.card),
+        ::slotted(.help-card),
+        ::slotted(.modal-card),
+        ::slotted([data-card]),
+        .body::slotted(.card),
+        .body::slotted(.help-card),
+        .body::slotted(.modal-card),
+        .body::slotted([data-card]) {
+            display: block;
+            position: relative;
+            background: transparent !important;
+            border: none !important;
+            border-radius: var(--radius-lg, 12px);
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+            color: var(--text-main, #00263b);
+            overflow: hidden;
+            isolation: isolate;
+            box-shadow: var(--glass-shadow-surface, 0 4px 16px rgba(0, 38, 59, 0.06), 0 1px 3px rgba(0, 0, 0, 0.04));
+            cursor: default;
+            transform: none !important;
+        }
+
+        :host-context([data-theme='dark']) ::slotted(.card),
+        :host-context([data-theme='dark']) ::slotted(.help-card),
+        :host-context([data-theme='dark']) ::slotted(.modal-card),
+        :host-context([data-theme='dark']) ::slotted([data-card]),
+        :host-context([data-theme='dark']) .body::slotted(.card),
+        :host-context([data-theme='dark']) .body::slotted(.help-card),
+        :host-context([data-theme='dark']) .body::slotted(.modal-card),
+        :host-context([data-theme='dark']) .body::slotted([data-card]) {
+            color: var(--text-main, #e5e8ea);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+        }
+
         @media screen and (max-width: 640px) {
             .dialog {
                 top: auto;
@@ -230,7 +267,13 @@ export class CgoModal extends LitElement {
                 max-width: 100dvw !important;
                 max-height: 85dvh;
                 border-radius: 20px 20px 0 0;
-                animation: drawerIn 0.3s cubic-bezier(0.32, 0.94, 0.6, 1);
+                animation: drawerIn 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            .dialog.closing {
+                animation: drawerOut 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
+            }
+            .body {
+                padding-bottom: max(24px, env(safe-area-inset-bottom, 20px));
             }
         }
         @keyframes drawerIn {
@@ -239,6 +282,14 @@ export class CgoModal extends LitElement {
             }
             to {
                 transform: translateY(0);
+            }
+        }
+        @keyframes drawerOut {
+            from {
+                transform: translateY(0);
+            }
+            to {
+                transform: translateY(100%);
             }
         }
     `;
@@ -250,8 +301,10 @@ export class CgoModal extends LitElement {
         this.maxWidth = '';
         this.closeOnOverlay = true;
         this.glassMode = '';
+        this.tier = 'b'; /* 模态弹窗面板主题默认且固定对齐 Tier B */
         this._closing = false; /* C-04: 退出动画中标记 */
         this._onKey = this._onKey.bind(this);
+        this._syncNestedCards = this._syncNestedCards.bind(this);
     }
 
     connectedCallback() {
@@ -263,6 +316,30 @@ export class CgoModal extends LitElement {
         super.disconnectedCallback();
         document.removeEventListener('keydown', this._onKey);
     }
+
+    firstUpdated() {
+        this._syncNestedCards();
+    }
+
+    _syncNestedCards() {
+        const slot = this.shadowRoot?.querySelector('slot');
+        if (!slot) return;
+        const elements = slot.assignedElements ? slot.assignedElements({ flatten: true }) : [];
+        elements.forEach((el) => {
+            if (el.tagName?.toLowerCase() === 'cgo-card') {
+                if (el.getAttribute('tier') !== 'c') {
+                    el.setAttribute('tier', 'c');
+                }
+            }
+            const nestedCards = el.querySelectorAll?.('cgo-card');
+            nestedCards?.forEach((card) => {
+                if (card.getAttribute('tier') !== 'c') {
+                    card.setAttribute('tier', 'c');
+                }
+            });
+        });
+    }
+
     _onKey(e) {
         if (e.key === 'Escape' && this.open && !this._closing) this._close();
     }
@@ -302,7 +379,7 @@ export class CgoModal extends LitElement {
                           <h3 class="title">${this.title}</h3>
                       `
                     : null}
-                <div class="body"><slot></slot></div>
+                <div class="body"><slot @slotchange=${this._syncNestedCards}></slot></div>
             </div>
         `;
     }

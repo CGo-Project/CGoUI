@@ -274,14 +274,14 @@ CGO.icon("edit", { colorMode: "brand" });`,
     </div>
   </cgo-card>
 
-  <!-- Tier B: 不可交互容器底板 (0.82 沉稳底板, 弱化微光, 零动效) -->
+  <!-- Tier B: 不可交互容器底板 (0.9 沉稳底板, 弱化微光, 零动效) -->
   <cgo-card tier="b" icon="settings" title="Tier B · 容器底板">
     <div style="display: flex; gap: 6px; margin-bottom: 10px;">
-      <cgo-badge variant="muted" pill>高不透明度 0.82</cgo-badge>
+      <cgo-badge variant="muted" pill>高不透明度 0.9</cgo-badge>
       <cgo-badge variant="muted" pill>零 hover 动效</cgo-badge>
     </div>
     <p style="margin: 0 0 12px 0; font-size: 13.5px; line-height: 1.6;">
-      高不透明度 (0.82) 沉稳底板，弱化微光圈，严禁任何悬停动效，专用于承载表单、正文分栏与复杂输入控件。
+      高不透明度 (0.9) 沉稳底板，弱化微光圈，严禁任何悬停动效，专用于承载表单、正文分栏与复杂输入控件。
     </p>
     <div style="display: flex; gap: 8px; border-top: 1px solid var(--border-color, #e9ecef); padding-top: 8px;">
       <cgo-input size="sm" placeholder="参数快速搜索..." style="flex: 1;"></cgo-input>
@@ -380,7 +380,7 @@ CGO.icon("edit", { colorMode: "brand" });`,
         tag: 'cgo-dropdown',
         title: '菜单按钮 Dropdown',
         icon: 'file',
-        desc: '弹出菜单组件。弹出面板深度适配 Liquid Glass 次世代光学材质，完全对齐不可交互底板 Tier B 规范（14px 模糊折射 + 0.82 衬底 + 柔和顶部微光轮廓圈 + 零 hover 抖动）。支持互斥展开、点击外部关闭与菜单项点击后自动收起。',
+        desc: '弹出菜单组件。弹出面板深度适配 Liquid Glass 次世代光学材质，完全对齐不可交互底板 Tier B 规范（14px 模糊折射 + 0.9 衬底 + 柔和顶部微光轮廓圈 + 零 hover 抖动）。支持互斥展开、点击外部关闭与菜单项点击后自动收起。',
         examples: [
             {
                 title: '带图标 / 分隔线 / 危险项（Liquid Glass Tier B 浮动面板）',
@@ -540,10 +540,10 @@ CGO.icon("edit", { colorMode: "brand" });`,
         tag: 'cgo-modal',
         title: '弹窗 Modal',
         icon: 'info',
-        desc: '遮罩 + 居中对话框，主面板深度对齐 Liquid Glass Tier B 不可交互底板规范，内嵌卡片基于 Tier C 浮动规范；移动端自动转底部抽屉。支持点击遮罩 / Esc 关闭。',
+        desc: '遮罩 + 居中对话框，主面板深度对齐 Liquid Glass Tier B 不可交互底板规范，面板内容如果包含 card 类型则自动对齐 Tier C 强调规范；移动端自动转底部抽屉。支持点击遮罩 / Esc 关闭。',
         examples: [
             {
-                title: '普通功能对话框',
+                title: '普通功能对话框 (Tier B 底板)',
                 code: `<cgo-button variant="primary"
   onclick="this.nextElementSibling.show()">打开弹窗</cgo-button>
 <cgo-modal title="普通功能对话框" max-width="760px">
@@ -559,12 +559,32 @@ CGO.icon("edit", { colorMode: "brand" });`,
 </cgo-modal>`,
             },
             {
+                title: '内嵌卡片对话框（Tier B 底板 + Tier C 内嵌 Card）',
+                code: `<cgo-button variant="primary"
+  onclick="this.nextElementSibling.show()">打开内嵌卡片弹窗</cgo-button>
+<cgo-modal title="服务监控与组件状态" max-width="620px">
+  <p style="color:var(--text-light);margin:0 0 16px;">主面板严格对齐 Tier B 底板规范；内部嵌套 card 类型则自动对齐 Tier C 强调规范。</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+    <cgo-card icon="sparkle" title="液态引擎">
+      <p style="margin:0;font-size:13px;color:var(--text-light);">SVG 空间微折射管线正常，微光圈光子追踪已就绪。</p>
+    </cgo-card>
+    <cgo-card icon="chart" title="分级监控">
+      <p style="margin:0;font-size:13px;color:var(--text-light);">底板 Tier B (0.9) 稳态运行，卡片 Tier C (0.72) 呈现。</p>
+    </cgo-card>
+  </div>
+  <div class="dialog-buttons">
+    <button class="btn btn-info" onclick="this.closest('cgo-modal').open=false">关闭</button>
+    <button class="btn btn-primary" onclick="this.closest('cgo-modal').open=false">确定</button>
+  </div>
+</cgo-modal>`,
+            },
+            {
                 title: '帮助 / 关于弹窗（基于 Card Tier B 底板 + Tier C 内嵌卡片）',
                 code: `<cgo-button variant="primary" onclick="CGO.showHelpModal({
   title: 'CGo UI Library',
   subtitle: 'Central Go 前端视觉库 · 2026年6月26日更新',
   iconPath: '../icon.png',
-  content: '<div class=&quot;help-grid&quot;><div class=&quot;help-card&quot;><div class=&quot;help-card-icon&quot;>🎨</div><h4>配色系统</h4><ul><li>完整亮/暗主题切换</li><li>28条地铁线路色</li><li>30种头像预制配色</li></ul></div><div class=&quot;help-card&quot;><div class=&quot;help-card-icon&quot;>🧩</div><h4>组件库</h4><ul><li>按钮、表单、表格</li><li>弹窗、Toast、下拉菜单</li><li>地图控件、聊天气泡</li></ul></div></div><div class=&quot;help-data-info&quot;>接入方法：引入 4 个 CSS 文件 + 1 个 JS 核心文件，无需任何构建工具。</div>',
+  content: '<div class=&quot;help-grid&quot;><div class=&quot;help-card&quot;><div class=&quot;help-card-icon&quot;>🎨</div><h4>配色系统</h4><ul><li>完整亮/暗主题切换</li><li>28条地铁线路色</li><li>30种头像预制配色</li></ul></div><div class=&quot;help-card&quot;><div class=&quot;help-card-icon&quot;>🧩</div><h4>组件库</h4><ul><li>按钮、表单、表格</li><li>弹窗、Toast、下拉菜单</li><li>地图控件、聊天气泡</li></ul></div></div><div class=&quot;help-data-info&quot;><span>接入方法：引入 4 个 CSS 文件 + 1 个 JS 核心文件，无需任何构建工具。</span></div>',
   maxWidth: '520px'
 })">打开帮助弹窗</cgo-button>`,
             },
@@ -575,6 +595,7 @@ CGO.icon("edit", { colorMode: "brand" });`,
             ['max-width', 'string', `''`, '对话框最大宽度，如 420px'],
             ['close-on-overlay', 'boolean', 'true', '点击遮罩是否关闭'],
             ['glass-mode', `'liquid' | 'blur' | 'flat'`, '继承全局', '玻璃渲染模式：liquid (折射+模糊，默认) / blur (仅模糊) / flat (无玻璃特效)'],
+            ['tier', `'b' (固定)`, `'b'`, '面板主题分档：主面板严格对齐 Liquid Glass Tier B 规范（0.9 衬底，柔和顶部微光圈）；内嵌 card 类型自动对齐 Tier C 强调规范（0.72 衬底，双轴微光圈）'],
         ],
         slots: [['(默认)', '弹窗正文']],
         events: [['cgo-close', '关闭时派发（遮罩 / 关闭按钮 / Esc）']],
@@ -616,6 +637,7 @@ CGO.icon("edit", { colorMode: "brand" });`,
         examples: [
             {
                 title: '四种分类通知卡片 (Software / Operation / Promotion / System)',
+                previewStyle: 'background: radial-gradient(circle at 15% 15%, rgba(0, 133, 196, 0.12), transparent 45%), radial-gradient(circle at 85% 85%, rgba(210, 151, 0, 0.10), transparent 45%), var(--card-bg);',
                 code: `<div style="display:flex;flex-direction:column;gap:12px;width:100%;max-width:340px;">
   <cgo-notice-card
     category="software"
@@ -642,6 +664,24 @@ CGO.icon("edit", { colorMode: "brand" });`,
     notice-title="系统收到一条新留言回复"
     content="管理员回复了您的关于「亦庄T1线颜色」的反馈。"
     .actions=\${['忽略', { label: '查看回复', primary: true }]}
+  ></cgo-notice-card>
+</div>`,
+            },
+            {
+                title: 'Liquid Glass 液态玻璃渲染模式（彩色与深色背景物理折射）',
+                code: `<div style="background: linear-gradient(135deg, #004b75, #00263b 35%, #0d5f47 70%, #4a156b); padding: 24px; border-radius: 16px; display: flex; flex-direction: column; gap: 14px; max-width: 380px;">
+  <cgo-notice-card
+    category="software"
+    notice-title="CGoUI 2.2 液态物理折射就绪"
+    content="标准 Card Tier C 物理质感：14px 磨砂高斯模糊、SVG 空间微折射、0.72 半透明衬底与全双轴微光圈。"
+    .actions=\${[{ label: '查看效果', primary: true }]}
+  ></cgo-notice-card>
+  
+  <cgo-notice-card
+    popup
+    closable
+    category="promotion"
+    notice-title="浮动气泡在流体背景上的磨砂透视"
   ></cgo-notice-card>
 </div>`,
             },

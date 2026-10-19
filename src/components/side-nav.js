@@ -1,6 +1,7 @@
 import { LitElement, html, css } from 'lit';
 import './icon.js';
 import { injectLiquidGlassFilter } from '../theme.js';
+import { tierCRimRules } from '../styles/glass-shared.js';
 
 /**
  * <cgo-nav-item>
@@ -139,10 +140,8 @@ export class CgoSideNav extends LitElement {
             z-index: 0;
             inset: 0;
             border-radius: inherit;
-            backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
-            -webkit-backdrop-filter: var(--glass-backdrop-blur, blur(5px) saturate(130%));
-            backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
-            -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%) url(#glass-distortion));
+            backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%));
+            -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%));
             filter: var(--glass-refraction-filter, url(#glass-distortion));
             overflow: hidden;
             pointer-events: none;
@@ -174,31 +173,7 @@ export class CgoSideNav extends LitElement {
 
         /* Layer 2: 双轴微光圈层 (完全对齐 tool.html 极简微边框) */
         .sidenav::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background:
-                linear-gradient(to right,
-                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 0,
-                    rgba(0, 0, 0, 0) var(--lg-rim-side, 4px),
-                    rgba(0, 0, 0, 0) calc(100% - var(--lg-rim-side, 4px)),
-                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 100%),
-                linear-gradient(to bottom,
-                    rgba(255, 255, 255, var(--lg-rim-lit, 0.95)) 0,
-                    rgba(255, 255, 255, var(--lg-rim-lit, 0.95)) var(--lg-rim-hold, 1px),
-                    rgba(255, 255, 255, 0) var(--lg-rim-fade, 12px),
-                    rgba(255, 255, 255, 0) calc(100% - var(--lg-rim-fade, 12px)),
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.4)) calc(100% - var(--lg-rim-hold, 1px)),
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.4)) 100%);
-            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            z-index: 2;
-            transition: opacity 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+            ${tierCRimRules}
         }
 
         :host([docked]) .sidenav,
@@ -286,7 +261,6 @@ export class CgoSideNav extends LitElement {
             border: none;
             color: var(--text-light, #64748b);
             cursor: pointer;
-            transition: all 0.2s ease;
             font-weight: 500;
             font-size: 0.9rem;
             background: none;
@@ -296,10 +270,22 @@ export class CgoSideNav extends LitElement {
             line-height: 1.4;
             box-sizing: border-box;
             white-space: nowrap;
+            user-select: none;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            transition:
+                background-color var(--dur-fast, 140ms) ease,
+                color var(--dur-fast, 140ms) ease,
+                transform var(--dur-micro, 100ms) cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .sidenav-item:hover {
-            background-color: var(--btn-info-bg, #f1f3f5);
-            color: var(--text-main, #102033);
+        @media (hover: hover) and (pointer: fine) {
+            .sidenav-item:hover {
+                background-color: var(--btn-info-bg, #f1f3f5);
+                color: var(--text-main, #102033);
+            }
+        }
+        .sidenav-item:active {
+            transform: scale(0.98);
         }
         .sidenav-item.active {
             background-color: var(--sidenav-active-bg);
@@ -314,9 +300,11 @@ export class CgoSideNav extends LitElement {
         .sidenav-item.danger {
             color: var(--danger-color, #dc3545);
         }
-        .sidenav-item.danger:hover {
-            background-color: rgba(217, 48, 37, 0.1);
-            color: var(--danger-color, #dc3545);
+        @media (hover: hover) and (pointer: fine) {
+            .sidenav-item.danger:hover {
+                background-color: rgba(217, 48, 37, 0.1);
+                color: var(--danger-color, #dc3545);
+            }
         }
         .sidenav-item.danger.active {
             background-color: var(--sidenav-danger-bg);
@@ -415,6 +403,8 @@ export class CgoSideNav extends LitElement {
                 overflow-y: hidden;
                 white-space: nowrap;
                 -webkit-overflow-scrolling: touch;
+                touch-action: pan-x;
+                overscroll-behavior-x: contain;
                 gap: 8px;
                 scrollbar-width: none;
                 position: relative;

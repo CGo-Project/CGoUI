@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { hairlineRimLightRules, hairlineRimDarkRules } from '../styles/glass-shared.js';
 
 /**
  * generateCaptcha() — 纯前端生成 SVG 计算题验证码。
@@ -102,45 +103,23 @@ export class CgoCaptcha extends LitElement {
 
         /* 1px 双轴微光描边 (Layer 2 Masked 1px Hairline Rim Light, 与 cgo-button 一致，作为唯一精致描边) */
         .zoom-btn::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background:
-                linear-gradient(to right,
-                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 0,
-                    rgba(0, 0, 0, 0) var(--lg-rim-side, 3px),
-                    rgba(0, 0, 0, 0) calc(100% - var(--lg-rim-side, 3px)),
-                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 100%),
-                linear-gradient(to bottom,
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) 0,
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) var(--lg-rim-hold, 1px),
-                    rgba(255, 255, 255, 0) 8px,
-                    rgba(0, 0, 0, 0.02) calc(100% - 4px),
-                    rgba(0, 0, 0, 0.12) 100%);
-            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            z-index: 2;
-            opacity: 0.64;
-            transition: opacity var(--dur-fast, 140ms) ease;
+            ${hairlineRimLightRules}
         }
 
-        .zoom-btn:hover {
-            background-color: var(--btn-info-hover, #e9ecef);
-            color: var(--text-main, #00263b);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-        }
+        @media (hover: hover) and (pointer: fine) {
+            .zoom-btn:hover {
+                background-color: var(--btn-info-hover, #e9ecef);
+                color: var(--text-main, #00263b);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+            }
 
-        .zoom-btn:hover::before {
-            opacity: 0.75;
+            .zoom-btn:hover::before {
+                opacity: 0.75;
+            }
         }
 
         .zoom-btn:active {
-            transform: scale(0.98);
+            transform: scale(0.96);
             background-color: #dee2e6;
         }
 
@@ -162,19 +141,15 @@ export class CgoCaptcha extends LitElement {
         }
 
         :host-context([data-theme='dark']) .zoom-btn::before {
-            background:
-                linear-gradient(to bottom,
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 1.5)) 0,
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 1.5)) 1px,
-                    rgba(255, 255, 255, 0) 8px,
-                    rgba(255, 255, 255, 0) calc(100% - 4px),
-                    rgba(255, 255, 255, 0.08) 100%);
+            ${hairlineRimDarkRules}
         }
 
-        :host-context([data-theme='dark']) .zoom-btn:hover {
-            background-color: var(--btn-info-hover, #323438);
-            color: #ffffff;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+        @media (hover: hover) and (pointer: fine) {
+            :host-context([data-theme='dark']) .zoom-btn:hover {
+                background-color: var(--btn-info-hover, #323438);
+                color: #ffffff;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+            }
         }
 
         :host-context([data-theme='dark']) .zoom-btn:active {
@@ -208,32 +183,46 @@ export class CgoCaptcha extends LitElement {
             border-radius: var(--radius-sm, 6px);
             overflow: hidden;
             transform-origin: left center;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
             transition:
-                transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 0.2s ease,
-                border-color 0.2s ease;
+                transform 0.18s cubic-bezier(0.4, 0, 1, 1),
+                box-shadow 0.18s ease,
+                border-color 0.18s ease;
         }
 
-        .box:hover {
-            border-color: var(--border-hover, #ced4da);
+        @media (hover: hover) and (pointer: fine) {
+            .box:hover {
+                border-color: var(--border-hover, #ced4da);
+            }
+
+            :host-context([data-theme='dark']) .box:hover {
+                border-color: var(--border-hover, #44474b);
+            }
         }
 
         :host-context([data-theme='dark']) .box {
             border-color: var(--border-color, #383a3c);
         }
 
-        :host-context([data-theme='dark']) .box:hover {
-            border-color: var(--border-hover, #44474b);
-        }
-
         :host([zoomed]) .box {
             transform: scale(1.65);
             box-shadow: var(--shadow-lg, 0 8px 32px rgba(0, 0, 0, 0.12));
             z-index: 3;
+            transition:
+                transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.22s ease,
+                border-color 0.22s ease;
         }
 
         :host-context([data-theme='dark']):host([zoomed]) .box {
             box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .box, .zoom-btn {
+                transition: none !important;
+            }
         }
     `;
 

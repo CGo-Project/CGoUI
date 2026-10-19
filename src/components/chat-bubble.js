@@ -1,5 +1,10 @@
 import { LitElement, html, css } from 'lit';
 import { injectLiquidGlassFilter } from '../theme.js';
+import {
+    glassRefractionStyles,
+    tierBRimWeakRules,
+    tierBRimWeakDarkRules,
+} from '../styles/glass-shared.js';
 
 /**
  * <cgo-chat-bubble role="user|bot" sender="管理员" time="19:16">消息内容</cgo-chat-bubble>
@@ -28,7 +33,7 @@ export class CgoChatBubble extends LitElement {
             align-items: flex-end;
         }
 
-        /* 遵循 Tier B 不可交互底板规范 (0.82 衬底，柔和微光圈，专属不对称气泡圆角) */
+        /* 遵循 Tier B 不可交互底板规范 (0.9 衬底，柔和微光圈，专属不对称气泡圆角) */
         .bubble {
             position: relative;
             max-width: 80%;
@@ -50,10 +55,12 @@ export class CgoChatBubble extends LitElement {
             box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
-        /* 不对称圆角语义 */
+        /* 不对称圆角语义与物理入场动效 */
         .bot {
             border-radius: 16px 16px 16px 4px;
             color: var(--text-main, #00263b);
+            transform-origin: bottom left;
+            animation: bubbleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         :host-context([data-theme='dark']) .bot {
             color: var(--text-main, #e6edf3);
@@ -63,29 +70,35 @@ export class CgoChatBubble extends LitElement {
             border-radius: 16px 16px 4px 16px;
             color: #ffffff;
             box-shadow: 0 6px 20px rgba(0, 96, 152, 0.16), 0 2px 6px rgba(0, 0, 0, 0.04);
+            transform-origin: bottom right;
+            animation: bubbleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
         :host-context([data-theme='dark']) .user {
             color: #ffffff;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), 0 2px 8px rgba(0, 112, 176, 0.2);
         }
 
-        /* Layer 0: 折射磨砂层 (Tier B 规范: 14px 模糊 + 135% 饱和度 + SVG 空间折射) */
-        .glass-refraction {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            border-radius: inherit;
-            backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
-            -webkit-backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
-            filter: var(--glass-refraction-filter, url(#glass-distortion));
-            pointer-events: none;
-            overflow: hidden;
-            isolation: isolate;
+        @keyframes bubbleIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px) scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
         }
 
-        /* Layer 1: 半透明底色衬底层 (Tier B 规范: 0.82 固定) */
+        @media (prefers-reduced-motion: reduce) {
+            .bot, .user {
+                animation: none !important;
+            }
+        }
+
+        /* Layer 0: 折射磨砂层 (Tier B 规范) */
+        ${glassRefractionStyles}
+
+        /* Layer 1: 半透明底色衬底层 (Tier B 规范: 0.9 固定) */
         .bubble::after {
             content: '';
             position: absolute;
@@ -97,48 +110,30 @@ export class CgoChatBubble extends LitElement {
         }
 
         .bot::after {
-            background: var(--glass-bg-panel, rgba(255, 255, 255, 0.82));
+            background: var(--glass-bg-panel, rgba(255, 255, 255, 0.9));
         }
         :host-context([data-theme='dark']) .bot::after {
-            background: var(--glass-bg-panel, rgba(31, 32, 34, 0.82));
+            background: var(--glass-bg-panel, rgba(31, 32, 34, 0.9));
         }
 
         .user::after {
-            background: color-mix(in srgb, var(--primary-color, #006098) 82%, transparent);
+            background: color-mix(in srgb, var(--primary-color, #006098) 90%, transparent);
             background: var(--primary-color, #006098);
-            opacity: 0.85;
+            opacity: 0.9;
         }
         :host-context([data-theme='dark']) .user::after {
-            background: color-mix(in srgb, var(--primary-color, #0070b0) 82%, transparent);
+            background: color-mix(in srgb, var(--primary-color, #0070b0) 90%, transparent);
             background: var(--primary-color, #0070b0);
-            opacity: 0.85;
+            opacity: 0.9;
         }
 
         /* Layer 2: 弱化微光圈 (Tier B 规范: 顶部柔和单向光，与不对称圆角自然贴合) */
         .bubble::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background: linear-gradient(to bottom,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45 * 0.75)) 0,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45 * 0.75)) var(--lg-rim-hold, 1px),
-                rgba(255, 255, 255, 0) var(--lg-rim-fade, 12px));
-            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            z-index: 2;
-            opacity: 0.8;
+            ${tierBRimWeakRules}
         }
 
         :host-context([data-theme='dark']) .bubble::before {
-            background: linear-gradient(to bottom,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 0.45 * 1.5)) 0,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 0.45 * 1.5)) 1px,
-                rgba(255, 255, 255, 0) 8px);
+            ${tierBRimWeakDarkRules}
         }
 
         /* Layer 3: 气泡内容层 */

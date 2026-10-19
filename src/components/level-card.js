@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { hairlineRimLightRules } from '../styles/glass-shared.js';
 
 export class CgoLevelCard extends LitElement {
     static properties = {
@@ -34,30 +35,7 @@ export class CgoLevelCard extends LitElement {
 
         /* 卡片精致 1px 双轴微光描边（Hairline Rim Light，杜绝实体边框重影） */
         .card::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background:
-                linear-gradient(to right,
-                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 0,
-                    rgba(0, 0, 0, 0) var(--lg-rim-side, 3px),
-                    rgba(0, 0, 0, 0) calc(100% - var(--lg-rim-side, 3px)),
-                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 100%),
-                linear-gradient(to bottom,
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) 0,
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) var(--lg-rim-hold, 1px),
-                    rgba(255, 255, 255, 0) 12px,
-                    rgba(0, 0, 0, 0.04) calc(100% - 4px),
-                    rgba(0, 0, 0, 0.14) 100%);
-            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            z-index: 2;
-            opacity: 0.64;
+            ${hairlineRimLightRules}
         }
 
         :host([level='test']) .card {

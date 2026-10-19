@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit';
+import { hairlineRimLightRules } from '../styles/glass-shared.js';
 import { ICONS } from '../icons/icons.js';
 import { currentTheme, toggleTheme, resetToSystem, setStorageKey, getStorageKey } from '../theme.js';
 
@@ -46,40 +47,17 @@ export class CgoThemeToggle extends LitElement {
 
         /* 液态玻璃 Layer 2 精致 1px 双轴微光描边 (Hairline Rim Light)，跟随 4px r角 */
         button::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background:
-                linear-gradient(to right,
-                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 0,
-                    rgba(0, 0, 0, 0) var(--lg-rim-side, 3px),
-                    rgba(0, 0, 0, 0) calc(100% - var(--lg-rim-side, 3px)),
-                    rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 100%),
-                linear-gradient(to bottom,
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) 0,
-                    rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) var(--lg-rim-hold, 1px),
-                    rgba(255, 255, 255, 0) 8px,
-                    rgba(0, 0, 0, 0.02) calc(100% - 4px),
-                    rgba(0, 0, 0, 0.12) 100%);
-            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            z-index: 2;
-            opacity: 0.64;
-            transition: opacity var(--dur-fast, 140ms) ease;
+            ${hairlineRimLightRules}
         }
 
-        button:hover {
-            background: var(--btn-info-hover, #e9ecef);
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-        }
-
-        button:hover::before {
-            opacity: 0.75;
+        @media (hover: hover) and (pointer: fine) {
+            button:hover {
+                background: var(--btn-info-hover, #e9ecef);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+            }
+            button:hover::before {
+                opacity: 0.75;
+            }
         }
 
         /* 物理微触感反馈：按压 scale(0.98)，悬停零位移 */
@@ -106,11 +84,13 @@ export class CgoThemeToggle extends LitElement {
                     rgba(0, 0, 0, 0.08) 100%);
         }
 
-        :host([data-theme='dark']) button:hover,
-        :host-context([data-theme='dark']) button:hover {
-            background: var(--btn-info-hover, #323438);
-            color: #ffffff;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+        @media (hover: hover) and (pointer: fine) {
+            :host([data-theme='dark']) button:hover,
+            :host-context([data-theme='dark']) button:hover {
+                background: var(--btn-info-hover, #323438);
+                color: #ffffff;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+            }
         }
 
         /* 纯平 flat 模式回退 */
@@ -133,24 +113,24 @@ export class CgoThemeToggle extends LitElement {
             height: 20px;
             fill: currentColor;
             pointer-events: none;
-            /* C-07: 图标切换时旋转淡入动效 */
+            /* C-07: 图标切换时旋转淡入动效，利落紧凑 */
             transition:
-                opacity 160ms ease-out,
-                transform 280ms cubic-bezier(0.34, 1.3, 0.64, 1);
+                opacity 140ms ease-out,
+                transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
         }
-        /* C-07: 切换中：旋转 180° 缩放退出 */
+        /* C-07: 切换中：旋转 90° 缩放退出，避免极小缩放 */
         svg.icon-exit {
             opacity: 0;
-            transform: rotate(180deg) scale(0.4);
+            transform: rotate(90deg) scale(0.85);
         }
         /* C-07: 新图标旋转进入 */
         svg.icon-enter {
-            animation: iconEnter 280ms cubic-bezier(0.34, 1.3, 0.64, 1) forwards;
+            animation: iconEnter 180ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
         }
         @keyframes iconEnter {
             from {
                 opacity: 0;
-                transform: rotate(-90deg) scale(0.5);
+                transform: rotate(-60deg) scale(0.88);
             }
             to {
                 opacity: 1;
@@ -170,7 +150,9 @@ export class CgoThemeToggle extends LitElement {
             pointer-events: none;
             z-index: 11000;
             opacity: 0;
-            transition: all 0.3s ease;
+            transition:
+                opacity 160ms cubic-bezier(0.16, 1, 0.3, 1),
+                transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
             white-space: nowrap;
             box-shadow: var(--shadow-md, 0 4px 15px rgba(0, 0, 0, 0.08));
         }

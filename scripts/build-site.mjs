@@ -70,7 +70,9 @@ console.log(`[CGoUI Site Build] 4. 正在注入版本号查询参数 ?v=${versio
 for (const targetFile of [resolve(ROOT, 'index.html'), resolve(SITE_DIR, 'index.html')]) {
     if (existsSync(targetFile)) {
         const content = await readFile(targetFile, 'utf8');
-        const updated = content.replace(/((\.\/)?dist\/cgo-ui\.js\?v=)[0-9.]+/g, `$1${versionQuery}`);
+        const updated = content
+            .replace(/((\.\/)?dist\/cgo-ui\.js\?v=)[0-9.]+/g, `$1${versionQuery}`)
+            .replace(/((\.\/)?docs\/docs\.js\?v=)[0-9.]+/g, `$1${versionQuery}`);
         if (updated !== content) {
             await writeFile(targetFile, updated, 'utf8');
         }

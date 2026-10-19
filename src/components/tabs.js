@@ -24,6 +24,17 @@ export class CgoTab extends LitElement {
         }
         :host([active]) {
             display: block;
+            animation: tabFadeIn 160ms cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes tabFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(3px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     `;
 
@@ -130,6 +141,7 @@ export class CgoTabs extends LitElement {
             line-height: 1.4;
             white-space: nowrap;
             -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
         }
 
         :host([full]) .tab-btn {
@@ -150,14 +162,16 @@ export class CgoTabs extends LitElement {
             padding: 4px 14px;
         }
 
-        .tab-btn:hover:not(.active):not([disabled]) {
-            color: var(--text-main, #00263b);
-            background: rgba(0, 0, 0, 0.03);
-        }
+        @media (hover: hover) and (pointer: fine) {
+            .tab-btn:hover:not(.active):not([disabled]) {
+                color: var(--text-main, #00263b);
+                background: rgba(0, 0, 0, 0.03);
+            }
 
-        :host-context([data-theme="dark"]) .tab-btn:hover:not(.active):not([disabled]) {
-            color: #e2e8f0;
-            background: rgba(255, 255, 255, 0.04);
+            :host-context([data-theme="dark"]) .tab-btn:hover:not(.active):not([disabled]) {
+                color: #e2e8f0;
+                background: rgba(255, 255, 255, 0.04);
+            }
         }
 
         /* 激活选中项（高光浮起卡片质感） */
@@ -185,7 +199,7 @@ export class CgoTabs extends LitElement {
         }
 
         .tab-btn:active:not([disabled]) {
-            transform: scale(0.98);
+            transform: scale(0.96);
         }
 
         .tab-btn[disabled] {

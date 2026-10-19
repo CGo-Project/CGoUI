@@ -1,5 +1,10 @@
 import { LitElement, html, css } from 'lit';
 import { injectLiquidGlassFilter } from '../theme.js';
+import {
+    glassRefractionStyles,
+    tierBRimWeakRules,
+    tierBRimWeakDarkRules,
+} from '../styles/glass-shared.js';
 
 /**
  * <cgo-avatar name="张三" color="#006098" size="60"></cgo-avatar>
@@ -21,7 +26,7 @@ export class CgoAvatar extends LitElement {
             vertical-align: middle;
         }
 
-        /* 遵循 Tier B 不可交互底板规范 (0.82 衬底，柔和微光圈，50% 纯圆轮廓) */
+        /* 遵循 Tier B 不可交互底板规范 (0.9 衬底，柔和微光圈，50% 纯圆轮廓) */
         .av {
             position: relative;
             display: flex;
@@ -49,63 +54,32 @@ export class CgoAvatar extends LitElement {
             box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
-        /* Layer 0: 折射磨砂层 (Tier B 规范: 14px 模糊 + 135% 饱和度 + SVG 空间折射) */
-        .glass-refraction {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            border-radius: inherit;
-            backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
-            -webkit-backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%) url(#glass-distortion));
-            filter: var(--glass-refraction-filter, url(#glass-distortion));
-            pointer-events: none;
-            overflow: hidden;
-            isolation: isolate;
-        }
+        /* Layer 0: 折射磨砂层 (Tier B 规范) */
+        ${glassRefractionStyles}
 
-        /* Layer 1: 半透明底色衬底层 (Tier B 规范: 0.82 固定) */
+        /* Layer 1: 半透明底色衬底层 (Tier B 规范: 0.9 固定) */
         .av::after {
             content: '';
             position: absolute;
             inset: 0;
             z-index: 1;
             border-radius: inherit;
-            background: var(--cgo-avatar-bg, var(--glass-bg-panel, rgba(255, 255, 255, 0.82)));
+            background: var(--cgo-avatar-bg, var(--glass-bg-panel, rgba(255, 255, 255, 0.9)));
             pointer-events: none;
             transition: background-color 0.25s ease;
         }
 
         :host-context([data-theme='dark']) .av:not(.has-color):not(.has-src)::after {
-            background: var(--glass-bg-panel, rgba(31, 32, 34, 0.82));
+            background: var(--glass-bg-panel, rgba(31, 32, 34, 0.9));
         }
 
         /* Layer 2: 弱化微光圈 (Tier B 规范: 顶部柔和单向光，在 50% 圆形上呈现精致穹顶高光) */
         .av::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            border-radius: inherit;
-            padding: 1px;
-            background: linear-gradient(to bottom,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45 * 0.75)) 0,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45 * 0.75)) var(--lg-rim-hold, 1px),
-                rgba(255, 255, 255, 0) var(--lg-rim-fade, 12px));
-            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
-            z-index: 2;
-            opacity: 0.85;
+            ${tierBRimWeakRules}
         }
 
         :host-context([data-theme='dark']) .av::before {
-            background: linear-gradient(to bottom,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 0.45 * 1.5)) 0,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 0.45 * 1.5)) 1px,
-                rgba(255, 255, 255, 0) 8px);
+            ${tierBRimWeakDarkRules}
         }
 
         /* Layer 3: 头像内容区 (首字母文本或图片) */
@@ -173,12 +147,12 @@ export class CgoAvatar extends LitElement {
     render() {
         const sizeStr = /^\d+$/.test(this.size) ? this.size + 'px' : this.size;
         const rawColor = this.color || 'var(--primary-color, #006098)';
-        // 0.82 高不透明度衬底与折射融合
-        const glassBg = `color-mix(in srgb, ${rawColor} 82%, transparent)`;
+        // 0.9 高不透明度衬底与折射融合
+        const glassBg = `color-mix(in srgb, ${rawColor} 90%, transparent)`;
         
         let styles = `--cgo-avatar-size:${sizeStr};`;
         if (this.src) {
-            styles += `--cgo-avatar-bg:var(--glass-bg-panel, rgba(255, 255, 255, 0.82));`;
+            styles += `--cgo-avatar-bg:var(--glass-bg-panel, rgba(255, 255, 255, 0.9));`;
         } else {
             styles += `--cgo-avatar-bg:${glassBg};--cgo-avatar-flat-bg:${rawColor};`;
         }

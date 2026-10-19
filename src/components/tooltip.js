@@ -51,10 +51,20 @@ export class CgoTooltip extends LitElement {
             transform: translate(-50%, -3px);
         }
 
-        :host(:hover) .bubble {
-            opacity: 1;
-            visibility: visible;
-            transform: translate(-50%, 0);
+        @media (hover: hover) and (pointer: fine) {
+            :host(:hover) .bubble {
+                opacity: 1;
+                visibility: visible;
+                transform: translate(-50%, 0);
+                transition-delay: 200ms;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .bubble {
+                transition: opacity 100ms ease, visibility 100ms !important;
+                transform: translate(-50%, 0) !important;
+            }
         }
 
         /* 暗色模式下：略微提亮背景并赋予极细单层柔和边缘，避免与深色底色完全混融，绝无双层套圈 */

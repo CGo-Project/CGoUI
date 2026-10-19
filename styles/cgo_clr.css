@@ -262,14 +262,16 @@
     --glass-refraction-filter: url(#glass-distortion);
     --glass-backdrop-blur: blur(5px) saturate(130%);
     --glass-backdrop-blur-surface: blur(14px) saturate(135%);
-    --glass-backdrop-filter: blur(5px) saturate(130%) url(#glass-distortion);
-    --glass-backdrop-filter-surface: blur(14px) saturate(135%) url(#glass-distortion);
+    --glass-backdrop-blur-panel: blur(14px) saturate(135%);
+    --glass-backdrop-filter: blur(5px) saturate(130%);
+    --glass-backdrop-filter-surface: blur(14px) saturate(135%);
+    --glass-backdrop-filter-panel: blur(14px) saturate(135%);
     --glass-bg: rgba(255, 255, 255, 0.60);
     --glass-bg-hover: rgba(255, 255, 255, 0.68);
     --glass-bg-card: rgba(255, 255, 255, 0.60);
     --glass-bg-card-hover: rgba(255, 255, 255, 0.68);
     --glass-bg-surface: rgba(255, 255, 255, 0.72);
-    --glass-bg-panel: rgba(255, 255, 255, 0.82);
+    --glass-bg-panel: rgba(255, 255, 255, 0.9);
     --glass-border: rgba(255, 255, 255, 0.40);
     --glass-shadow:
         0 0 0 0.5px rgba(0, 0, 0, 0.06),
@@ -295,7 +297,7 @@
     --glass-bg-card: rgba(31, 32, 34, 0.60);
     --glass-bg-card-hover: rgba(38, 40, 44, 0.68);
     --glass-bg-surface: rgba(31, 32, 34, 0.72);
-    --glass-bg-panel: rgba(31, 32, 34, 0.82);
+    --glass-bg-panel: rgba(31, 32, 34, 0.9);
     --glass-border: rgba(255, 255, 255, 0.09);
     --glass-shadow:
         0 0 0 0.5px rgba(255, 255, 255, 0.09),
@@ -320,7 +322,7 @@
         --glass-bg-card: rgba(31, 32, 34, 0.60);
         --glass-bg-card-hover: rgba(38, 40, 44, 0.68);
         --glass-bg-surface: rgba(31, 32, 34, 0.72);
-        --glass-bg-panel: rgba(31, 32, 34, 0.82);
+        --glass-bg-panel: rgba(31, 32, 34, 0.9);
         --glass-border: rgba(255, 255, 255, 0.09);
         --glass-shadow:
             0 0 0 0.5px rgba(255, 255, 255, 0.09),
@@ -355,7 +357,7 @@ body[data-glass-mode='blur'],
     --glass-bg-card: rgba(255, 255, 255, 0.60);
     --glass-bg-card-hover: rgba(255, 255, 255, 0.68);
     --glass-bg-surface: rgba(255, 255, 255, 0.72);
-    --glass-bg-panel: rgba(255, 255, 255, 0.82);
+    --glass-bg-panel: rgba(255, 255, 255, 0.9);
     --glass-border: rgba(255, 255, 255, 0.40);
     --glass-shadow:
         0 0 0 0.5px rgba(0, 0, 0, 0.06),
@@ -381,14 +383,14 @@ body[data-glass-mode='liquid'],
     --glass-refraction-filter: url(#glass-distortion);
     --glass-backdrop-blur: blur(5px) saturate(130%);
     --glass-backdrop-blur-surface: blur(14px) saturate(135%);
-    --glass-backdrop-filter: blur(5px) saturate(130%) url(#glass-distortion);
-    --glass-backdrop-filter-surface: blur(14px) saturate(135%) url(#glass-distortion);
+    --glass-backdrop-filter: blur(5px) saturate(130%);
+    --glass-backdrop-filter-surface: blur(14px) saturate(135%);
     --glass-bg: rgba(255, 255, 255, 0.60);
     --glass-bg-hover: rgba(255, 255, 255, 0.68);
     --glass-bg-card: rgba(255, 255, 255, 0.60);
     --glass-bg-card-hover: rgba(255, 255, 255, 0.68);
     --glass-bg-surface: rgba(255, 255, 255, 0.72);
-    --glass-bg-panel: rgba(255, 255, 255, 0.82);
+    --glass-bg-panel: rgba(255, 255, 255, 0.9);
     --glass-border: rgba(255, 255, 255, 0.40);
     --glass-shadow:
         0 0 0 0.5px rgba(0, 0, 0, 0.06),
@@ -422,7 +424,7 @@ body[data-glass-mode='liquid'],
     --glass-bg-card: rgba(31, 32, 34, 0.60);
     --glass-bg-card-hover: rgba(38, 40, 44, 0.68);
     --glass-bg-surface: rgba(31, 32, 34, 0.72);
-    --glass-bg-panel: rgba(31, 32, 34, 0.82);
+    --glass-bg-panel: rgba(31, 32, 34, 0.9);
     --glass-border: rgba(255, 255, 255, 0.09);
     --glass-shadow:
         0 0 0 0.5px rgba(255, 255, 255, 0.09),
@@ -455,7 +457,7 @@ body[data-glass-mode='liquid'],
         --glass-bg-card: rgba(31, 32, 34, 0.60);
         --glass-bg-card-hover: rgba(38, 40, 44, 0.68);
         --glass-bg-surface: rgba(31, 32, 34, 0.72);
-        --glass-bg-panel: rgba(31, 32, 34, 0.82);
+        --glass-bg-panel: rgba(31, 32, 34, 0.9);
         --glass-border: rgba(255, 255, 255, 0.09);
         --glass-shadow:
             0 0 0 0.5px rgba(255, 255, 255, 0.09),
