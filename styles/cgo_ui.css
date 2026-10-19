@@ -672,15 +672,25 @@ body[header-mode="floating"] .tool-header:not(:has(.header-island)),
     overflow: visible !important;
 }
 
-/* 下拉菜单在浮动岛屿内展开时提权并保障溢出可见 */
+/* 下拉菜单在浮动岛屿/菜单栏内展开时提权并保障溢出可见，解除底座 backdrop-filter 防止子菜单玻璃折射被父层抵消 */
 .header-island:has(.dropdown-content.show),
 .tool-header:has(.dropdown-content.show),
+.cgoauth-header:has(.dropdown-content.show),
 .header-island:has(.dropdown.is-open),
 .tool-header:has(.dropdown.is-open),
+.cgoauth-header:has(.dropdown.is-open),
 .header-island:has(cgo-dropdown[open]),
 .tool-header:has(cgo-dropdown[open]),
+.cgoauth-header:has(cgo-dropdown[open]),
 .header-island:has(cgo-toolbar-select[open]),
-.tool-header:has(cgo-toolbar-select[open]) {
+.tool-header:has(cgo-toolbar-select[open]),
+.cgoauth-header:has(cgo-toolbar-select[open]),
+.header-island:has(cgo-admin-select[open]),
+.tool-header:has(cgo-admin-select[open]),
+.cgoauth-header:has(cgo-admin-select[open]),
+.header-island:has(.cgo-toolbar-select.is-open),
+.tool-header:has(.cgo-toolbar-select.is-open),
+.cgoauth-header:has(.cgo-toolbar-select.is-open) {
     z-index: 50002 !important;
     overflow: visible !important;
     backdrop-filter: none !important;
@@ -1882,9 +1892,9 @@ body.map-page {
     }
 
     /* 移动端悬浮胶囊栏：液态玻璃与磨砂模糊 (Tier C 不可交互强调板) */
-    :is(:root, body):is([glass-mode='liquid'], [data-glass-mode='liquid'], [glass-mode='blur'], [data-glass-mode='blur']):is([header-mode='floating'], [data-header-mode='floating']) .tool-header,
-    :is(:root, body):is([glass-mode='liquid'], [glass-mode='blur']) .tool-header[header-mode='floating'],
-    .tool-header[header-mode='floating']:is([glass-mode='liquid'], [glass-mode='blur']) {
+    :is(:root, body):is([glass-mode='liquid'], [data-glass-mode='liquid'], [glass-mode='blur'], [data-glass-mode='blur']):is([header-mode='floating'], [data-header-mode='floating']) .tool-header:not(:has(.dropdown-content.show)):not(:has(.dropdown.is-open)):not(:has(cgo-dropdown[open])):not(:has(cgo-toolbar-select[open])):not(:has(cgo-admin-select[open])):not(:has(.cgo-toolbar-select.is-open)),
+    :is(:root, body):is([glass-mode='liquid'], [glass-mode='blur']) .tool-header[header-mode='floating']:not(:has(.dropdown-content.show)):not(:has(.dropdown.is-open)):not(:has(cgo-dropdown[open])):not(:has(cgo-toolbar-select[open])):not(:has(cgo-admin-select[open])):not(:has(.cgo-toolbar-select.is-open)),
+    .tool-header[header-mode='floating']:is([glass-mode='liquid'], [glass-mode='blur']):not(:has(.dropdown-content.show)):not(:has(.dropdown.is-open)):not(:has(cgo-dropdown[open])):not(:has(cgo-toolbar-select[open])):not(:has(cgo-admin-select[open])):not(:has(.cgo-toolbar-select.is-open)) {
         backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%)) !important;
         -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%)) !important;
         background-color: var(--glass-bg-surface, rgba(255, 255, 255, 0.72)) !important;
@@ -1893,12 +1903,37 @@ body.map-page {
     }
 
     /* 移动端悬浮胶囊栏暗色主题适配 */
-    [data-theme='dark']:is(:root, body):is([glass-mode='liquid'], [data-glass-mode='liquid'], [glass-mode='blur'], [data-glass-mode='blur']):is([header-mode='floating'], [data-header-mode='floating']) .tool-header,
-    [data-theme='dark']:is(:root, body):is([glass-mode='liquid'], [glass-mode='blur']) .tool-header[header-mode='floating'],
-    [data-theme='dark'] .tool-header[header-mode='floating']:is([glass-mode='liquid'], [glass-mode='blur']) {
+    [data-theme='dark']:is(:root, body):is([glass-mode='liquid'], [data-glass-mode='liquid'], [glass-mode='blur'], [data-glass-mode='blur']):is([header-mode='floating'], [data-header-mode='floating']) .tool-header:not(:has(.dropdown-content.show)):not(:has(.dropdown.is-open)):not(:has(cgo-dropdown[open])):not(:has(cgo-toolbar-select[open])):not(:has(cgo-admin-select[open])):not(:has(.cgo-toolbar-select.is-open)),
+    [data-theme='dark']:is(:root, body):is([glass-mode='liquid'], [glass-mode='blur']) .tool-header[header-mode='floating']:not(:has(.dropdown-content.show)):not(:has(.dropdown.is-open)):not(:has(cgo-dropdown[open])):not(:has(cgo-toolbar-select[open])):not(:has(cgo-admin-select[open])):not(:has(.cgo-toolbar-select.is-open)),
+    [data-theme='dark'] .tool-header[header-mode='floating']:is([glass-mode='liquid'], [glass-mode='blur']):not(:has(.dropdown-content.show)):not(:has(.dropdown.is-open)):not(:has(cgo-dropdown[open])):not(:has(cgo-toolbar-select[open])):not(:has(cgo-admin-select[open])):not(:has(.cgo-toolbar-select.is-open)) {
         background-color: var(--glass-bg-surface, rgba(31, 32, 34, 0.72)) !important;
         border: none !important;
         box-shadow: var(--glass-shadow) !important;
+    }
+
+    /* 移动端菜单栏/胶囊顶栏内展开下拉菜单时提权并解除底座 backdrop-filter，杜绝父子双层滤镜抵消，保障 <cgo-toolbar-select>、<cgo-admin-select> 与 <cgo-dropdown> 完整呈现次世代液态磨砂折射 */
+    .header-island:has(.dropdown-content.show),
+    .tool-header:has(.dropdown-content.show),
+    .cgoauth-header:has(.dropdown-content.show),
+    .header-island:has(.dropdown.is-open),
+    .tool-header:has(.dropdown.is-open),
+    .cgoauth-header:has(.dropdown.is-open),
+    .header-island:has(cgo-dropdown[open]),
+    .tool-header:has(cgo-dropdown[open]),
+    .cgoauth-header:has(cgo-dropdown[open]),
+    .header-island:has(cgo-toolbar-select[open]),
+    .tool-header:has(cgo-toolbar-select[open]),
+    .cgoauth-header:has(cgo-toolbar-select[open]),
+    .header-island:has(cgo-admin-select[open]),
+    .tool-header:has(cgo-admin-select[open]),
+    .cgoauth-header:has(cgo-admin-select[open]),
+    .header-island:has(.cgo-toolbar-select.is-open),
+    .tool-header:has(.cgo-toolbar-select.is-open),
+    .cgoauth-header:has(.cgo-toolbar-select.is-open) {
+        z-index: 50002 !important;
+        overflow: visible !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
     }
 
     /* 按钮在小屏仅显示图标 */

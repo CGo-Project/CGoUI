@@ -2818,8 +2818,22 @@ body[data-glass-mode='liquid'] .glass-panel,
 .header-island.glass-surface,
 .tool-header.glass-surface,
 .glass-surface:has(.dropdown-content),
-.glass-surface:has(cgo-dropdown) {
+.glass-surface:has(cgo-dropdown),
+.glass-surface:has(cgo-toolbar-select),
+.glass-surface:has(cgo-admin-select),
+.glass-surface:has(.cgo-toolbar-select) {
     overflow: visible !important;
+}
+
+/* 下拉菜单展开时解除 .glass-surface 的 backdrop-filter，防止抑制子组件的次世代液态磨砂折射 */
+.glass-surface:has(.dropdown-content.show),
+.glass-surface:has(.dropdown.is-open),
+.glass-surface:has(cgo-dropdown[open]),
+.glass-surface:has(cgo-toolbar-select[open]),
+.glass-surface:has(cgo-admin-select[open]),
+.glass-surface:has(.cgo-toolbar-select.is-open) {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
 }
 
 :root[glass-mode='liquid'] .glass-surface,
