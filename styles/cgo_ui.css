@@ -472,6 +472,7 @@ body[header-mode="floating"] .header-island-left .header-left,
 .tool-header[header-mode="floating"] .header-island-left .header-left {
     min-width: auto;
     flex-shrink: 0;
+    gap: 8px !important;
 }
 
 :root:not([header-mode="classic"]):not([data-header-mode="classic"]) .header-island-left .header-center,
