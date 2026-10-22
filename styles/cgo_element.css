@@ -2172,7 +2172,7 @@ cgo-modal .modal-card:hover,
     z-index: 500;
     padding: 6px;
     overflow: hidden;
-    isolation: isolate;
+    contain: style;
     box-sizing: border-box;
     backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%));
     -webkit-backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%));
@@ -2522,10 +2522,10 @@ a.tool-card {
     color: var(--text-main);
     box-sizing: border-box;
     overflow: hidden;
-    isolation: isolate;
+    contain: style;
     box-shadow: var(--glass-shadow);
     transition: transform var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1)),
-                box-shadow var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1));
+                box-shadow var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1)));
     cursor: pointer;
 }
 
@@ -2568,9 +2568,10 @@ a.tool-card .liquid-glass-effect {
     border-radius: inherit;
     backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%));
     -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%));
-    filter: var(--glass-refraction-filter, url(#glass-distortion));
+    filter: var(--glass-refraction-filter, none);
     pointer-events: none;
     overflow: hidden;
+    /* .liquid-glass-effect 是叶子装饰层，isolation: isolate 安全，不会包含弹出层 */
     isolation: isolate;
 }
 
@@ -2683,7 +2684,9 @@ a.tool-card > *:not(.liquid-glass-effect):not(.glass-refraction) {
     color: var(--text-main);
     box-sizing: border-box;
     overflow: hidden;
-    isolation: isolate;
+    /* Fix: contain: style 防止 z-index/counter 溢出，且不创建 backdrop-filter 参考平面边界，
+       避免嵌套玻璃容器相互抑制 backdrop-filter 效果。*/
+    contain: style;
     box-shadow: var(--glass-shadow);
     cursor: default;
     /* Layer 0: 更强模糊与折射 (blur(14px) saturate(135%)) */
@@ -2708,10 +2711,11 @@ body[data-glass-mode='liquid'] .glass-panel,
     border-radius: inherit;
     backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%));
     -webkit-backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%));
-    filter: var(--glass-refraction-filter, url(#glass-distortion));
+    /* Fix: 参考 glass-shared.js 折射层的修复，使用 CSS 变量而非硬编码 url(#id) 避免业务文档边界引用失效 */
+    filter: var(--glass-refraction-filter, none);
     pointer-events: none;
     overflow: hidden;
-    isolation: isolate;
+    isolation: isolate; /* 叶子装饰层，不包含弹出层，保留 isolation 安全 */
 }
 
 /* Tier B Layer 1: 高不透明衬底 (亮色 0.9，暗色 0.9，无 hover 变化) */
@@ -2804,7 +2808,8 @@ body[data-glass-mode='liquid'] .glass-panel,
     color: var(--text-main);
     box-sizing: border-box;
     overflow: hidden;
-    isolation: isolate;
+    /* Fix: contain: style 防止 z-index/counter 溢出，且不创建 backdrop-filter 参考平面边界。 */
+    contain: style;
     box-shadow: var(--glass-shadow);
     cursor: default;
     /* Layer 0: 折射磨砂 (blur(14px) saturate(135%)) */
@@ -2932,7 +2937,7 @@ body[data-glass-mode='liquid'] .glass-surface,
     color: var(--text-main);
     box-sizing: border-box;
     overflow: hidden;
-    isolation: isolate;
+    contain: style;
     box-shadow: var(--glass-shadow);
     backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
     -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));

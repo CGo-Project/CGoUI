@@ -440,7 +440,7 @@ export class CgoButton extends LitElement {
     }
 
     render() {
-        const rawVariant = this.variant === 'glass' ? 'info' : (this.variant || 'info');
+        const rawVariant = (this.variant === 'secondary' || this.variant === 'glass') ? 'info' : (this.variant || 'info');
         const variant = this.color ? 'custom' : rawVariant;
         const cls = `v-${variant} ${this.size ? 's-' + this.size : ''} ${this.active ? 'is-active' : ''}`;
         const style = this.color

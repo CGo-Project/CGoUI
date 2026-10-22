@@ -17,7 +17,12 @@ export const glassRefractionStyles = css`
         border-radius: inherit;
         backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%));
         -webkit-backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%));
-        filter: var(--glass-refraction-filter, url(#glass-distortion));
+        /*
+         * Fix: Shadow DOM 内 filter: url(#id) 因文档边界而静默失效（Chromium 117+）。
+         * --glass-refraction-filter 由 theme.js 注入到 :root，CSS 变量继承穿透 Shadow boundary，
+         * 在宿主文档上下文中解析 SVG ID，确保折射滤镜跨组件可靠生效。
+         */
+        filter: var(--glass-refraction-filter, none);
         pointer-events: none;
         overflow: hidden;
         isolation: isolate;

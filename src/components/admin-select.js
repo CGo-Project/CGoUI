@@ -254,16 +254,17 @@ export class CgoAdminSelect extends LitElement {
         /* ── 3. 打开时的下拉菜单：参考 <cgo-dropdown> 的下拉菜单添加与 card B 一致的液态玻璃效果 ── */
         .menu {
             display: none;
-            position: absolute;
-            top: calc(100% + 6px);
-            left: 0;
-            right: 0;
+            /*
+             * Fix: position: fixed 直接以视口为定位基准，完全脱离父级的 isolation、overflow、backdrop-filter 约束。
+             * 坐标由 JS _positionMenu() 动态计算。
+             */
+            position: fixed;
             min-width: 140px;
             background: transparent;
             border: none;
             border-radius: var(--radius-md, 8px);
             box-shadow: var(--glass-shadow, 0 8px 24px rgba(0, 38, 59, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04));
-            z-index: 600;
+            z-index: 100000;
             padding: 6px;
             overflow: hidden;
             isolation: isolate;
@@ -428,6 +429,9 @@ export class CgoAdminSelect extends LitElement {
         this.open = false;
         this.glassMode = '';
         this.disabled = false;
+        this._positionHandler = () => {
+            if (this.open) this._positionMenu();
+        };
     }
 
     connectedCallback() {
@@ -439,6 +443,8 @@ export class CgoAdminSelect extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         _openAdminSelects.delete(this);
+        window.removeEventListener('resize', this._positionHandler);
+        window.removeEventListener('scroll', this._positionHandler, true);
     }
 
     openSelect() {
@@ -448,12 +454,38 @@ export class CgoAdminSelect extends LitElement {
         });
         this.open = true;
         _openAdminSelects.add(this);
+        requestAnimationFrame(() => this._positionMenu());
+        window.addEventListener('resize', this._positionHandler);
+        window.addEventListener('scroll', this._positionHandler, true);
+    }
+
+    /**
+     * 基于触发元素的视口坐标动态计算 .menu 的 fixed 定位。
+     */
+    _positionMenu() {
+        const menu = this.shadowRoot?.querySelector('.menu');
+        const select = this.shadowRoot?.querySelector('.select');
+        if (!menu || !select) return;
+
+        const r = select.getBoundingClientRect();
+        const viewportH = window.innerHeight;
+        const gap = 6;
+        const downTop = r.bottom + gap;
+        const upBottom = viewportH - r.top + gap;
+        const fitsDown = downTop + 200 < viewportH;
+
+        menu.style.top = fitsDown ? `${downTop}px` : '';
+        menu.style.bottom = !fitsDown ? `${upBottom}px` : '';
+        menu.style.left = `${r.left}px`;
+        menu.style.width = `${r.width}px`;
     }
 
     close() {
         if (!this.open) return;
         this.open = false;
         _openAdminSelects.delete(this);
+        window.removeEventListener('resize', this._positionHandler);
+        window.removeEventListener('scroll', this._positionHandler, true);
     }
 
     toggle(event) {

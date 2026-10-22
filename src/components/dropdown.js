@@ -44,15 +44,17 @@ export class CgoDropdown extends LitElement {
         /* 遵循 Tier B 不可交互底板规范 (0.9 衬底，柔和微光圈) */
         .menu {
             display: none;
-            position: absolute;
-            top: calc(100% + 8px);
-            right: 0;
+            /*
+             * Fix: position: fixed 直接以视口为定位基准，完全脱离父级的 isolation、overflow、backdrop-filter 约束。
+             * 坐标由 JS _positionMenu() 动态计算，并随 resize/scroll 跟随。
+             */
+            position: fixed;
             min-width: 190px;
             background: transparent;
             border: none;
             border-radius: var(--radius-lg, 12px);
             box-shadow: var(--glass-shadow, 0 8px 24px rgba(0, 38, 59, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04));
-            z-index: 500;
+            z-index: 100000;
             padding: 6px;
             overflow: hidden;
             isolation: isolate;
@@ -91,16 +93,11 @@ export class CgoDropdown extends LitElement {
             z-index: 3;
         }
 
+        /* align 属性仅影响 transform-origin，坐标已由 JS 全量负责 */
         :host([align='left']) .menu {
-            right: auto;
-            left: 0;
             transform-origin: top left;
         }
         :host([align='center']) .menu {
-            right: auto;
-            left: 50%;
-            translate: -50% 0;
-            transform: none;
             transform-origin: top center;
         }
         :host([open]) .menu {
@@ -235,6 +232,9 @@ export class CgoDropdown extends LitElement {
         this.align = 'right';
         this.glassMode = '';
         this._closing = false;
+        this._positionHandler = () => {
+            if (this.open) this._positionMenu();
+        };
     }
 
     connectedCallback() {
@@ -245,6 +245,8 @@ export class CgoDropdown extends LitElement {
     disconnectedCallback() {
         super.disconnectedCallback();
         _openInstances.delete(this);
+        window.removeEventListener('resize', this._positionHandler);
+        window.removeEventListener('scroll', this._positionHandler, true);
     }
 
     firstUpdated() {
@@ -263,6 +265,50 @@ export class CgoDropdown extends LitElement {
         });
         this.open = true;
         _openInstances.add(this);
+        // fixed 定位需在面板渲染后基于 trigger 视口坐标计算
+        requestAnimationFrame(() => this._positionMenu());
+        window.addEventListener('resize', this._positionHandler);
+        window.addEventListener('scroll', this._positionHandler, true);
+    }
+
+    /**
+     * 基于触发元素的视口坐标动态计算并设置菜单的 fixed 定位。
+     * 使用 position: fixed 后，菜单完全脱离父级的 isolation/overflow/backdrop-filter 约束，
+     * 从根本上解决玻璃嵌套时背景模糊被抑制导致效果丢失的问题。
+     */
+    _positionMenu() {
+        const menu = this.shadowRoot?.querySelector('.menu');
+        const trigger = this.shadowRoot?.querySelector('.trigger');
+        if (!menu || !trigger) return;
+
+        const r = trigger.getBoundingClientRect();
+        const menuW = menu.offsetWidth || 190;
+        const viewportW = window.innerWidth;
+        const viewportH = window.innerHeight;
+        const gap = 8;
+
+        // 垂直方向：优先向下展开，如果下方空间不足则向上
+        const downTop = r.bottom + gap;
+        const upBottom = viewportH - r.top + gap;
+        const fitsDown = downTop + 300 < viewportH;
+        menu.style.top = fitsDown ? `${downTop}px` : '';
+        menu.style.bottom = !fitsDown ? `${upBottom}px` : '';
+
+        // 水平方向：依据 align 属性对齐
+        menu.style.left = '';
+        menu.style.right = '';
+        if (this.align === 'left') {
+            const left = Math.max(4, Math.min(r.left, viewportW - menuW - 4));
+            menu.style.left = `${left}px`;
+        } else if (this.align === 'center') {
+            const center = r.left + r.width / 2;
+            const left = Math.max(4, Math.min(center - menuW / 2, viewportW - menuW - 4));
+            menu.style.left = `${left}px`;
+        } else {
+            // 默认 align right
+            const right = viewportW - r.right;
+            menu.style.right = `${Math.max(4, right)}px`;
+        }
     }
 
     close() {
@@ -274,6 +320,8 @@ export class CgoDropdown extends LitElement {
             this._closing = false;
             this.open = false;
             _openInstances.delete(this);
+            window.removeEventListener('resize', this._positionHandler);
+            window.removeEventListener('scroll', this._positionHandler, true);
             this.requestUpdate();
         };
         if (menu) {

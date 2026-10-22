@@ -136,15 +136,17 @@ export class CgoBadge extends LitElement {
     }
 
     render() {
-        // subsystem 优先：使用品牌渐变 token
-        if (this.subsystem) {
-            const style = `background:var(--brand-gradient-${this.subsystem});`;
+        // subsystem 优先：使用品牌渐变 token（兼容 variant="brand-xxx" 写法）
+        const effectiveSubsystem = this.subsystem || (this.variant?.startsWith('brand-') ? this.variant.slice(6) : '');
+        if (effectiveSubsystem) {
+            const style = `background:var(--brand-gradient-${effectiveSubsystem});`;
             return html`
                 <span class="badge brand" style=${style}><slot></slot></span>
             `;
         }
+        const effectiveVariant = this.variant === 'secondary' ? 'info' : (this.variant || 'primary');
         return html`
-            <span class="badge ${this.variant}"><slot></slot></span>
+            <span class="badge ${effectiveVariant}"><slot></slot></span>
         `;
     }
 }

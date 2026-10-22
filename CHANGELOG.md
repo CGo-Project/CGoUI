@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.2.1 - 2026-10-22
+
+- 修复玻璃嵌套场景下（如菜单栏内下拉菜单按钮）下拉菜单出现玻璃效果丢失与阴影显示错误的问题。
+- 下拉菜单及选择器改用 `position: fixed` + 精确位置计算，脱离父容器 `backdrop-filter` 裁剪平面。
+- 移除 `--glass-shadow` 的 `inset` 阴影，改由 `::before` 微光圈层统一承载，防止图层漂移。
+- 修复 Shadow DOM 中 SVG 滤镜引用失败问题，通过 CSS 变量 `--glass-refraction-filter` 穿透继承。
+- `<cgo-button>` 扩展支持 `secondary` 语义别名，自动匹配次级按钮样式。
+- `<cgo-badge>` 扩展支持 `brand-*` 品牌子系统渐变样式自动解析。
+- `cgo_clr.css` 补齐 `--text-secondary` 颜色 Token。
+
 ## 2.2.0 - 2026-10-19
 
 - 全面升级液态玻璃（Liquid Glass）视觉系统与滤镜规范，支持动态高斯模糊与微光反射层。

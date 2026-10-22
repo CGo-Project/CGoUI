@@ -462,6 +462,14 @@ export function injectLiquidGlassFilter() {
         if (!document.getElementById('glass-distortion') && !document.getElementById('cgo-glass-svg')) {
             (document.body || document.documentElement).appendChild(svg);
         }
+        /*
+         * Fix: 将 --glass-refraction-filter 注入到 :root，使 Shadow DOM 内的 .glass-refraction
+         * 通过 CSS 变量继承拿到引用，而非在 Shadow root 内直接使用 url(#id)。
+         * CSS 变量穿透 Shadow boundary，在宿主文档上下文中解析 SVG ID，确保折射滤镜可靠生效。
+         */
+        if (!document.documentElement.style.getPropertyValue('--glass-refraction-filter')) {
+            document.documentElement.style.setProperty('--glass-refraction-filter', 'url(#glass-distortion)');
+        }
     };
     if (document.body) {
         attach();
