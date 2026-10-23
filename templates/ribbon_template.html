@@ -285,6 +285,18 @@
                 <div class="ribbon-divider"></div>
                 <div class="ribbon-group">
                     <div class="ribbon-group-controls">
+                        <div class="ribbon-param-compact">
+                            <div class="compact-field"><label>X</label><input type="number" value="120" step="10"></div>
+                            <div class="compact-field"><label>Y</label><input type="number" value="240" step="10"></div>
+                            <div class="compact-field"><label>W</label><input type="number" value="800" step="10"></div>
+                            <div class="compact-field"><label>H</label><input type="number" value="600" step="10"></div>
+                        </div>
+                    </div>
+                    <div class="ribbon-group-label">几何坐标 (紧凑)</div>
+                </div>
+                <div class="ribbon-divider"></div>
+                <div class="ribbon-group">
+                    <div class="ribbon-group-controls">
                         <button class="ribbon-action-btn-lg" onclick="toggleSidebar(true)">
                             <div class="ribbon-icon"><cgo-icon name="view-list" size="20"></cgo-icon></div>
                             <span class="btn-text">检查侧栏</span>
@@ -446,6 +458,23 @@
                     </div>
                     <div class="sidebar-search-row">
                         <input type="text" id="auxSearchInput" placeholder="搜索任务项 (站名/ID)..." oninput="filterAuxList(this.value)">
+                    </div>
+                </div>
+
+                <div style="padding: 10px 14px; border-bottom: 1px solid var(--office-border); background: var(--office-hover);">
+                    <div class="cgo-align-wheel-container" style="background: var(--card-bg, #ffffff);">
+                        <div class="cgo-align-wheel-label">8 方向避让/方位锚点 (组件规范)</div>
+                        <div class="cgo-align-wheel" id="demoAlignWheel">
+                            <button class="wheel-sector-btn" data-dir="nw" title="西北 (NW)">NW</button>
+                            <button class="wheel-sector-btn" data-dir="n" title="正北 (N)">N</button>
+                            <button class="wheel-sector-btn" data-dir="ne" title="东北 (NE)">NE</button>
+                            <button class="wheel-sector-btn" data-dir="w" title="正西 (W)">W</button>
+                            <div class="wheel-center-dot"></div>
+                            <button class="wheel-sector-btn active" data-dir="e" title="正东 (E)">E</button>
+                            <button class="wheel-sector-btn" data-dir="sw" title="西南 (SW)">SW</button>
+                            <button class="wheel-sector-btn" data-dir="s" title="正南 (S)">S</button>
+                            <button class="wheel-sector-btn" data-dir="se" title="东南 (SE)">SE</button>
+                        </div>
                     </div>
                 </div>
 
@@ -696,6 +725,19 @@
             const strong = document.getElementById('speedVal');
             if (strong) strong.textContent = num + 'x';
         }
+
+        // 8 方向避让轮盘交互演示
+        document.addEventListener('DOMContentLoaded', () => {
+            const wheel = document.getElementById('demoAlignWheel');
+            if (wheel) {
+                wheel.addEventListener('click', (e) => {
+                    const btn = e.target.closest('.wheel-sector-btn');
+                    if (!btn) return;
+                    wheel.querySelectorAll('.wheel-sector-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                });
+            }
+        });
     </script>
 </body>
 

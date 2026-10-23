@@ -1062,6 +1062,185 @@
             }
         }
 
+        /* ==========================================================================
+           7. 生产力拓展规范组件 (Productivity Extended Components)
+           - 视口浮动控制 HUD (.viewport-hud)
+           - 8 方向方位/锚点避让轮盘 (.cgo-align-wheel)
+           - 高密度紧凑参数输入网格 (.ribbon-param-compact)
+           ========================================================================== */
+        .viewport-hud {
+            position: absolute;
+            bottom: 14px;
+            right: 14px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            background: var(--card-bg, #ffffff);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--office-border);
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            z-index: 20;
+        }
+
+        .hud-btn {
+            width: 26px;
+            height: 26px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-main);
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--dur-fast) var(--ease-out);
+        }
+
+        .hud-btn:hover {
+            background: var(--office-hover);
+            border-color: var(--office-border);
+        }
+
+        .hud-btn:active {
+            transform: scale(0.95);
+        }
+
+        .hud-divider {
+            width: 1px;
+            height: 16px;
+            background: var(--office-border);
+            margin: 0 2px;
+        }
+
+        .hud-zoom-text {
+            font-size: var(--font-size-xs, 11px);
+            font-weight: 600;
+            padding: 0 4px;
+            min-width: 44px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        /* 8 方向方位/避让锚点轮盘组件 */
+        .cgo-align-wheel-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            padding: 8px;
+            background: var(--office-hover);
+            border: 1px solid var(--office-border);
+            border-radius: 8px;
+        }
+
+        .cgo-align-wheel-label {
+            font-size: var(--font-size-xs, 11px);
+            color: var(--text-light);
+            font-weight: 500;
+        }
+
+        .cgo-align-wheel {
+            position: relative;
+            width: 96px;
+            height: 96px;
+            border-radius: 50%;
+            background: var(--card-bg, #ffffff);
+            border: 2px solid var(--office-border);
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            gap: 2px;
+            padding: 3px;
+            box-sizing: border-box;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+
+        .wheel-sector-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--text-light);
+            font-size: var(--font-size-2xs, 9px);
+            font-weight: 700;
+            transition: all var(--dur-fast) var(--ease-out);
+        }
+
+        .wheel-sector-btn:hover {
+            background: var(--office-hover);
+            color: var(--text-main);
+            border-color: var(--office-border);
+        }
+
+        .wheel-sector-btn:active {
+            transform: scale(0.92);
+        }
+
+        .wheel-sector-btn.active {
+            background: var(--office-primary);
+            color: #ffffff;
+            border-color: var(--office-primary);
+            box-shadow: 0 0 6px rgba(0, 38, 59, 0.35);
+        }
+
+        [data-theme="dark"] .wheel-sector-btn.active {
+            box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
+        }
+
+        .wheel-center-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--office-primary);
+            pointer-events: none;
+        }
+
+        /* 高密度紧凑参数输入行 */
+        .ribbon-param-compact {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 6px;
+            padding: 2px 6px;
+            height: 54px;
+            box-sizing: border-box;
+            align-content: center;
+        }
+
+        .compact-field {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: var(--font-size-xs, 11px);
+            background: var(--office-hover);
+            border: 1px solid var(--office-border);
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+
+        .compact-field label {
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: var(--font-size-2xs, 9px);
+        }
+
+        .compact-field input {
+            width: 44px;
+            background: transparent;
+            border: none;
+            color: var(--text-main);
+            font-size: var(--font-size-xs, 11px);
+            font-family: inherit;
+        }
+
+        /* ==========================================================================
+           8. 响应式布局自适应 (Responsive Breakpoints)
+           ========================================================================== */
         @media (max-width: 680px) {
             .title-bar-center {
                 display: none;
