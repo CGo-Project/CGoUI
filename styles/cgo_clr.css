@@ -1255,6 +1255,16 @@ body[data-glass-mode='none'],
     );
     --brand-border-staline: #30587d;
 
+    --brand-color-trainlcd: #e2a213;
+    --brand-gradient-start-trainlcd: #ffb430;
+    --brand-gradient-end-trainlcd: #9e8f04;
+    --brand-gradient-trainlcd: linear-gradient(
+        to top,
+        var(--brand-gradient-start-trainlcd),
+        var(--brand-gradient-end-trainlcd)
+    );
+    --brand-border-trainlcd: #7d6f03;
+
     --brand-color-project: #67caae;
     --brand-gradient-start-project: #43b1a2;
     --brand-gradient-end-project: #8fdeb2;
@@ -1299,6 +1309,12 @@ html[data-app='staline'] {
     --brand-gradient-start-appname: var(--brand-gradient-start-staline);
     --brand-gradient-end-appname: var(--brand-gradient-end-staline);
     --brand-border-appname: var(--brand-border-staline);
+}
+
+html[data-app='trainlcd'] {
+    --brand-gradient-start-appname: var(--brand-gradient-start-trainlcd);
+    --brand-gradient-end-appname: var(--brand-gradient-end-trainlcd);
+    --brand-border-appname: var(--brand-border-trainlcd);
 }
 
 html[data-app='project'] {

@@ -169,7 +169,7 @@ const COMPONENTS = [
         props: [
             ['variant', `primary | info | success | warning | danger`, 'info', '语义类型'],
             ['pill', 'boolean', 'false', '是否为胶囊外形'],
-            ['subsystem', `vitool | wall | stasign | staline | project | appname`, `''`, '子系统品牌渐变；appname 跟随 html[data-app]'],
+            ['subsystem', `vitool | wall | stasign | staline | trainlcd | project | appname`, `''`, '子系统品牌渐变；appname 跟随 html[data-app]'],
         ],
         slots: [['(默认)', '徽章文字']],
         events: [],
@@ -1392,6 +1392,8 @@ const COLOR_TOKENS = [
     { group: '工具品牌色', name: 'Stasign 渐变', token: '--brand-gradient-stasign' },
     { group: '工具品牌色', name: 'Staline', token: '--brand-color-staline' },
     { group: '工具品牌色', name: 'Staline 渐变', token: '--brand-gradient-staline' },
+    { group: '工具品牌色', name: 'TrainLCD', token: '--brand-color-trainlcd' },
+    { group: '工具品牌色', name: 'TrainLCD 渐变', token: '--brand-gradient-trainlcd' },
     { group: '工具品牌色', name: 'Project', token: '--brand-color-project' },
     { group: '工具品牌色', name: 'Project 渐变', token: '--brand-gradient-project' },
 ];
