@@ -45,15 +45,18 @@ export class CgoDropdown extends LitElement {
         .menu {
             display: none;
             /*
-             * Fix: position: fixed 直接以视口为定位基准，完全脱离父级的 isolation、overflow、backdrop-filter 约束。
-             * 坐标由 JS _positionMenu() 动态计算，并随 resize/scroll 跟随。
+             * Fix: 升级为 Top Layer Popover + position: fixed，彻底脱离父级 isolation、overflow、
+             * backdrop-filter、transform 包含块约束，以视口为基准精确定位并保持稳定磨砂。
              */
             position: fixed;
+            inset: auto;
+            margin: 0;
             min-width: 190px;
             background: transparent;
             border: none;
             border-radius: var(--radius-lg, 12px);
             box-shadow: var(--glass-shadow, 0 8px 24px rgba(0, 38, 59, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04));
+            color: inherit;
             z-index: 100000;
             padding: 6px;
             overflow: hidden;
@@ -125,27 +128,38 @@ export class CgoDropdown extends LitElement {
 
         @keyframes dropdownIn {
             from {
-                opacity: 0;
-                transform: scale(0.96);
+                transform: scale(0.96) translateY(-4px);
             }
             to {
-                opacity: 1;
-                transform: scale(1);
+                transform: scale(1) translateY(0);
             }
         }
         @keyframes dropdownOut {
             from {
-                opacity: 1;
-                transform: scale(1);
+                transform: scale(1) translateY(0);
             }
             to {
-                opacity: 0;
-                transform: scale(0.97);
+                transform: scale(0.97) translateY(-2px);
             }
+        }
+        @keyframes dropdownContentIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        .menu-content {
+            animation: dropdownContentIn var(--dur-fast, 140ms) ease;
         }
         .menu.closing {
             display: block;
             animation: dropdownOut 140ms cubic-bezier(0.4, 0, 1, 1) forwards;
+        }
+        .menu.closing .menu-content {
+            opacity: 0;
+            transition: opacity 120ms ease;
         }
 
         /* 暴露给 light DOM 菜单项的统一样式（::slotted）
@@ -265,16 +279,22 @@ export class CgoDropdown extends LitElement {
         });
         this.open = true;
         _openInstances.add(this);
-        // fixed 定位需在面板渲染后基于 trigger 视口坐标计算
-        requestAnimationFrame(() => this._positionMenu());
+        this.updateComplete.then(() => {
+            const menu = this.shadowRoot?.querySelector('.menu');
+            if (menu && typeof menu.showPopover === 'function') {
+                try {
+                    if (!menu.matches(':popover-open')) menu.showPopover();
+                } catch {}
+            }
+            requestAnimationFrame(() => this._positionMenu());
+        });
         window.addEventListener('resize', this._positionHandler);
         window.addEventListener('scroll', this._positionHandler, true);
     }
 
     /**
-     * 基于触发元素的视口坐标动态计算并设置菜单的 fixed 定位。
-     * 使用 position: fixed 后，菜单完全脱离父级的 isolation/overflow/backdrop-filter 约束，
-     * 从根本上解决玻璃嵌套时背景模糊被抑制导致效果丢失的问题。
+     * 基于触发元素的视口坐标动态计算并设置菜单的 fixed / Top Layer 定位。
+     * 配合 popover="manual" 与 position: fixed，彻底脱离父级 isolation/overflow/backdrop-filter/transform 约束。
      */
     _positionMenu() {
         const menu = this.shadowRoot?.querySelector('.menu');
@@ -283,31 +303,33 @@ export class CgoDropdown extends LitElement {
 
         const r = trigger.getBoundingClientRect();
         const menuW = menu.offsetWidth || 190;
+        const menuH = Math.min(menu.offsetHeight || 220, 420);
         const viewportW = window.innerWidth;
         const viewportH = window.innerHeight;
         const gap = 8;
 
-        // 垂直方向：优先向下展开，如果下方空间不足则向上
+        // 垂直方向：优先向下展开，下方不足且上方更宽敞时向上翻转
         const downTop = r.bottom + gap;
         const upBottom = viewportH - r.top + gap;
-        const fitsDown = downTop + 300 < viewportH;
-        menu.style.top = fitsDown ? `${downTop}px` : '';
-        menu.style.bottom = !fitsDown ? `${upBottom}px` : '';
+        const fitsDown = downTop + menuH <= viewportH - 8 || viewportH - downTop >= r.top;
+        menu.style.top = fitsDown ? `${Math.round(downTop)}px` : '';
+        menu.style.bottom = !fitsDown ? `${Math.round(upBottom)}px` : '';
 
-        // 水平方向：依据 align 属性对齐
+        // 水平方向：依据 align 属性对齐，并钳制在视口安全区内
         menu.style.left = '';
         menu.style.right = '';
         if (this.align === 'left') {
-            const left = Math.max(4, Math.min(r.left, viewportW - menuW - 4));
-            menu.style.left = `${left}px`;
+            const left = Math.max(8, Math.min(r.left, viewportW - menuW - 8));
+            menu.style.left = `${Math.round(left)}px`;
         } else if (this.align === 'center') {
             const center = r.left + r.width / 2;
-            const left = Math.max(4, Math.min(center - menuW / 2, viewportW - menuW - 4));
-            menu.style.left = `${left}px`;
+            const left = Math.max(8, Math.min(center - menuW / 2, viewportW - menuW - 8));
+            menu.style.left = `${Math.round(left)}px`;
         } else {
             // 默认 align right
-            const right = viewportW - r.right;
-            menu.style.right = `${Math.max(4, right)}px`;
+            const desiredLeft = r.right - menuW;
+            const clampedLeft = Math.max(8, Math.min(desiredLeft, viewportW - menuW - 8));
+            menu.style.left = `${Math.round(clampedLeft)}px`;
         }
     }
 
@@ -317,6 +339,11 @@ export class CgoDropdown extends LitElement {
         this.requestUpdate();
         const menu = this.shadowRoot?.querySelector('.menu');
         const done = () => {
+            if (menu && typeof menu.hidePopover === 'function') {
+                try {
+                    if (menu.matches(':popover-open')) menu.hidePopover();
+                } catch {}
+            }
             this._closing = false;
             this.open = false;
             _openInstances.delete(this);
@@ -349,7 +376,7 @@ export class CgoDropdown extends LitElement {
             </div>
             ${isVisible
                 ? html`
-                      <div class="menu ${this._closing ? 'closing' : ''}" @click=${this._onMenuClick}>
+                      <div class="menu ${this._closing ? 'closing' : ''}" popover="manual" @click=${this._onMenuClick}>
                           ${!isFlat ? html`<div class="glass-refraction" aria-hidden="true"></div>` : null}
                           <div class="menu-content">
                               <slot></slot>

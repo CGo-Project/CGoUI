@@ -44,7 +44,8 @@ export class CgoNoticeCenter extends LitElement {
             box-sizing: border-box;
         }
 
-        /* 遵循 Tier B 不可交互底板规范 (0.9 衬底，柔和微光圈，与下拉菜单 dropdown 统一外观) */
+        /* 遵循 Tier B 不可交互底板规范 (0.9 衬底，柔和微光圈，与下拉菜单 dropdown 统一外观)
+           注：backdrop-filter 与折射由内部 Layer 0 (.glass-refraction) 唯一承担，不在外层重复声明以防止自嵌套抵消 */
         .center-panel {
             position: relative;
             width: 100%;
@@ -57,10 +58,9 @@ export class CgoNoticeCenter extends LitElement {
             overflow: hidden;
             isolation: isolate;
             transition: box-shadow var(--glass-duration, 0.28s) var(--glass-easing, cubic-bezier(0.32, 0.72, 0, 1));
-            backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
-            -webkit-backdrop-filter: var(--glass-backdrop-blur-surface, blur(14px) saturate(135%));
         }
 
+        :host([data-theme='dark']) .center-panel,
         :host-context([data-theme='dark']) .center-panel {
             color: var(--text-main, #e6edf3);
             box-shadow: var(--glass-shadow);
@@ -341,6 +341,7 @@ export class CgoNoticeCenter extends LitElement {
                             <div class="empty-tip">暂无通知公告</div>
                         ` : itemList.map(item => html`
                             <cgo-notice-card
+                                embedded
                                 category=${item.category || 'software'}
                                 notice-title=${item.title || ''}
                                 content=${item.content || ''}

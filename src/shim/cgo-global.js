@@ -143,14 +143,214 @@ function use(name, opts) {
     );
 }
 
-/* ───────── 下拉菜单（移植自 cgo_ctrl.js，操作旧 .dropdown markup）───────── */
+/* ───────── 下拉菜单（移植自 cgo_ctrl.js，升级为 Top Layer Popover + 动态视口锚点定位）───────── */
+const _activeDropdownPopovers = new Set();
+let _dropdownOverlaySyncBound = false;
+let _dropdownResizeObserver = null;
+
+function _findDropdownTrigger(content) {
+    if (!content) return null;
+    if (content._cgoAnchorTrigger && document.contains(content._cgoAnchorTrigger)) {
+        return content._cgoAnchorTrigger;
+    }
+    const dropdown = content.closest?.('.dropdown');
+    if (dropdown) {
+        const btn = dropdown.querySelector(':scope > .dropbtn, :scope > button, .dropbtn');
+        if (btn) return btn;
+    }
+    if (content.id === 'clock-menu') return document.getElementById('clock');
+    return content.parentElement?.querySelector?.('.dropbtn, [aria-haspopup]') || null;
+}
+
+function positionDropdownOverlay(content, trigger) {
+    if (!content || !content.classList.contains('show')) return;
+    if (content.dataset.cgoauthManaged === 'react' || content.dataset.cgoAnchorManaged === 'manual') return;
+    if (content.id === 'clock-menu') return;
+    trigger = trigger || _findDropdownTrigger(content);
+    if (!trigger) return;
+    content._cgoAnchorTrigger = trigger;
+
+    const r = trigger.getBoundingClientRect();
+    if (r.width === 0 && r.height === 0) return;
+
+    const vw = window.innerWidth || document.documentElement.clientWidth || 1024;
+    const vh = window.innerHeight || document.documentElement.clientHeight || 768;
+    const gap = 8;
+    const pad = 10;
+    const isNoticesLayout = content.classList.contains('has-notices-layout');
+    const isCenteredSwitcher =
+        content.classList.contains('tool-switcher-menu') || Boolean(trigger.closest('.header-center'));
+
+    // 重置先前的水平定位以便按当前断点精确计算
+    content.style.position = 'fixed';
+    content.style.margin = '0';
+    content.style.inset = 'auto';
+    content.style.transform = 'none';
+
+    if (vw <= 840 && isNoticesLayout) {
+        const targetW = Math.min(Math.max(240, vw - 24), 380);
+        const top = Math.max(8, Math.round(r.bottom + gap));
+        const maxH = Math.max(220, Math.round(vh - top - 14));
+        content.style.left = `${Math.round((vw - targetW) / 2)}px`;
+        content.style.right = 'auto';
+        content.style.top = `${top}px`;
+        content.style.bottom = 'auto';
+        content.style.width = `${targetW}px`;
+        content.style.minWidth = `${targetW}px`;
+        content.style.maxHeight = `${maxH}px`;
+        return;
+    }
+
+    content.style.width = '';
+    content.style.minWidth = '';
+    content.style.maxHeight = '';
+
+    const downTop = Math.max(pad, Math.round(r.bottom + gap));
+    content.style.top = `${downTop}px`;
+    content.style.bottom = 'auto';
+    content.style.right = 'auto';
+    content.style.left = '0px';
+
+    const rect = content.getBoundingClientRect();
+    const contentW = Math.max(rect.width || 0, isNoticesLayout ? 582 : 190);
+    const spaceBelow = Math.max(160, vh - downTop - pad);
+    const spaceAbove = Math.max(160, r.top - gap - pad);
+
+    let left;
+    if (isCenteredSwitcher) {
+        left = Math.round(r.left + r.width / 2 - contentW / 2);
+    } else if (
+        trigger.closest('.header-left, .header-island-left, .header-toolbar-leading') &&
+        !content.classList.contains('align-right')
+    ) {
+        left = Math.round(r.left);
+    } else {
+        left = Math.round(r.right - contentW);
+    }
+    left = Math.max(pad, Math.min(left, vw - contentW - pad));
+    content.style.left = `${left}px`;
+
+    if (!isNoticesLayout && rect.height > spaceBelow && spaceAbove > spaceBelow) {
+        const usedH = Math.min(rect.height, spaceAbove);
+        content.style.top = `${Math.max(pad, Math.round(r.top - gap - usedH))}px`;
+        content.style.maxHeight = `${Math.round(spaceAbove)}px`;
+    } else if (rect.height > spaceBelow) {
+        content.style.maxHeight = `${Math.round(spaceBelow)}px`;
+    }
+}
+
+function _repositionAllActiveDropdowns() {
+    _activeDropdownPopovers.forEach((content) => {
+        if (!document.contains(content) || !content.classList.contains('show')) {
+            _activeDropdownPopovers.delete(content);
+            return;
+        }
+        positionDropdownOverlay(content);
+    });
+}
+
+function _ensureDropdownOverlaySync() {
+    if (_dropdownOverlaySyncBound || typeof window === 'undefined') return;
+    _dropdownOverlaySyncBound = true;
+    window.addEventListener('resize', _repositionAllActiveDropdowns, { passive: true });
+    window.addEventListener('scroll', _repositionAllActiveDropdowns, true);
+    if (typeof ResizeObserver !== 'undefined') {
+        _dropdownResizeObserver = new ResizeObserver((entries) => {
+            for (const entry of entries) {
+                const el = entry.target;
+                if (el && el.classList?.contains('show')) {
+                    positionDropdownOverlay(el);
+                }
+            }
+        });
+    }
+}
+
+function syncDropdownOverlay(content, trigger) {
+    if (!content || content.dataset.cgoauthManaged === 'react') return;
+    const isOpen = content.classList.contains('show');
+    if (isOpen) {
+        if (trigger) content._cgoAnchorTrigger = trigger;
+        const parentDropdown = content.closest?.('.dropdown');
+        if (parentDropdown) parentDropdown.classList.add('is-open');
+        if (content.id !== 'clock-menu' && typeof content.showPopover === 'function') {
+            if (content.getAttribute('popover') !== 'manual') {
+                content.setAttribute('popover', 'manual');
+            }
+            try {
+                if (!content.matches(':popover-open')) content.showPopover();
+            } catch (_) {}
+        }
+        _activeDropdownPopovers.add(content);
+        _ensureDropdownOverlaySync();
+        if (_dropdownResizeObserver && !content._cgoResizeObserved) {
+            content._cgoResizeObserved = true;
+            try {
+                _dropdownResizeObserver.observe(content);
+            } catch (_) {}
+        }
+        positionDropdownOverlay(content, trigger);
+        requestAnimationFrame(() => positionDropdownOverlay(content, trigger));
+    } else {
+        _activeDropdownPopovers.delete(content);
+        const parentDropdown = content.closest?.('.dropdown');
+        if (parentDropdown) parentDropdown.classList.remove('is-open');
+        if (typeof content.hidePopover === 'function') {
+            try {
+                if (content.matches(':popover-open')) content.hidePopover();
+            } catch (_) {}
+        }
+        if (content.hasAttribute('popover')) {
+            content.removeAttribute('popover');
+        }
+        if (content.id !== 'clock-menu') {
+            content.style.position = '';
+            content.style.top = '';
+            content.style.bottom = '';
+            content.style.left = '';
+            content.style.right = '';
+            content.style.width = '';
+            content.style.minWidth = '';
+            content.style.maxHeight = '';
+            content.style.margin = '';
+            content.style.inset = '';
+            content.style.transform = '';
+        }
+    }
+}
+
+function _installDropdownClassObserver() {
+    if (typeof MutationObserver === 'undefined' || typeof document === 'undefined') return;
+    if (document._cgoDropdownClassObserver) return;
+    const observer = new MutationObserver((mutations) => {
+        for (const m of mutations) {
+            if (m.type === 'attributes' && m.attributeName === 'class') {
+                const el = m.target;
+                if (el && el.classList && el.classList.contains('dropdown-content')) {
+                    syncDropdownOverlay(el);
+                }
+            }
+        }
+    });
+    const root = document.body || document.documentElement;
+    if (root) {
+        observer.observe(root, { subtree: true, attributes: true, attributeFilter: ['class'] });
+        document._cgoDropdownClassObserver = observer;
+    }
+}
+
 function _closeAll(root, exclude) {
-    root.querySelectorAll('.dropdown-content.show').forEach((el) => {
-        if (el !== exclude) el.classList.remove('show');
+    const scope = root && typeof root.querySelectorAll === 'function' ? root : document;
+    scope.querySelectorAll('.dropdown-content.show').forEach((el) => {
+        if (el !== exclude) {
+            el.classList.remove('show');
+            syncDropdownOverlay(el);
+        }
     });
 }
 function initDropdowns(root) {
     root = root || document;
+    _installDropdownClassObserver();
     root.querySelectorAll('.dropdown').forEach((dropdown) => {
         const trigger = dropdown.querySelector('.dropbtn');
         const content = dropdown.querySelector('.dropdown-content');
@@ -160,20 +360,59 @@ function initDropdowns(root) {
         trigger.addEventListener('click', (e) => {
             e.stopPropagation();
             const willOpen = !content.classList.contains('show');
-            _closeAll(root instanceof Document ? document.body : root);
-            if (willOpen) content.classList.add('show');
-        });
-        content.querySelectorAll('a, button').forEach((item) => {
-            item.addEventListener('click', (e) => {
-                e.stopPropagation();
+            _closeAll(document, willOpen ? content : null);
+            if (willOpen) {
+                content.classList.add('show');
+                syncDropdownOverlay(content, trigger);
+            } else {
                 content.classList.remove('show');
-            });
+                syncDropdownOverlay(content, trigger);
+            }
         });
+        if (!content._cgoMenuClickBound) {
+            content._cgoMenuClickBound = true;
+            content.addEventListener('click', (e) => {
+                const path = e.composedPath ? e.composedPath() : [];
+                // 点击通知中心或账号调色板等交互区内部，保持菜单展开
+                if (
+                    path.some(
+                        (node) =>
+                            node.classList &&
+                            (node.classList.contains('dropdown-notice-center') ||
+                                node.classList.contains('cgopush-center-panel') ||
+                                node.classList.contains('auth-color-picker-panel') ||
+                                node.classList.contains('auth-avatar-large') ||
+                                node.classList.contains('auth-user-card')),
+                    ) ||
+                    path.some((node) => node.tagName === 'CGO-NOTICE-CENTER')
+                ) {
+                    return;
+                }
+                const actionItem = e.target?.closest?.('a, button.dropdown-item');
+                if (actionItem) {
+                    content.classList.remove('show');
+                    syncDropdownOverlay(content, trigger);
+                }
+            });
+        }
     });
     if (!root._cgoDropdownOutsideInit) {
         root._cgoDropdownOutsideInit = true;
         const target = root instanceof Document ? document : root;
-        target.addEventListener('click', () => _closeAll(root instanceof Document ? document.body : root));
+        target.addEventListener('click', (e) => {
+            const path = e.composedPath ? e.composedPath() : [];
+            const insideOpenDropdown = path.some(
+                (el) =>
+                    el.classList &&
+                    (el.classList.contains('dropdown-content') ||
+                        el.classList.contains('dropdown') ||
+                        el.classList.contains('dropdown-notice-center') ||
+                        el.classList.contains('cgopush-center-panel')),
+            );
+            if (!insideOpenDropdown) {
+                _closeAll(document);
+            }
+        });
     }
 }
 
@@ -364,6 +603,8 @@ export function installGlobalShim(global = window) {
     CGO.iconList = iconNames;
     // ctrl
     CGO.initDropdowns = initDropdowns;
+    CGO.positionDropdownOverlay = positionDropdownOverlay;
+    CGO.syncDropdownOverlay = syncDropdownOverlay;
     CGO.getThemeSettingHTML = getThemeSettingHTML;
     CGO.bindThemeSelect = bindThemeSelect;
     CGO.showToast = showToast;

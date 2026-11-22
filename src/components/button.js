@@ -21,6 +21,7 @@ export class CgoButton extends LitElement {
         iconOnly: { type: Boolean, attribute: 'icon-only', reflect: true },
         pill: { type: Boolean, reflect: true },
         active: { type: Boolean, reflect: true },
+        dot: { type: Boolean, reflect: true },
         type: { type: String },
         color: { type: String },
         textColor: { type: String, attribute: 'text-color' },
@@ -29,8 +30,25 @@ export class CgoButton extends LitElement {
 
     static styles = css`
         :host {
+            position: relative;
             display: inline-flex;
             vertical-align: middle;
+        }
+        .btn-dot {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #ff3b30;
+            box-shadow: 0 0 0 2px var(--bg-body, var(--bg-color, #ffffff));
+            pointer-events: none;
+            z-index: 5;
+        }
+        :host([data-theme='dark']) .btn-dot,
+        :host-context([data-theme='dark']) .btn-dot {
+            box-shadow: 0 0 0 2px var(--bg-body, var(--bg-color, #1f2020));
         }
         :host([full]) {
             display: flex;
@@ -401,6 +419,7 @@ export class CgoButton extends LitElement {
         this.iconOnly = false;
         this.pill = false;
         this.active = false;
+        this.dot = false;
         this.type = 'button';
         this.color = '';
         this.textColor = '';
@@ -465,6 +484,7 @@ export class CgoButton extends LitElement {
                 ${this.iconOnly && this.icon ? null : label}
                 ${!this.loading && this.iconPos === 'right' ? iconEl : null}
             </button>
+            ${this.dot ? html`<span class="btn-dot" part="dot" aria-hidden="true"></span>` : null}
         `;
     }
 }

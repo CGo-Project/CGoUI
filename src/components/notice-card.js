@@ -36,6 +36,7 @@ export class CgoNoticeCard extends LitElement {
         imageUrl: { type: String, attribute: 'image-url' },
         popup: { type: Boolean, reflect: true },
         closable: { type: Boolean, reflect: true },
+        embedded: { type: Boolean, reflect: true },
         actions: { type: Array },
         customCatName: { type: String, attribute: 'cat-name' },
         duration: { type: Number },
@@ -129,7 +130,25 @@ export class CgoNoticeCard extends LitElement {
             z-index: 3;
         }
 
-        /* 传统扁平降级模式 */
+        /* 传统扁平降级模式与通知中心内嵌卡片（避免三层嵌套 backdrop-filter 与 SVG 折射伪影） */
+        :host([embedded]) .notice-card {
+            background: rgba(255, 255, 255, 0.72);
+            border: 1px solid rgba(0, 38, 59, 0.07);
+            box-shadow: 0 1px 3px rgba(0, 38, 59, 0.04);
+            backdrop-filter: none;
+            -webkit-backdrop-filter: none;
+        }
+        :host([embedded][data-theme='dark']) .notice-card,
+        :host-context([data-theme='dark']):host([embedded]) .notice-card {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
+        }
+        :host([embedded]) .notice-card::before,
+        :host([embedded]) .notice-card::after,
+        :host([embedded]) .glass-refraction {
+            display: none;
+        }
         :host([glass-mode='flat']) .notice-card,
         :host([glass-mode='none']) .notice-card {
             background: var(--card-bg, #ffffff);
@@ -367,6 +386,7 @@ export class CgoNoticeCard extends LitElement {
         this.imageUrl = '';
         this.popup = false;
         this.closable = false;
+        this.embedded = false;
         this.actions = [];
         this.customCatName = '';
         this.duration = 0;
@@ -409,7 +429,7 @@ export class CgoNoticeCard extends LitElement {
 
         return html`
             <div class="notice-card cat-${this.category}">
-                ${!isFlat ? html`<div class="glass-refraction" aria-hidden="true"></div>` : null}
+                ${!isFlat && !this.embedded ? html`<div class="glass-refraction" aria-hidden="true"></div>` : null}
 
                 ${this.closable ? html`
                     <div class="close-container ${hasCountdown ? 'has-spinner' : ''}">
