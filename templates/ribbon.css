@@ -1199,6 +1199,7 @@
             border-radius: 50%;
             background: var(--office-primary);
             pointer-events: none;
+            place-self: center;
         }
 
         /* 高密度紧凑参数输入行 */

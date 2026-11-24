@@ -125,7 +125,6 @@
     font-weight: 700;
     cursor: pointer;
     box-shadow: none;
-    border: 1px solid var(--select-border);
     font-family: var(--font-sans);
     transition: border-color 0.15s ease;
 }
@@ -525,6 +524,7 @@
     position: absolute;
     left: calc(100% + 10px);
     top: 50%;
+    bottom: auto;
     transform: translateY(-50%);
     width: min(360px, 52dvw);
     padding: 8px 10px;
@@ -1458,12 +1458,6 @@
 /* =====================================================
    §16  图片 / PDF 增强 (Media Enhancements)
    ===================================================== */
-/* PDF Canvas */
-canvas {
-    display: block;
-    margin: 0 auto;
-}
-
 /* 危险区行 */
 .danger-row {
     display: flex;
@@ -1547,11 +1541,11 @@ canvas {
 }
 
 /* Firefox */
-* {
+:root {
     scrollbar-width: thin;
     scrollbar-color: rgba(0, 0, 0, 0.18) transparent;
 }
-[data-theme='dark'] * {
+[data-theme='dark'] {
     scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
 }
 
@@ -1575,7 +1569,7 @@ canvas {
     display: flex;
     align-items: center;
     gap: 10px;
-    background: var(--input-bg, var(--bg-secondary, #f5f6f8));
+    background: var(--cgo-input-bg, var(--cgo-bg-secondary, #f5f6f8));
     border: 1px solid var(--border-color, #dee2e6);
     border-radius: var(--radius-sm, 6px);
     padding: 6px 10px;
@@ -1835,15 +1829,15 @@ cgo-toolbar-btn,
 /* 微光描边统一继承自 cgo_element.css 中的 cgo-toolbar-btn::before，避免重复声明 */
 
 
-cgo-toolbar-btn:hover:not(:disabled),
-.cgo-toolbar-btn:hover:not(:disabled) {
+cgo-toolbar-btn:hover:not([disabled]):not(:disabled),
+.cgo-toolbar-btn:hover:not([disabled]):not(:disabled) {
     background-color: var(--btn-info-hover, #e9ecef);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
 /* 按压微触感反馈：仅在点击瞬间产生 scale(0.98) 弹性回馈，取消悬停上下位移 */
-cgo-toolbar-btn:active:not(:disabled),
-.cgo-toolbar-btn:active:not(:disabled) {
+cgo-toolbar-btn:active:not([disabled]):not(:disabled),
+.cgo-toolbar-btn:active:not([disabled]):not(:disabled) {
     transform: scale(0.98);
 }
 
@@ -1869,8 +1863,8 @@ cgo-toolbar-btn > *,
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
 }
 
-[data-theme='dark'] cgo-toolbar-btn:hover:not(:disabled),
-[data-theme='dark'] .cgo-toolbar-btn:hover:not(:disabled) {
+[data-theme='dark'] cgo-toolbar-btn:hover:not([disabled]):not(:disabled),
+[data-theme='dark'] .cgo-toolbar-btn:hover:not([disabled]):not(:disabled) {
     background-color: var(--btn-info-hover, #323438);
     color: #ffffff;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
@@ -1890,8 +1884,8 @@ cgo-toolbar-btn.cgo-toolbar-btn-primary,
     box-shadow: 0 1px 2px rgba(0, 96, 152, 0.2);
 }
 
-cgo-toolbar-btn.cgo-toolbar-btn-primary:hover:not(:disabled),
-.cgo-toolbar-btn.cgo-toolbar-btn-primary:hover:not(:disabled) {
+cgo-toolbar-btn.cgo-toolbar-btn-primary:hover:not([disabled]):not(:disabled),
+.cgo-toolbar-btn.cgo-toolbar-btn-primary:hover:not([disabled]):not(:disabled) {
     background-color: var(--primary-hover, #004f80);
     color: #ffffff !important;
     box-shadow: 0 2px 5px rgba(0, 96, 152, 0.25);
@@ -1904,8 +1898,8 @@ cgo-toolbar-btn.cgo-toolbar-btn-primary:hover:not(:disabled),
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
-[data-theme='dark'] cgo-toolbar-btn.cgo-toolbar-btn-primary:hover:not(:disabled),
-[data-theme='dark'] .cgo-toolbar-btn.cgo-toolbar-btn-primary:hover:not(:disabled) {
+[data-theme='dark'] cgo-toolbar-btn.cgo-toolbar-btn-primary:hover:not([disabled]):not(:disabled),
+[data-theme='dark'] .cgo-toolbar-btn.cgo-toolbar-btn-primary:hover:not([disabled]):not(:disabled) {
     background-color: var(--primary-hover, #0084d1);
     color: #ffffff !important;
     box-shadow: 0 2px 6px rgba(0, 112, 176, 0.35);
@@ -1919,8 +1913,8 @@ cgo-toolbar-btn.cgo-toolbar-btn-danger,
     box-shadow: 0 1px 2px rgba(234, 67, 53, 0.2);
 }
 
-cgo-toolbar-btn.cgo-toolbar-btn-danger:hover:not(:disabled),
-.cgo-toolbar-btn.cgo-toolbar-btn-danger:hover:not(:disabled) {
+cgo-toolbar-btn.cgo-toolbar-btn-danger:hover:not([disabled]):not(:disabled),
+.cgo-toolbar-btn.cgo-toolbar-btn-danger:hover:not([disabled]):not(:disabled) {
     background-color: var(--danger-hover, #d33828);
     color: #ffffff !important;
     box-shadow: 0 2px 5px rgba(234, 67, 53, 0.28);
@@ -1934,8 +1928,8 @@ cgo-toolbar-btn.cgo-toolbar-btn-success,
     box-shadow: 0 1px 2px rgba(52, 168, 83, 0.2);
 }
 
-cgo-toolbar-btn.cgo-toolbar-btn-success:hover:not(:disabled),
-.cgo-toolbar-btn.cgo-toolbar-btn-success:hover:not(:disabled) {
+cgo-toolbar-btn.cgo-toolbar-btn-success:hover:not([disabled]):not(:disabled),
+.cgo-toolbar-btn.cgo-toolbar-btn-success:hover:not([disabled]):not(:disabled) {
     background-color: #2d9248;
     color: #ffffff !important;
     box-shadow: 0 2px 5px rgba(52, 168, 83, 0.28);

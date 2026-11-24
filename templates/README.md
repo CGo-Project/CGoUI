@@ -90,7 +90,7 @@ body (flex-direction: column; overflow: hidden;)
 
 ### 2. 页面结构 (DOM Tree)
 ```text
-body.scrollable (min-height: 100vh; overflow-y: auto;)
+body.scrollable (min-height: 100dvh; overflow-y: auto;)
 ├── header.tool-header (1.0 经典吸顶整体合并标题栏，header-mode="classic")
 │   ├── .header-left (左侧：导航按钮 + Logo/Icon + 标题)
 │   ├── .header-center (中间：选项卡 nav.header-tabs / cgo-tabs 导航视图)
@@ -337,7 +337,7 @@ body.office-app-shell (100dvh 全屏固定受控视口，overflow: hidden)
 
 1. **脚本入口必须是 `dist/cgo-ui.js`**。仓库 `src/` 下**没有** `cgo-ui.js`（源码入口是 `src/index.js`，且依赖裸模块 `lit`，浏览器无法直接加载）。
 2. **HTML 中没有 `oncgochange` / `oncgotabchange` 这类属性**——它们只存在于 React 包装层 `src/react.js`。原生页面必须用 `addEventListener('cgo-change' | 'cgo-tab-change' | 'cgo-close' | 'cgo-input' | 'cgo-nav-change', ...)`。
-3. **主题防闪烁脚本读取的 localStorage 键，必须与主题引擎实际使用的键一致**。引擎的 `autoStorageKey()` 会按页面文件名推导前缀（命中 `vitool`/`wall`/`stasign`/`staline`/`project`/`cgoauth`/`mc`/`enmap`/`guide`/`timetable` 时为 `<文件名>_app-theme`），需要自定义时请调用导出的 `setStorageKey()`，而不是手写 `localStorage.setItem()`。
+3. **主题防闪烁脚本读取的 localStorage 键，必须与主题引擎实际使用的键一致**。引擎会自动按当前页面路径派生隔离键，需要自定义键名时请调用 `theme.js` 导出的 `setStorageKey()`，而不是手写 `localStorage.setItem()`；同时，在 `CGO.theme` 上也暴露了 `setThemeColor()` / `resetThemeColor()` 与 `setBgMode()` 等运行时 API。
 
 ---
 

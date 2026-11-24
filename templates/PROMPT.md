@@ -29,13 +29,13 @@
 
 1. **工具页面模板 (Tool Page Template)**：
    - **适用场景**：在线 Web 工具、控制面板、数据转换器、编辑器、地图/可视化画布、颜色/参数表。
-   - **布局架构**：`body` 设置 `overflow: hidden; display: flex; flex-direction: column; height: 100vh;`。
+   - **布局架构**：`body` 设置 `overflow: hidden; display: flex; flex-direction: column; height: 100dvh;`。
      - 吸顶三段式顶栏（`<header class="tool-header">`）
      - 主工作区（`<main class="tool-container">`）
      - 控制卡片（`.tool-card`） / 表格（`.table-container` 与 `.modern-table`）
 2. **信息页面模板 (Info Page Template)**：
    - **适用场景**：产品官网、功能介绍、视觉规范展示、长文与文档说明。
-   - **布局架构**：`body` 设置 `min-height: 100vh; overflow-y: auto;`。
+   - **布局架构**：`body` 设置 `min-height: 100dvh; overflow-y: auto;`。
      - 带 Tabs 切换顶栏（`<nav class="header-tabs">`）
      - Hero 头图区（`<section class="hero-split">`）
      - 交错图文模块（`<section class="content-section">`）
@@ -444,12 +444,12 @@ CGoUI 对所有液态玻璃卡片建立了严格的 3 档分级体系，彻底�
 ### 7.2 按钮光学微光与物理微交互规范 (Button Physics & Rim Light)
 
 - **1px 极细微光轮廓线（Hairline Rim Light）**：全系按钮统一采用双轴单像素 Masked 微光轮廓。不透明度统一收敛为 **常态 0.64 / 悬停 0.75**，杜绝大反差笨重高光与粗白边。
-- **动效收敛（/all-emil 物理交互）**：**彻底取消悬停上浮位移（严禁 translateY(-1px/2px)）**，避免密集按钮组在鼠标滑过时上下颠簸。仅在 `:active` 点击瞬间产生 `scale(0.98)` 微触感弹性回弹。
+- **动效收敛（现代微交互法则）**：**彻底取消悬停上浮位移（严禁 translateY(-1px/2px)）**，避免密集按钮组在鼠标滑过时上下颠簸。仅在 `:active` 点击瞬间产生 `scale(0.98)` 微触感弹性回弹。
 - **视觉一致性**：7 种变体（`primary`、`info`、`dark`、`success`、`danger`、`warning`、`ghost`）使用统一圆角、高度与阴影层级，保持全站风格统一。
 
 ### 8. 悬浮菜单栏 (Floating Island Header) 与双岛屿架构规范
 
-CGoUI 2.0 默认采用脱离文档流的「分体浮动双岛菜单栏」（参考 CGo-Web-Tools/map 实践），同时完整保留 1.0 经典整体吸顶标题栏规范：
+CGoUI 2.0 默认采用脱离文档流的「分体浮动双岛菜单栏」（现代桌面/移动双态导航实践），同时完整保留 1.0 经典整体吸顶标题栏规范：
 
 | 模式 | 声明方式 | 效果表现 | 适用与 AI 决策规则 |
 | :--- | :--- | :--- | :--- |
@@ -542,7 +542,7 @@ CGoUI 支持通过页面属性 `bg-mode` 规范化控制页面全局背景，并
    ```
 2. **触控高度**：移动端按钮与可交互元素最小触控区保证 `44px` 以上，防止误触。
 3. **三段式顶栏响应式**：`.header-center`（标题/Tabs）在窄屏上自动收缩省略，保留左右两侧操作区。
-4. **工具页滚动模型**：`body` 使用 `height: 100vh; overflow: hidden;`，局部滚动由 `.table-container` 或 `.tool-card` 内部的 `overflow: auto;` 承接，保持顶栏固定。
+4. **工具页滚动模型**：`body` 使用 `height: 100dvh; overflow: hidden;`，局部滚动由 `.table-container` 或 `.tool-card` 内部的 `overflow: auto;` 承接，保持顶栏固定。
 5. **清除旧站 UA 跳转**：老网页常带有“检测到移动端就跳转 `/mobile/`”的脚本。改造为响应式后**必须删除该跳转**，否则手机上永远看不到新版页面。
 6. **多栏必须真实响应**：桌面端的 2/3/4 栏不能只靠缩小宽度延续到手机。中等屏应按内容降列，窄屏通常折叠为 1 栏；仅当内容本身适合横向比较时才使用可横向滚动区域。
 7. **禁止固定正文窄宽度复刻旧站**：如果原站正文长期锁死在 760/960/1000px 一类老式宽度，不得原样保留。应根据内容采用现代响应式容器、Grid/Flex 和合理的 `minmax()` / `clamp()`，让宽屏空间真正参与信息布局。
@@ -574,15 +574,15 @@ CGoUI 支持通过页面属性 `bg-mode` 规范化控制页面全局背景，并
 | 线路徽标 | `<cgo-line-badge>` | `line="10"` | — |
 | 等级卡片 | `<cgo-level-card>` | `level` `label` | — |
 | 头像 | `<cgo-avatar>` | — | — |
-| 下拉**菜单**（触发器 + 菜单项） | `<cgo-dropdown>` | `align="left\|right\|center"` `glass-mode`，触发器用 `slot="trigger"`，项用 `.dropdown-item` | 弹出面板已全面适配 Liquid Glass Tier B 不可交互底板规范；**不派发事件**，在菜单项上自行绑 `click` |
-| 下拉**选择器** | `<cgo-toolbar-select>` + `<cgo-toolbar-option value="">` | `value` `placeholder` `disabled` `glass-mode` | 功能入口收起时对齐按钮液态玻璃微光，展开时对齐输入框激活光晕环，下拉菜单浮层对齐 Liquid Glass Tier B 规范 | `cgo-change`（`detail.value`） |
-| 管理端选择器 | `<cgo-admin-select>` | `state="inherit\|enabled\|disabled\|hidden"` `glass-mode` | 功能入口收起时对齐按钮液态玻璃微光，展开时对齐输入框激活光晕环，下拉菜单对齐 Liquid Glass Tier B 规范 | `cgo-admin-change` |
-| 模态弹窗 | `<cgo-modal>` | `open` `title` `max-width="420px"` `glass-mode` | 主面板全面对齐 Liquid Glass Tier B 规范；内嵌卡片对齐 Tier C 规范 | `cgo-close` |
-| 选项卡 | `<cgo-tabs>` + `<cgo-tab label="" icon="">` | 移植自 CGo-Voice 分段胶囊风格；`full`（撑满等宽） `pill`（全圆角） `size="sm|md|lg"` `index="0"`；子项支持 `icon` `disabled` `active` | `cgo-tab-change`（`detail.index`） |
+| 下拉**菜单**（触发器 + 菜单项） | `<cgo-dropdown>` | `align="left\|right\|center"` `glass-mode`，触发器用 `slot="trigger"`，项用 `.dropdown-item`（弹出面板对齐 Tier B 规范） | 不派发事件，在菜单项上自行绑 `click` |
+| 下拉**选择器** | `<cgo-toolbar-select>` + `<cgo-toolbar-option value="">` | `value` `placeholder` `disabled` `glass-mode`（收起态按钮微光，展开态输入光晕 + Tier B 浮层） | `cgo-change`（`detail.value`） |
+| 管理端选择器 | `<cgo-admin-select>` | `state="inherit\|enabled\|disabled\|hidden"` `glass-mode`（展开态输入光晕 + Tier B 浮层） | `cgo-admin-change` |
+| 模态弹窗 | `<cgo-modal>` | `open` `title` `max-width="420px"` `glass-mode`（主面板对齐 Tier B，内嵌卡片对齐 Tier C） | `cgo-close` |
+| 选项卡 | `<cgo-tabs>` + `<cgo-tab label="" icon="">` | 分段胶囊风格；`full` `pill` `size="sm\|md\|lg"` `index="0"`；子项支持 `icon` `disabled` `active` | `cgo-tab-change`（`detail.index`） |
 | 图片/媒体查看器 | `<cgo-media-viewer>` | `label` | — |
 | 数据表格 | `<cgo-table>` 或 `<table class="modern-table">` | — | — |
 | 工具提示 | `<cgo-tooltip>` | — | — |
-| 加载态 | `<cgo-spinner>` | — | — |
+| 加载态 | `<cgo-spinner>` | `mode="spinner\|progress"` `size` `speed` `direction` `value` `duration` `paused` | `cgo-progress-change` `cgo-progress-complete` |
 | 侧边导航 | `<cgo-side-nav>` + `<cgo-nav-item>` | `active-index` `docked`（默认桌面端为同宽浮动卡片） | `cgo-nav-change` |
 | 浮动窗口 | `<cgo-floating-window>` | — | `cgo-drag` `cgo-dragstart` `cgo-dragend` `cgo-minimize` `cgo-close` |
 | 通知卡片 | `<cgo-notice-card>` | — | `cgo-notice-close` `cgo-notice-action` |
@@ -590,7 +590,7 @@ CGoUI 支持通过页面属性 `bg-mode` 规范化控制页面全局背景，并
 | 通知气泡 | `<cgo-notice-popup>` | — | `cgo-popup-close` `cgo-popup-action` |
 | 偏好项 | `<cgo-preference-item>` | — | `cgo-preference-action` |
 | 聊天气泡 | `<cgo-chat-bubble>` | — | — |
-| 滑块验证 | `<cgo-captcha>` | — | `cgo-captcha-refresh` `cgo-progress-change` `cgo-progress-complete` |
+| 滑块验证 | `<cgo-captcha>` | — | `cgo-captcha-refresh` |
 | Toast 反馈 | `<cgo-toast>` / `showToast(message, type)` | — | — |
 | 提示/注脚框 | `<div class="disclaimer">`（纯 CSS） | — | — |
 
@@ -650,26 +650,27 @@ cgo-dropdown::part(menu) {
 2. **禁止虚构**：绝对不能使用 `trash-bin`、`user-avatar`、`chart-line`、`tool`、`phone`、`wechat` 等未在白名单中的名字。
 3. **Emoji 降级机制**：若白名单中无法精确定位语义相近图标，**必须直接降级使用标准 Emoji 字符**（如 `🚀`、`💡`、`🔧`、`📌`、`✨`），严禁传入不存在的 `name`。
 
-### 📜 CGO UI 官方图标合法名称白名单（共 142 项，与 `src/icons/icons.js` 逐项核对）
+### 📜 CGO UI 官方图标合法名称白名单（共 216 项，与 `src/icons/icons.js` 逐项核对）
 
 - **导航**：`back`, `forward`, `home`, `home-dots`, `external`, `menu`
 - **主题**：`sun`, `moon`
-- **基础 CRUD**：`add`, `addone`, `edit`, `delete`, `save`, `copy`, `close`, `refresh`, `undo`, `redo`
+- **基础 CRUD**：`add`, `addone`, `edit`, `delete`, `save`, `copy`, `close`, `refresh`, `undo`, `redo`, `reverse`
 - **文件与导出**：`file`, `folder`, `upload`, `download`, `export-img`, `export-svg`, `export-json`, `export-zip`, `export-pdf`
 - **搜索与筛选**：`search`, `filter`, `sort`, `view-list`, `view-grid`
 - **箭头与方向**：`arrow-left`, `arrow-right`, `arrow-up`, `arrow-down`, `chevron-left`, `chevron-right`, `chevron-up`, `chevron-down`, `expand-more`, `expand-less`, `unfold`, `flip-h`, `flip-v`
 - **状态与反馈**：`check`, `check-circle`, `warning`, `error`, `error-outline`, `info`, `help`, `notification`
-- **UI 控件与工具**：`settings`, `more-vert`, `more-horiz`, `drag`, `pin`, `fullscn`, `fullscn-exit`, `zoom-in`, `zoom-out`, `zoom-reset`, `reverse`
+- **UI 控件与工具**：`settings`, `more-vert`, `more-horiz`, `drag`, `pin`, `pin-angle`, `unpin-angle`, `fullscn`, `fullscn-exit`, `zoom-in`, `zoom-out`, `zoom-reset`
 - **用户与账户**：`user`, `admin`, `logout`, `login`, `card`, `lock`, `unlock`, `key`
-- **地图与导向**：`location`, `map`, `route`, `transfer`, `train`, `gate`
-- **通讯与社交**：`chat`, `chat-bubble`, `send`, `mail`
+- **地图与导向**：`location`, `map`, `route`, `transfer`, `train`, `crh`, `subrail`, `railway`, `bus`, `monorail`, `tram`, `plane`, `ticket`, `gate`, `world`, `north`
+- **通讯与社交**：`chat`, `chat-bubble`, `send`, `mail`, `share`
 - **数据与分析**：`bar-chart`, `pie-chart`, `table`, `compare`
-- **媒体与扩展**：`image`, `camera`, `play`, `pause`, `speaker`, `light`
-- **其他通用**：`star`, `star-outline`, `link`, `code`, `layer`, `sparkle`, `tag`, `palette`, `design`, `eye`, `loading`, `tabs`, `touch`, `window`, `pin-angle`, `unpin-angle`
-- **业务补充**：`calendar`, `payment`, `subrail`, `ticket`, `time`, `a11yclimber`, `a11yplatform`, `a11ytoilet`, `escup`, `escdown`, `arrive`, `depart`, `north`
+- **媒体与扩展**：`image`, `camera`, `play`, `pause`, `speaker`, `light`, `plugin`, `preset`, `puzzle`, `bookmark`
+- **其他通用**：`star`, `star-outline`, `link`, `code`, `layer`, `sparkle`, `tag`, `palette`, `design`, `drunk`, `eye`, `loading`, `tabs`, `touch`, `window`, `calendar`, `payment`, `time`
+- **车站设施与关怀**：`aed`, `elevator`, `escalator`, `escup`, `escdown`, `stairs`, `a11yclimber`, `a11yplatform`, `counter`, `toilet`, `a11ytoilet`, `luggage`, `security`, `noentry`, `police`, `baby`, `stroller`, `elder`, `pregnant`, `walk`, `tourist`, `arrive`, `depart`
 - **设计工作室 (Vitool)**：`vi-clss`, `vi-line`, `vi-nbr`, `vi-oth`, `vi-stn`, `vi-sub`, `vi-text`, `vi-way`
-- **品牌标识**：`bjsubway`, `cgo`, `cgoapp`
-- **合法别名**：`open-link`（= `external`）, `plus`（= `add`）, `bell`（= `notification`）, `escalator-down`（= `escdown`）, `escalator-up`（= `escup`）, `arrival`（= `arrive`）, `departure`（= `depart`）, `compass`（= `north`）, `cgo-app`（= `cgoapp`）
+- **城市轨道标识**：`beijing`, `changchun`, `changsha`, `changzhou`, `chengdu`, `chongqing`, `dalian`, `dongguan`, `foshan`, `fuzhou`, `guangzhou`, `guiyang`, `hangzhou`, `harbin`, `hefei`, `hongkong`, `jinan`, `kaohsiung`, `kunming`, `lanzhou`, `nanchang`, `nanjing`, `nanning`, `nantong`, `ningbo`, `qingdao`, `shanghai`, `shenyang`, `shenzhen`, `shijiazhuang`, `suzhou`, `taipei`, `taiyuan`, `taoyuan`, `tianjin`, `wenzhou`, `wuhan`, `wuhu`, `wuxi`, `xiamen`, `xian`, `zhengzhou`
+- **品牌标识**：`cgo`, `cgoapp`
+- **合法别名**：`open-link`（= `external`）, `plus`（= `add`）, `bell`（= `notification`）, `escalator-down`（= `escdown`）, `escalator-up`（= `escup`）, `arrival`（= `arrive`）, `departure`（= `depart`）, `compass`（= `north`）, `cgo-app`（= `cgoapp`）, `xianggang`（= `hongkong`）, `taibei`（= `taipei`）, `gaoxiong`（= `kaohsiung`）, `haerbin`（= `harbin`）, `xi-an`（= `xian`）
 
 > **轨交类站点改造速查**：票务 → `ticket`、时刻/首末车 → `time`、日历/运营日 → `calendar`、支付/一卡通 → `payment`、市郊铁路 → `subrail`、闸机 → `gate`、换乘 → `transfer`、线路图 → `map`/`route`、列车 → `train`、到发/进出站 → `arrive` / `depart`、指北/朝向/罗盘 → `north` / `compass`、扶梯/上行/下行 → `escalator` / `escup` / `escdown`、无障碍/爬楼/升降/卫生间 → `a11yclimber` / `a11yplatform` / `a11ytoilet` / `touch`。
 
@@ -745,7 +746,7 @@ cgo-dropdown::part(menu) {
 
 ## 💡 第十步：实战进阶避坑与大刀阔斧重构指南
 
-根据大型复杂网页（如北京地铁官网等）真实重构实战中的教训，AI 在改造时**必须杜绝过于保守的微调**，严格执行以下五条铁律：
+根据大型复杂旧版网页真实重构实战中的教训，AI 在改造时**必须杜绝过于保守的微调**，严格执行以下五条铁律：
 
 ### 1. 彻底扫荡老旧 UI 类图片 (Zero Low-Quality UI Images)
 - **禁用残留**：原网页中用于表示箭头、展开小三角、列表前缀小图标、装饰角标的 PNG/JPG 小图片**必须 100% 彻底清理**。

@@ -11,14 +11,15 @@
     <!-- ===== 0. 防闪烁主题与顶栏模式脚本（Anti-Flicker，必须最先注入）===== -->
     <script>
       (function() {
-        var t = localStorage.getItem('app-theme');
-        document.documentElement.setAttribute('data-theme', t || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
-        // 工具类模板默认 2.0 分体双岛悬浮标题栏模式
-        document.documentElement.setAttribute('header-mode', 'floating');
         try {
+          var t = localStorage.getItem('app-theme');
+          document.documentElement.setAttribute('data-theme', t || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
           var k = (location.pathname || '').replace(/\.html$/, '').replace(/[^a-zA-Z0-9_-]/g, '_') + '_cgo_header_mode';
-          localStorage.setItem(k, 'floating');
-        } catch(e) {}
+          var savedMode = localStorage.getItem(k);
+          document.documentElement.setAttribute('header-mode', savedMode || 'floating');
+        } catch(e) {
+          document.documentElement.setAttribute('header-mode', 'floating');
+        }
       })();
     </script>
 
@@ -30,7 +31,7 @@
         cgoui/styles/cgo_ui.css
         cgoui/styles/cgo_components.css
         cgoui/cgo-ui.js
-      CDN 路径：https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@latest/dist/styles/
+      CDN 路径：https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.2.2/styles/
     -->
     <link rel="stylesheet" href="../styles/cgo_clr.css">
     <link rel="stylesheet" href="../styles/cgo_element.css">
@@ -54,7 +55,7 @@
 
         /* 页面基础容器配置（工具页：固定全屏，内部滚动；背景由 bg-mode="gradient" 托管）*/
         body {
-            height: 100vh;
+            height: 100dvh;
             display: flex;
             flex-direction: column;
             overflow: hidden;

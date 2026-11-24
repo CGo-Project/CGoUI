@@ -11,8 +11,10 @@
     <!-- ===== 0. 防闪烁主题脚本（Anti-Flicker，必须最先注入）===== -->
     <script>
       (function() {
-        var t = localStorage.getItem('app-theme');
-        document.documentElement.setAttribute('data-theme', t || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        try {
+          var t = localStorage.getItem('app-theme');
+          document.documentElement.setAttribute('data-theme', t || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+        } catch(e) {}
       })();
     </script>
 
@@ -24,7 +26,7 @@
         cgoui/styles/cgo_ui.css
         cgoui/styles/cgo_components.css
         cgoui/cgo-ui.js
-      CDN 路径：https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@latest/dist/styles/
+      CDN 路径：https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.2.2/styles/
     -->
     <link rel="stylesheet" href="../styles/cgo_clr.css">
     <link rel="stylesheet" href="../styles/cgo_element.css">
@@ -93,7 +95,7 @@
                     <option value="batch">批量矩阵计算模式</option>
                     <option value="inspect">工程审计检查模式</option>
                 </select>
-                <button class="title-quick-btn" id="quickRunBtn" title="快速运行当前工程">
+                <button class="title-quick-btn" id="quickRunBtn" title="快速运行当前工程" onclick="runPipelineBatch()">
                     <cgo-icon name="play" size="14"></cgo-icon>
                 </button>
             </div>
@@ -370,7 +372,7 @@
                 <div class="focus-bar-left">
                     <cgo-badge variant="primary">活动拓扑</cgo-badge>
                     <strong>主管道网络 01</strong>
-                    <span style="color: var(--text-light); font-size: 11px;">状态：就绪 · 6 个节点在线</span>
+                    <span id="focusNodeCount" style="color: var(--text-light); font-size: 11px;">状态：就绪 · 3 个节点在线</span>
                 </div>
                 <div class="focus-bar-right">
                     <button class="ribbon-btn-sm" onclick="addDemoNode()">
@@ -678,6 +680,8 @@
             
             const badge = document.getElementById('statusNodeBadge');
             if (badge) badge.textContent = count;
+            const focusCount = document.getElementById('focusNodeCount');
+            if (focusCount) focusCount.textContent = `状态：就绪 · ${count} 个节点在线`;
         }
 
         function clearAllNodes() {
@@ -685,6 +689,8 @@
             if (container) container.innerHTML = '';
             const badge = document.getElementById('statusNodeBadge');
             if (badge) badge.textContent = '0';
+            const focusCount = document.getElementById('focusNodeCount');
+            if (focusCount) focusCount.textContent = '状态：就绪 · 0 个节点在线';
         }
 
         function loadDemoTemplate() {

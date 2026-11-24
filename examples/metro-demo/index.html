@@ -18,7 +18,7 @@
 
     body {
       margin: 0;
-      min-height: 100vh;
+      min-height: 100dvh;
       background: var(--bg-color);
       color: var(--text-main);
       font-family: var(--font-sans);
@@ -61,7 +61,7 @@
       border: 1px solid var(--border-color);
       border-radius: 16px;
       background: var(--card-bg);
-      box-shadow: 0 8px 28px var(--glass-shadow);
+      box-shadow: var(--glass-shadow);
     }
 
     .hero-media {
@@ -222,8 +222,14 @@
     </main>
   </div>
 
+  <script>
+    window.__CGO_LOCALE__ = new URLSearchParams(location.search).get('locale') || 'zh';
+    window.__CGO_LOCALE_SOURCE__ = location.href;
+    window.__CGO_I18N_SITE_ROOT__ = new URL('../../', location.href).href;
+  </script>
+  <script type="module" src="../../i18n/runtime.js"></script>
   <script type="module">
-    import '../../src/register.js';
+    import '../../dist/cgo-ui.js';
     window.addEventListener('DOMContentLoaded', () => {
       window.CGO?.theme?.setThemeColor?.('#2563eb');
     });

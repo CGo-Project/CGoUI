@@ -11,14 +11,15 @@
     <!-- ===== 0. 防闪烁主题与顶栏模式脚本（Anti-Flicker，必须最先注入）===== -->
     <script>
       (function() {
-        var t = localStorage.getItem('app-theme');
-        document.documentElement.setAttribute('data-theme', t || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
-        // 介绍类模板默认 1.0 经典吸顶合并标题栏模式
-        document.documentElement.setAttribute('header-mode', 'classic');
         try {
+          var t = localStorage.getItem('app-theme');
+          document.documentElement.setAttribute('data-theme', t || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
           var k = (location.pathname || '').replace(/\.html$/, '').replace(/[^a-zA-Z0-9_-]/g, '_') + '_cgo_header_mode';
-          localStorage.setItem(k, 'classic');
-        } catch(e) {}
+          var savedMode = localStorage.getItem(k);
+          document.documentElement.setAttribute('header-mode', savedMode || 'classic');
+        } catch(e) {
+          document.documentElement.setAttribute('header-mode', 'classic');
+        }
       })();
     </script>
 
@@ -30,7 +31,7 @@
         cgoui/styles/cgo_ui.css
         cgoui/styles/cgo_components.css
         cgoui/cgo-ui.js
-      CDN 路径：https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@latest/dist/styles/
+      CDN 路径：https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.2.2/styles/
     -->
     <link rel="stylesheet" href="../styles/cgo_clr.css">
     <link rel="stylesheet" href="../styles/cgo_element.css">
@@ -62,7 +63,7 @@
             color: var(--text-main, #00263b);
             font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
             overflow-y: auto;
-            min-height: 100vh;
+            min-height: 100dvh;
         }
 
         /* 顶部 Header 中的 Tabs 样式扩展（极弱衬底，严禁嵌套次级磨砂） */
@@ -88,7 +89,7 @@
 
         .header-tabs .tab-item:hover {
             color: var(--primary-color, #00263b);
-            background: rgba(255, 255, 255, 0.5);
+            background: var(--btn-info-hover, rgba(120, 120, 120, 0.14));
         }
 
         .header-tabs .tab-item.active {
@@ -115,7 +116,7 @@
             border-radius: 16px;
             overflow: hidden;
             margin-bottom: 30px;
-            box-shadow: var(--lg-shadow, 0 8px 24px rgba(0, 0, 0, 0.04));
+            box-shadow: var(--glass-shadow, 0 8px 24px rgba(0, 0, 0, 0.04));
         }
 
         @media (min-width: 641px) {
@@ -176,7 +177,7 @@
             border-radius: 12px;
             padding: 24px;
             align-items: center;
-            box-shadow: var(--lg-shadow, 0 8px 24px rgba(0, 0, 0, 0.04));
+            box-shadow: var(--glass-shadow, 0 8px 24px rgba(0, 0, 0, 0.04));
         }
 
         @media (min-width: 641px) {
@@ -225,7 +226,7 @@
         .article-content {
             border-radius: 12px;
             padding: 32px;
-            box-shadow: var(--lg-shadow, 0 8px 24px rgba(0, 0, 0, 0.04));
+            box-shadow: var(--glass-shadow, 0 8px 24px rgba(0, 0, 0, 0.04));
         }
 
         .modern-table {
