@@ -26,15 +26,21 @@ const requiredFiles = [
 const missing = requiredFiles.filter((file) => !existsSync(resolve(ROOT, file)));
 if (missing.length) throw new Error(`缺少发布文件：${missing.join(', ')}`);
 
-const forbidden = ['../../../cgoui/', 'beian.miit.gov.cn', 'beian.mps.gov.cn', 'window.isViTool'];
-const bundleText = readFileSync(resolve(ROOT, 'dist/cgo-ui.js'), 'utf8');
-const leaked = forbidden.filter((needle) => bundleText.includes(needle));
-if (leaked.length) throw new Error(`通用 bundle 仍包含宿主耦合内容：${leaked.join(', ')}`);
+const forbidden = ['../../../cgoui/', 'beian.miit.gov.cn', 'beian.mps.gov.cn', 'window.isViTool', '/Users/'];
+for (const bundleRel of ['dist/cgo-ui.js', 'dist/cgo-ui-react.js', 'dist/theme.js']) {
+    const bundleText = readFileSync(resolve(ROOT, bundleRel), 'utf8');
+    const leaked = forbidden.filter((needle) => bundleText.includes(needle));
+    if (leaked.length) throw new Error(`${bundleRel} 仍包含宿主或本机耦合内容：${leaked.join(', ')}`);
+}
 
 for (const [name, target] of Object.entries(packageJson.exports)) {
-    const candidate = typeof target === 'string' ? target : target.import || target.default || target.types;
-    if (candidate && candidate.startsWith('./') && !candidate.includes('*') && !existsSync(resolve(ROOT, candidate))) {
-        throw new Error(`exports.${name} 指向不存在的文件：${candidate}`);
+    const candidates = typeof target === 'string'
+        ? [target]
+        : Object.values(target || {}).filter((val) => typeof val === 'string');
+    for (const candidate of candidates) {
+        if (candidate.startsWith('./') && !candidate.includes('*') && !existsSync(resolve(ROOT, candidate))) {
+            throw new Error(`exports.${name} 指向不存在的文件：${candidate}`);
+        }
     }
 }
 

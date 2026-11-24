@@ -24,12 +24,12 @@ const staticFiles = [
     'design.png',
     'design2.png',
     'favicon.ico',
+    'docs/docs.js',
 ];
 
 const staticDirs = [
     'dist',
     'styles',
-    'docs',
     'i18n',
     'en',
     'ja',
@@ -43,7 +43,9 @@ console.log('[CGoUI Site Build] 3. 正在同步页面与资源...');
 for (const file of staticFiles) {
     const src = resolve(ROOT, file);
     if (existsSync(src)) {
-        await cp(src, resolve(SITE_DIR, file));
+        const dest = resolve(SITE_DIR, file);
+        await mkdir(dirname(dest), { recursive: true });
+        await cp(src, dest);
     }
 }
 
@@ -66,16 +68,15 @@ function getTimestampVersion() {
 }
 
 const versionQuery = process.env.CGOUI_VERSION || getTimestampVersion();
-console.log(`[CGoUI Site Build] 4. 正在注入版本号查询参数 ?v=${versionQuery}...`);
-for (const targetFile of [resolve(ROOT, 'index.html'), resolve(SITE_DIR, 'index.html')]) {
-    if (existsSync(targetFile)) {
-        const content = await readFile(targetFile, 'utf8');
-        const updated = content
-            .replace(/((\.\/)?dist\/cgo-ui\.js\?v=)[0-9.]+/g, `$1${versionQuery}`)
-            .replace(/((\.\/)?docs\/docs\.js\?v=)[0-9.]+/g, `$1${versionQuery}`);
-        if (updated !== content) {
-            await writeFile(targetFile, updated, 'utf8');
-        }
+console.log(`[CGoUI Site Build] 4. 正在向产物注入版本号查询参数 ?v=${versionQuery}...`);
+const siteIndex = resolve(SITE_DIR, 'index.html');
+if (existsSync(siteIndex)) {
+    const content = await readFile(siteIndex, 'utf8');
+    const updated = content
+        .replace(/((\.\/)?dist\/cgo-ui\.js\?v=)[0-9.]+/g, `$1${versionQuery}`)
+        .replace(/((\.\/)?docs\/docs\.js\?v=)[0-9.]+/g, `$1${versionQuery}`);
+    if (updated !== content) {
+        await writeFile(siteIndex, updated, 'utf8');
     }
 }
 

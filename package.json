@@ -1,6 +1,6 @@
 {
   "name": "@centralgo/cgo-ui",
-  "version": "2.2.1",
+  "version": "2.2.2",
   "description": "Lightweight Lit-based Web Components design system with light/dark themes, responsive UI, custom theming, and an optional React adapter.",
   "keywords": [
     "web-components",
@@ -44,7 +44,11 @@
       "default": "./dist/cgo-ui-react.js"
     },
     "./register": "./dist/cgo-ui.js",
-    "./theme": "./dist/theme.js",
+    "./theme": {
+      "types": "./src/theme.d.ts",
+      "import": "./dist/theme.js",
+      "default": "./dist/theme.js"
+    },
     "./styles/cgo_clr.css": "./styles/cgo_clr.css",
     "./styles/cgo_element.css": "./styles/cgo_element.css",
     "./styles/cgo_ui.css": "./styles/cgo_ui.css",
@@ -89,7 +93,7 @@
   },
   "peerDependenciesMeta": {
     "lit": {
-      "optional": false
+      "optional": true
     },
     "react": {
       "optional": true

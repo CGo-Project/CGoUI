@@ -21,16 +21,7 @@ function resolveVoiceDir() {
         return resolve(process.env.CGO_VOICE_DIR);
     }
     // 3. 默认同级目录 ../CGo-Voice
-    const defaultVoice = resolve(ROOT, '../CGo-Voice');
-    if (existsSync(defaultVoice)) {
-        return defaultVoice;
-    }
-    // 4. 备选已知固定路径
-    const fixedVoice = '/Users/liuzihan/Documents/GitHub/CGo-Voice';
-    if (existsSync(fixedVoice)) {
-        return fixedVoice;
-    }
-    return defaultVoice;
+    return resolve(ROOT, '../CGo-Voice');
 }
 
 const VOICE_DIR = resolveVoiceDir();

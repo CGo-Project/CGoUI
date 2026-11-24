@@ -1,20 +1,20 @@
 ---
 name: liquid-ui-update
 description: >-
-  CGoUI 2.1 次世代液态玻璃 (Liquid Glass) 与浮动双岛标题栏改造升级规范。
+  CGoUI 2.2 次世代液态玻璃 (Liquid Glass) 与浮动双岛标题栏改造升级规范。
   适用于将 Central Go / CGo 网页工具升级为包含物理光学折射管线、4层立体堆叠架构、
   浮动双岛标题栏、移动端信号栏防穿透保护以及 640px 唯一响应式断点的全流程指南与速查手册。
 ---
 
-# CGoUI 2.1 液态玻璃 (Liquid Glass) 升级技能手册
+# CGoUI 2.2 液态玻璃 (Liquid Glass) 升级技能手册
 
-本技能详细记录了 Central Go 平台（如 `tool.html`、`CGo-OpenMap`）在推进 **CGoUI 2.1 次世代物理质感 UI** 时的核心设计体系、代码结构规范与迁移流程。
+本技能详细记录了 Central Go 平台（如 `tool.html`、`CGo-OpenMap`）在推进 **CGoUI 2.2 次世代物理质感 UI** 时的核心设计体系、代码结构规范与迁移流程。
 
 ---
 
 ## 一、核心物理折射管线 (SVG Displacement Pipeline)
 
-CGoUI 2.1 抛弃了传统简单的单层 `backdrop-filter: blur(...)`，引入了硬件加速的 SVG 光学微折射管线。
+CGoUI 2.2 抛弃了传统简单的单层 `backdrop-filter: blur(...)`，引入了硬件加速的 SVG 光学微折射管线。
 
 ### 1. SVG 滤镜管线规范
 
@@ -365,7 +365,7 @@ CGoUI 2.1 抛弃了传统简单的单层 `backdrop-filter: blur(...)`，引入�
 
 ## 六、页面升级快速检查清单 (Migration Checklist)
 
-为任意页面执行 CGoUI 2.1 升级时，按以下清单逐项勾选：
+为任意页面执行 CGoUI 2.2 升级时，按以下清单逐项勾选：
 
 - [ ] **1. `<html>` 标签配置**：
   `<html lang="zh-CN" header-mode="floating" glass-mode="liquid">`

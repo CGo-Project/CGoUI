@@ -10,7 +10,7 @@ description: >-
 
 # CGoUI 跨项目构建与架构适配分发框架 (CGoUI Distribution Framework)
 
-本 Skill 规范并沉淀了将 [CGoUI](file:///Users/liuzihan/Documents/GitHub/CGoUI) 构建产物按各接入项目的技术架构特性，进行全量验证、定制分发与缓存失效处理的标准化流程。
+本 Skill 规范并沉淀了将 [CGoUI](../../../README.md) 构建产物按各接入项目的技术架构特性，进行全量验证、定制分发与缓存失效处理的标准化流程。
 
 ---
 
@@ -33,7 +33,7 @@ description: >-
 在对任何下游项目进行分发前，**必须首先**在 CGoUI 中完成编译与三道质量检查：
 
 ```bash
-cd /Users/liuzihan/Documents/GitHub/CGoUI
+cd <workspace>/CGoUI
 npm run build && npm test && npm run check && npm run build:site
 ```
 
@@ -51,11 +51,11 @@ CGo-OpenMap 无生产构建打包器，由浏览器直接解析 ESM，且由 Ser
 
 1. **拷贝核心产物与样式**：
    ```bash
-   cp /Users/liuzihan/Documents/GitHub/CGoUI/dist/cgo-ui.js /Users/liuzihan/Documents/GitHub/CGo-OpenMap/core/cgo-ui.js
-   cp /Users/liuzihan/Documents/GitHub/CGoUI/styles/cgo_clr.css /Users/liuzihan/Documents/GitHub/CGo-OpenMap/css/cgo_clr.css
-   cp /Users/liuzihan/Documents/GitHub/CGoUI/styles/cgo_element.css /Users/liuzihan/Documents/GitHub/CGo-OpenMap/css/cgo_element.css
-   cp /Users/liuzihan/Documents/GitHub/CGoUI/styles/cgo_ui.css /Users/liuzihan/Documents/GitHub/CGo-OpenMap/css/cgo_ui.css
-   cp /Users/liuzihan/Documents/GitHub/CGoUI/styles/cgo_components.css /Users/liuzihan/Documents/GitHub/CGo-OpenMap/css/cgo_components.css
+   cp <workspace>/CGoUI/dist/cgo-ui.js <workspace>/CGo-OpenMap/core/cgo-ui.js
+   cp <workspace>/CGoUI/styles/cgo_clr.css <workspace>/CGo-OpenMap/css/cgo_clr.css
+   cp <workspace>/CGoUI/styles/cgo_element.css <workspace>/CGo-OpenMap/css/cgo_element.css
+   cp <workspace>/CGoUI/styles/cgo_ui.css <workspace>/CGo-OpenMap/css/cgo_ui.css
+   cp <workspace>/CGoUI/styles/cgo_components.css <workspace>/CGo-OpenMap/css/cgo_components.css
    ```
 
 2. **版本号与 Service Worker 缓存刷新**：
@@ -71,7 +71,7 @@ CGo-OpenMap 无生产构建打包器，由浏览器直接解析 ESM，且由 Ser
 
 3. **语法校验**：
    ```bash
-   node -c /Users/liuzihan/Documents/GitHub/CGo-OpenMap/core/cgo-ui.js
+   node -c <workspace>/CGo-OpenMap/core/cgo-ui.js
    ```
 
 ---
@@ -82,7 +82,7 @@ CGo-Web-Tools 项目内置了规范的同步管道，可一键完成主站与 ma
 
 1. **执行主站同步**：
    ```bash
-   cd /Users/liuzihan/Documents/GitHub/CGo-Web-Tools
+   cd <workspace>/CGo-Web-Tools
    npm run sync:cgo-ui
    npm run build:ui
    ```
@@ -96,7 +96,7 @@ CGo-Web-Tools 项目内置了规范的同步管道，可一键完成主站与 ma
 3. **Map 缓存签名失效**：
    在 `CGo-Web-Tools/map` 下运行：
    ```bash
-   cd /Users/liuzihan/Documents/GitHub/CGo-Web-Tools/map
+   cd <workspace>/CGo-Web-Tools/map
    node scripts/ensure-cgo-ui-cache.mjs
    ```
    *该脚本校验 SHA-256 签名，如变化将自动清除 Next.js 历史 Webpack 开发缓存。*
@@ -109,10 +109,10 @@ F_Space_Class 使用 Next.js 15 App Router，通过 `/public/cgoui/` 托管静�
 
 1. **执行同步脚本**：
    ```bash
-   cd /Users/liuzihan/Documents/GitHub/F_Space_Class/web
+   cd <workspace>/F_Space_Class/web
    npm run sync:cgo-ui
    ```
-   *如果脚本不存在，运行 [sync-cgo-ui.mjs](file:///Users/liuzihan/Documents/GitHub/F_Space_Class/web/scripts/sync-cgo-ui.mjs)。*
+   *如果脚本不存在，运行 `F_Space_Class/web/scripts/sync-cgo-ui.mjs`。*
 
 2. **Next.js 生产环境构建校验**：
    ```bash

@@ -7,15 +7,15 @@ set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# 自动定位包含各子项目的 GitHub 根目录（兼顾位于 workspace/.agents 与 CGoUI/.agents 两种路径）
-if [ -d "$SCRIPT_DIR/../../../../CGoUI" ]; then
+# 自动定位包含各子项目的 GitHub 根目录（兼顾环境变量、workspace/.agents 与 CGoUI/.agents 路径）
+if [ -n "${CGO_WORKSPACE_DIR:-}" ] && [ -d "$CGO_WORKSPACE_DIR/CGoUI" ]; then
+    ROOT_DIR="$CGO_WORKSPACE_DIR"
+elif [ -d "$SCRIPT_DIR/../../../../CGoUI" ]; then
     ROOT_DIR="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
 elif [ -d "$SCRIPT_DIR/../../../../../CGoUI" ]; then
     ROOT_DIR="$(cd "$SCRIPT_DIR/../../../../.." && pwd)"
-elif [ -d "/Users/liuzihan/Documents/GitHub/CGoUI" ]; then
-    ROOT_DIR="/Users/liuzihan/Documents/GitHub"
 else
-    echo "❌ 错误: 无法定位包含 CGoUI 的工程根目录"
+    echo "❌ 错误: 无法定位包含 CGoUI 的工程根目录，请设置 CGO_WORKSPACE_DIR"
     exit 1
 fi
 
@@ -56,7 +56,7 @@ cp "$CGO_UI_DIR/styles/cgo_components.css" "$OPENMAP_DIR/css/cgo_components.css"
 echo "  - 应用时间戳版本号: $TIMESTAMP"
 
 # 更新 sw.js
-sed -i '' -E "s/const CACHE_NAME = 'cgo-openmap-v[0-9.]+';/const CACHE_NAME = 'cgo-openmap-v$TIMESTAMP';/g" "$OPENMAP_DIR/sw.js"
+node -e "const fs=require('fs'),p=process.argv[1],t=process.argv[2];fs.writeFileSync(p,fs.readFileSync(p,'utf8').replace(/const CACHE_NAME = 'cgo-openmap-v[0-9.]+';/g,\"const CACHE_NAME = 'cgo-openmap-v\"+t+\"';\"))" "$OPENMAP_DIR/sw.js" "$TIMESTAMP"
 
 # 更新各入口 HTML 资源查询串
 HTML_FILES=(
@@ -70,7 +70,7 @@ HTML_FILES=(
 
 for file in "${HTML_FILES[@]}"; do
     if [ -f "$file" ]; then
-        sed -i '' -E "s/(\?v=)[0-9.]+/\\1$TIMESTAMP/g" "$file"
+        node -e "const fs=require('fs'),p=process.argv[1],t=process.argv[2];fs.writeFileSync(p,fs.readFileSync(p,'utf8').replace(/(\?v=)[0-9.]+/g,'$1'+t))" "$file" "$TIMESTAMP"
     fi
 done
 
