@@ -1261,8 +1261,8 @@ body[data-glass-mode='none'],
     --brand-border-staline: #30587d;
 
     --brand-color-trainlcd: #e2a213;
-    --brand-gradient-start-trainlcd: #ffb430;
-    --brand-gradient-end-trainlcd: #9e8f04;
+    --brand-gradient-start-trainlcd: #9e8f04;
+    --brand-gradient-end-trainlcd: #ffb430;
     --brand-gradient-trainlcd: linear-gradient(
         to top,
         var(--brand-gradient-start-trainlcd),
