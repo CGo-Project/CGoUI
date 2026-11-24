@@ -1,9 +1,7 @@
 /*!
  * CGo UI — window.CGO / window.ToolTheme 兼容垫片
  *
- * 目的：让 15 个仍在使用旧全局 API 的工具「一行不动也不会坏」。
- * 这里 1:1 重建 cgo_icons.js / cgo_ctrl.js / cgo_theme.js 暴露的全部 API，
- * 签名与行为保持一致；多数函数仍操作 light DOM + 仍加载的全局 CSS。
+ * 重建 cgo_icons.js / cgo_ctrl.js / cgo_theme.js 暴露的兼容 API。
  */
 import { ICONS, buildSvg, iconNames, _escIcon as esc } from '../icons/icons.js';
 import { showToast } from '../components/toast.js';
@@ -30,6 +28,9 @@ import {
     setHeaderModeStorageKey,
     getHeaderModeStorageKey,
     autoUpgradeHeader,
+    setBgMode,
+    getBgMode,
+    setDefaultBgMode,
 } from '../theme.js';
 
 const DEFAULT_SHIM_CONFIG = Object.freeze({
@@ -43,31 +44,48 @@ const DEFAULT_SHIM_CONFIG = Object.freeze({
 });
 
 let shimConfig = DEFAULT_SHIM_CONFIG;
+let hasProgrammaticConfig = false;
 
-/**
- * 配置宿主应用专属的兼容行为。
- *
- * CGoUI 本身不假设备案号、品牌图片或应用路由；这些信息应由宿主应用在
- * 加载 register 入口前注入，或在模块入口中显式调用此函数。
- */
+function sanitizeUrl(url) {
+    if (typeof url !== 'string') return '';
+    const trimmed = url.trim();
+    if (!trimmed) return '';
+    if (/^(?:\/|\.\/|\.\.\/|#)/.test(trimmed)) return trimmed;
+    if (!/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) return trimmed;
+    try {
+        const parsed = new URL(trimmed);
+        return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? trimmed : '';
+    } catch {
+        return '';
+    }
+}
+
 export function configureGlobalShim(config = {}) {
-    const branding = { ...DEFAULT_SHIM_CONFIG.branding, ...(config.branding || {}) };
-    const links = Array.isArray(branding.links) ? branding.links.filter((link) => link && link.href) : [];
+    const safe = config && typeof config === 'object' ? config : {};
+    hasProgrammaticConfig = true;
+    const branding = { ...DEFAULT_SHIM_CONFIG.branding, ...(safe.branding && typeof safe.branding === 'object' ? safe.branding : {}) };
+    const links = Array.isArray(branding.links)
+        ? branding.links
+              .filter((link) => link && typeof link.href === 'string' && sanitizeUrl(link.href))
+              .map((link) => ({ ...link, href: sanitizeUrl(link.href) }))
+        : [];
     shimConfig = {
         ...DEFAULT_SHIM_CONFIG,
-        ...config,
+        ...safe,
         branding: { ...branding, links },
-        isEmbeddedApp: typeof config.isEmbeddedApp === 'function' ? config.isEmbeddedApp : DEFAULT_SHIM_CONFIG.isEmbeddedApp,
+        isEmbeddedApp: typeof safe.isEmbeddedApp === 'function' ? safe.isEmbeddedApp : DEFAULT_SHIM_CONFIG.isEmbeddedApp,
     };
     return shimConfig;
 }
 
 function getShimConfig(global) {
-    if (global && global.CGoUIConfig) return configureGlobalShim(global.CGoUIConfig);
+    if (!hasProgrammaticConfig && global && global.CGoUIConfig) {
+        return configureGlobalShim(global.CGoUIConfig);
+    }
     return shimConfig;
 }
 
-/* ───────── 图标 API（移植自 cgo_icons.js）───────── */
+/* ───────── 图标 API ───────── */
 function icon(name, opts) {
     return buildSvg(name, opts || {});
 }
@@ -78,11 +96,13 @@ function iconBtn(label, iconName, btnClass, iconPos) {
     const svgStr = icon(iconName, { class: 'btn-icon' });
     const labelHtml = label ? '<span>' + esc(label) + '</span>' : '';
     const content = iconPos === 'right' ? labelHtml + svgStr : svgStr + labelHtml;
-    return '<button class="' + btnClass + '">' + content + '</button>';
+    return '<button class="' + esc(btnClass) + '">' + content + '</button>';
 }
 
 function renderIcons(root) {
+    if (typeof document === 'undefined') return;
     root = root || document.body;
+    if (!root || typeof root.querySelectorAll !== 'function') return;
     const els = root.querySelectorAll('[data-icon]');
     els.forEach((el) => {
         if (el.dataset.iconRendered) return;
@@ -95,6 +115,7 @@ function renderIcons(root) {
 }
 
 function injectSprite() {
+    if (typeof document === 'undefined' || !document.body) return;
     if (document.getElementById('cgo-icon-sprite')) return;
     let defs = '';
     Object.keys(ICONS).forEach((n) => {
@@ -102,9 +123,9 @@ function injectSprite() {
         const fill = e.type === 'stroke' ? 'none' : 'currentColor';
         defs +=
             '<symbol id="cgo-icon-' +
-            n +
+            esc(n) +
             '" viewBox="' +
-            (e.viewBox || '0 0 24 24') +
+            esc(e.viewBox || '0 0 24 24') +
             '" fill="' +
             fill +
             '"' +
@@ -125,11 +146,12 @@ function injectSprite() {
 
 function use(name, opts) {
     opts = opts || {};
+    if (typeof name !== 'string' || !Object.hasOwn(ICONS, name)) return '';
     const size = opts.size !== undefined ? opts.size : 20;
-    const sizeStr = typeof size === 'number' ? size + 'px' : size;
+    const sizeStr = esc(typeof size === 'number' ? size + 'px' : size);
     const entry = ICONS[name];
     const isStroke = entry && entry.type === 'stroke';
-    const cls = 'cgo-svg-icon' + (isStroke ? ' cgo-stroke-icon' : '') + (opts.class ? ' ' + opts.class : '');
+    const cls = esc('cgo-svg-icon' + (isStroke ? ' cgo-stroke-icon' : '') + (opts.class ? ' ' + opts.class : ''));
     return (
         '<svg class="' +
         cls +
@@ -138,15 +160,16 @@ function use(name, opts) {
         '" height="' +
         sizeStr +
         '" aria-hidden="true"><use href="#cgo-icon-' +
-        name +
+        esc(name) +
         '"/></svg>'
     );
 }
 
-/* ───────── 下拉菜单（移植自 cgo_ctrl.js，升级为 Top Layer Popover + 动态视口锚点定位）───────── */
+/* ───────── 下拉菜单（Top Layer Popover + 动态视口锚点定位）───────── */
 const _activeDropdownPopovers = new Set();
 let _dropdownOverlaySyncBound = false;
 let _dropdownResizeObserver = null;
+let _dropdownRepositionRaf = null;
 
 function _findDropdownTrigger(content) {
     if (!content) return null;
@@ -181,7 +204,6 @@ function positionDropdownOverlay(content, trigger) {
     const isCenteredSwitcher =
         content.classList.contains('tool-switcher-menu') || Boolean(trigger.closest('.header-center'));
 
-    // 重置先前的水平定位以便按当前断点精确计算
     content.style.position = 'fixed';
     content.style.margin = '0';
     content.style.inset = 'auto';
@@ -240,12 +262,21 @@ function positionDropdownOverlay(content, trigger) {
 }
 
 function _repositionAllActiveDropdowns() {
-    _activeDropdownPopovers.forEach((content) => {
-        if (!document.contains(content) || !content.classList.contains('show')) {
-            _activeDropdownPopovers.delete(content);
-            return;
-        }
-        positionDropdownOverlay(content);
+    if (_dropdownRepositionRaf) return;
+    _dropdownRepositionRaf = requestAnimationFrame(() => {
+        _dropdownRepositionRaf = null;
+        _activeDropdownPopovers.forEach((content) => {
+            if (!document.contains(content) || !content.classList.contains('show')) {
+                _activeDropdownPopovers.delete(content);
+                if (_dropdownResizeObserver && content._cgoResizeObserved) {
+                    _dropdownResizeObserver.unobserve(content);
+                    content._cgoResizeObserved = false;
+                }
+                return;
+            }
+            positionDropdownOverlay(content);
+        });
+        if (_activeDropdownPopovers.size === 0) _detachDropdownOverlaySync();
     });
 }
 
@@ -253,16 +284,28 @@ function _ensureDropdownOverlaySync() {
     if (_dropdownOverlaySyncBound || typeof window === 'undefined') return;
     _dropdownOverlaySyncBound = true;
     window.addEventListener('resize', _repositionAllActiveDropdowns, { passive: true });
-    window.addEventListener('scroll', _repositionAllActiveDropdowns, true);
-    if (typeof ResizeObserver !== 'undefined') {
+    window.addEventListener('scroll', _repositionAllActiveDropdowns, { capture: true, passive: true });
+    if (typeof ResizeObserver !== 'undefined' && !_dropdownResizeObserver) {
         _dropdownResizeObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
                 const el = entry.target;
                 if (el && el.classList?.contains('show')) {
-                    positionDropdownOverlay(el);
+                    _repositionAllActiveDropdowns();
+                    break;
                 }
             }
         });
+    }
+}
+
+function _detachDropdownOverlaySync() {
+    if (!_dropdownOverlaySyncBound || typeof window === 'undefined') return;
+    _dropdownOverlaySyncBound = false;
+    window.removeEventListener('resize', _repositionAllActiveDropdowns);
+    window.removeEventListener('scroll', _repositionAllActiveDropdowns, true);
+    if (_dropdownRepositionRaf) {
+        cancelAnimationFrame(_dropdownRepositionRaf);
+        _dropdownRepositionRaf = null;
     }
 }
 
@@ -279,7 +322,7 @@ function syncDropdownOverlay(content, trigger) {
             }
             try {
                 if (!content.matches(':popover-open')) content.showPopover();
-            } catch (_) {}
+            } catch {}
         }
         _activeDropdownPopovers.add(content);
         _ensureDropdownOverlaySync();
@@ -287,18 +330,25 @@ function syncDropdownOverlay(content, trigger) {
             content._cgoResizeObserved = true;
             try {
                 _dropdownResizeObserver.observe(content);
-            } catch (_) {}
+            } catch {}
         }
         positionDropdownOverlay(content, trigger);
         requestAnimationFrame(() => positionDropdownOverlay(content, trigger));
     } else {
         _activeDropdownPopovers.delete(content);
+        if (_dropdownResizeObserver && content._cgoResizeObserved) {
+            content._cgoResizeObserved = false;
+            try {
+                _dropdownResizeObserver.unobserve(content);
+            } catch {}
+        }
+        if (_activeDropdownPopovers.size === 0) _detachDropdownOverlaySync();
         const parentDropdown = content.closest?.('.dropdown');
         if (parentDropdown) parentDropdown.classList.remove('is-open');
         if (typeof content.hidePopover === 'function') {
             try {
                 if (content.matches(':popover-open')) content.hidePopover();
-            } catch (_) {}
+            } catch {}
         }
         if (content.hasAttribute('popover')) {
             content.removeAttribute('popover');
@@ -349,6 +399,7 @@ function _closeAll(root, exclude) {
     });
 }
 function initDropdowns(root) {
+    if (typeof document === 'undefined') return;
     root = root || document;
     _installDropdownClassObserver();
     root.querySelectorAll('.dropdown').forEach((dropdown) => {
@@ -373,7 +424,6 @@ function initDropdowns(root) {
             content._cgoMenuClickBound = true;
             content.addEventListener('click', (e) => {
                 const path = e.composedPath ? e.composedPath() : [];
-                // 点击通知中心或账号调色板等交互区内部，保持菜单展开
                 if (
                     path.some(
                         (node) =>
@@ -416,7 +466,7 @@ function initDropdowns(root) {
     }
 }
 
-/* ───────── 主题设置行 + select 绑定（移植自 cgo_ctrl.js）───────── */
+/* ───────── 主题设置行 + select 绑定 ───────── */
 function getThemeSettingHTML(isEnglish) {
     const title = isEnglish ? 'Appearance' : '界面外观';
     const desc = isEnglish ? 'Dark or light UI style' : '软件界面的深色或浅色风格';
@@ -443,33 +493,46 @@ function getThemeSettingHTML(isEnglish) {
 }
 
 function bindThemeSelect(selectElement) {
-    if (!selectElement) return;
+    if (!selectElement || selectElement._cgoThemeSelectBound) return;
+    selectElement._cgoThemeSelectBound = true;
     const storageKey = getStorageKey();
-    const saved = localStorage.getItem(storageKey);
+    let saved = null;
+    try {
+        saved = window.localStorage.getItem(storageKey);
+    } catch {}
     const initialValue = saved === 'light' ? 'light' : saved === 'dark' ? 'dark' : 'system';
     selectElement.setAttribute('value', initialValue);
     selectElement.addEventListener('cgo-change', (e) => {
-        const value = e.detail.value;
+        const value = e.detail?.value;
         if (value === 'system') {
-            localStorage.removeItem(storageKey);
-            applyTheme(window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        } else {
-            localStorage.setItem(storageKey, value);
+            try {
+                window.localStorage.removeItem(storageKey);
+            } catch {}
+            let dark = false;
+            try {
+                dark = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            } catch {}
+            applyTheme(dark ? 'dark' : 'light');
+        } else if (value === 'light' || value === 'dark') {
+            try {
+                window.localStorage.setItem(storageKey, value);
+            } catch {}
             applyTheme(value);
         }
     });
 }
 
-/* ───────── 帮助弹窗（移植自 cgo_ctrl.js，依赖仍加载的全局 CSS）───────── */
+/* ───────── 帮助弹窗 ───────── */
 function showHelpModal(options) {
-    console.log('[HelpModal] showHelpModal entry called, options:', options);
+    if (typeof document === 'undefined') return;
     options = options || {};
     const title = options.title || '帮助与选项';
     const subtitle = options.subtitle || '';
     const config = getShimConfig(typeof window !== 'undefined' ? window : undefined);
     const branding = { ...config.branding, ...(options.branding || {}) };
-    const iconHtml = options.iconPath ? '<img src="' + options.iconPath + '" class="help-icon-img" alt="Logo">' : '';
-    const beianPath = options.beianPath || branding.beianPath;
+    const safeIconPath = sanitizeUrl(options.iconPath || '');
+    const iconHtml = safeIconPath ? '<img src="' + esc(safeIconPath) + '" class="help-icon-img" alt="Logo">' : '';
+    const beianPath = sanitizeUrl(options.beianPath || branding.beianPath || '');
     const contentHtml = options.content || '';
     const maxWidth = options.maxWidth || '420px';
     const isEnglish = !!options.isEnglish;
@@ -482,6 +545,7 @@ function showHelpModal(options) {
     dialog.className = 'text-dialog help-dialog';
     dialog.style.maxWidth = maxWidth;
     const closeBtn = document.createElement('button');
+    closeBtn.type = 'button';
     closeBtn.className = 'dialog-close-btn';
     closeBtn.innerHTML = '&times;';
     const container = document.createElement('div');
@@ -491,17 +555,17 @@ function showHelpModal(options) {
         '<div class="help-header">' +
         iconHtml +
         '<div class="help-title-group"><h3>' +
-        title +
+        esc(title) +
         '</h3>' +
-        (subtitle ? '<p>' + subtitle + '</p>' : '') +
+        (subtitle ? '<p>' + esc(subtitle) + '</p>' : '') +
         '</div></div>';
     const footerLinks = Array.isArray(branding.links)
         ? branding.links
-              .filter((link) => link && link.href && link.label)
+              .filter((link) => link && link.href && link.label && sanitizeUrl(link.href))
               .map(
                   (link) =>
                       '<a href="' +
-                      esc(link.href) +
+                      esc(sanitizeUrl(link.href)) +
                       '" target="_blank" rel="noopener noreferrer">' +
                       esc(link.label) +
                       '</a>',
@@ -515,13 +579,14 @@ function showHelpModal(options) {
           esc(branding.beianAlt || '备案图标') +
           '" class="help-beian-icon"></div>'
         : '';
-    const footerHtml = branding.copyright || footerLinks || beianHtml
-        ? '<div class="help-footer"><div class="help-footer-content">' +
-          (branding.copyright ? '<span>' + esc(branding.copyright) + '</span>' : '') +
-          footerLinks +
-          beianHtml +
-          '</div></div>'
-        : '';
+    const footerHtml =
+        branding.copyright || footerLinks || beianHtml
+            ? '<div class="help-footer"><div class="help-footer-content">' +
+              (branding.copyright ? '<span>' + esc(branding.copyright) + '</span>' : '') +
+              footerLinks +
+              beianHtml +
+              '</div></div>'
+            : '';
 
     container.innerHTML = headerHtml + themeHtml + contentHtml + footerHtml;
     dialog.appendChild(closeBtn);
@@ -529,7 +594,6 @@ function showHelpModal(options) {
     document.body.appendChild(overlay);
     document.body.appendChild(dialog);
 
-    // 显式设置不透明度与居中定位，防止被页面外部 CSS（如 opacity: 0）覆盖导致不可见
     overlay.style.opacity = '1';
     dialog.style.opacity = '1';
     dialog.style.transform = 'translate(-50%, -50%)';
@@ -537,22 +601,21 @@ function showHelpModal(options) {
     const themeSelect = dialog.querySelector('#js-theme-select');
     if (themeSelect) bindThemeSelect(themeSelect);
 
-    const close = (reason) => {
-        console.log('[HelpModal] close called, reason:', reason, 'stack:', new Error().stack);
+    const close = () => {
         if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
         if (dialog.parentNode) dialog.parentNode.removeChild(dialog);
     };
-    closeBtn.addEventListener('click', () => close('closeBtn click'));
-    // 延迟绑定 overlay 的点击事件，防止触发点击事件的“穿透”或“瞬间关闭”
+    closeBtn.addEventListener('click', close);
     setTimeout(() => {
         overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) close('overlay click');
+            if (e.target === overlay) close();
         });
     }, 100);
 }
 
-/* ───────── 验证码放大交互（移植自 cgo_ctrl.js）───────── */
+/* ───────── 验证码放大交互 ───────── */
 function bindCaptchaZoom(zoomBtn, container, options) {
+    if (typeof document === 'undefined') return null;
     options = options || {};
     const duration = typeof options.duration === 'number' ? options.duration : 8000;
     const zoomClass = options.zoomClass || 'auth-captcha-zoomed';
@@ -590,10 +653,10 @@ function bindCaptchaZoom(zoomBtn, container, options) {
  * 安装 window.CGO 与 window.ToolTheme 全局命名空间。
  * 幂等：重复调用安全。
  */
-export function installGlobalShim(global = window) {
+export function installGlobalShim(global = typeof window !== 'undefined' ? window : undefined) {
+    if (typeof window === 'undefined' || typeof document === 'undefined' || !global) return;
     getShimConfig(global);
     const CGO = global.CGO || {};
-    // icons
     CGO.Icons = ICONS;
     CGO.icon = icon;
     CGO.iconBtn = iconBtn;
@@ -601,7 +664,6 @@ export function installGlobalShim(global = window) {
     CGO.injectSprite = injectSprite;
     CGO.use = use;
     CGO.iconList = iconNames;
-    // ctrl
     CGO.initDropdowns = initDropdowns;
     CGO.positionDropdownOverlay = positionDropdownOverlay;
     CGO.syncDropdownOverlay = syncDropdownOverlay;
@@ -612,7 +674,6 @@ export function installGlobalShim(global = window) {
     CGO.showHelpModal = showHelpModal;
     CGO.generateCaptcha = generateCaptcha;
     CGO.bindCaptchaZoom = bindCaptchaZoom;
-    // theme
     CGO.theme = {
         setThemeColor,
         resetThemeColor,
@@ -632,6 +693,9 @@ export function installGlobalShim(global = window) {
         setHeaderModeStorageKey,
         getHeaderModeStorageKey,
         autoUpgradeHeader,
+        setBgMode,
+        getBgMode,
+        setDefaultBgMode,
     };
     CGO.setThemeColor = setThemeColor;
     CGO.resetThemeColor = resetThemeColor;
@@ -650,10 +714,12 @@ export function installGlobalShim(global = window) {
     CGO.setHeaderModeStorageKey = setHeaderModeStorageKey;
     CGO.getHeaderModeStorageKey = getHeaderModeStorageKey;
     CGO.autoUpgradeHeader = autoUpgradeHeader;
+    CGO.setBgMode = setBgMode;
+    CGO.getBgMode = getBgMode;
+    CGO.setDefaultBgMode = setDefaultBgMode;
     CGO.initImgIconWrappers = initImgIconWrappers;
     global.CGO = CGO;
 
-    // 兼容 cgo_theme.js 暴露的 window.ToolTheme
     global.ToolTheme = global.ToolTheme || {};
     global.ToolTheme.applyTheme = applyTheme;
     global.ToolTheme.setThemeColor = setThemeColor;
@@ -663,28 +729,25 @@ export function installGlobalShim(global = window) {
     global.ToolTheme.setThemeColorStorageKey = setThemeColorStorageKey;
     global.ToolTheme.getThemeColorStorageKey = getThemeColorStorageKey;
 
-    // 旧版自动行为：DOM 就绪后渲染 data-icon、初始化旧 .dropdown、绑定图片渐进加载、自动升级旧标题栏
-    const autorun = () => {
-        renderIcons();
-        initDropdowns(document);
-        bindLegacyThemeButton();
-        initImgIconWrappers(document);
-        autoUpgradeHeader(document);
-    };
-    initImgIconWrappers(document);
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', autorun);
-    } else {
-        autorun();
+    if (!global._cgoShimAutorunBound) {
+        global._cgoShimAutorunBound = true;
+        const autorun = () => {
+            renderIcons();
+            initDropdowns(document);
+            bindLegacyThemeButton();
+            initImgIconWrappers(document);
+            autoUpgradeHeader(document);
+        };
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', autorun, { once: true });
+        } else {
+            autorun();
+        }
     }
 }
 
-/**
- * 自动处理 .img-icon-wrapper 内部 img 的加载状态。
- * 当图片加载完成（或命中本地缓存）时自动添加 .loaded 类并隐藏 .icon-placeholder 占位符。
- */
-export function initImgIconWrappers(root = document) {
-    if (typeof window === 'undefined' || !root) return;
+export function initImgIconWrappers(root = typeof document !== 'undefined' ? document : null) {
+    if (typeof window === 'undefined' || typeof document === 'undefined' || !root) return;
     const markLoaded = (wrapper, img) => {
         wrapper.classList.add('loaded');
         if (img) img.classList.add('loaded');
@@ -692,8 +755,9 @@ export function initImgIconWrappers(root = document) {
     const bindWrapper = (wrapper) => {
         if (!wrapper || wrapper.classList.contains('loaded')) return;
         const img = wrapper.querySelector('img');
-        if (!img) return;
-        if (img.complete && img.naturalWidth !== 0) {
+        if (!img || img._cgoImgBound) return;
+        img._cgoImgBound = true;
+        if (img.complete) {
             markLoaded(wrapper, img);
         } else {
             img.addEventListener('load', () => markLoaded(wrapper, img), { once: true });
@@ -704,7 +768,6 @@ export function initImgIconWrappers(root = document) {
     root.querySelectorAll('.img-icon-wrapper').forEach(bindWrapper);
 
     if (typeof MutationObserver !== 'undefined' && root === document && !document._cgoImgIconObserver) {
-        document._cgoImgIconObserver = true;
         const observer = new MutationObserver((mutations) => {
             for (const mutation of mutations) {
                 for (const node of mutation.addedNodes) {
@@ -718,7 +781,10 @@ export function initImgIconWrappers(root = document) {
                 }
             }
         });
-        observer.observe(document.documentElement || document.body, { childList: true, subtree: true });
+        const target = document.documentElement || document.body;
+        if (target) {
+            observer.observe(target, { childList: true, subtree: true });
+            document._cgoImgIconObserver = observer;
+        }
     }
 }
-

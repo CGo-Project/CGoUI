@@ -1,6 +1,13 @@
 import { LitElement, html, css } from 'lit';
 import { hairlineRimLightRules } from '../styles/glass-shared.js';
 
+const LEVEL_LABELS = {
+    default: '常旅客',
+    test: '先锋旅客',
+    prime: '启元旅客',
+    admin: '管理员',
+};
+
 export class CgoLevelCard extends LitElement {
     static properties = {
         level: { type: String, reflect: true },
@@ -123,14 +130,8 @@ export class CgoLevelCard extends LitElement {
 
     _label() {
         if (this.label) return this.label;
-        return (
-            {
-                default: '常旅客',
-                test: '先锋旅客',
-                prime: '启元旅客',
-                admin: '管理员',
-            }[this.level] || '常旅客'
-        );
+        const key = String(this.level || '').trim();
+        return Object.hasOwn(LEVEL_LABELS, key) ? LEVEL_LABELS[key] : LEVEL_LABELS.default;
     }
 
     render() {

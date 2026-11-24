@@ -31,49 +31,23 @@ export class CgoFloatingWindow extends LitElement {
         }
         .window {
             width: min(320px, 100%);
-            border: 1px solid var(--border-color, #dee2e6);
+            border: 1px solid var(--cgo-subtle-border, var(--border-color, #dee2e6));
             border-radius: var(--radius-lg, 12px);
-            background: var(--panel-bg, #fff);
-            box-shadow: var(--shadow-lg, 0 8px 32px rgba(0, 0, 0, 0.12));
+            background: var(--glass-bg-panel, var(--panel-bg, #fff));
+            backdrop-filter: var(--glass-backdrop-filter-panel, none);
+            -webkit-backdrop-filter: var(--glass-backdrop-filter-panel, none);
+            box-shadow: var(--cgo-shadow-dropdown, var(--shadow-lg, 0 8px 32px rgba(0, 0, 0, 0.12)));
             overflow: hidden;
             display: flex;
             flex-direction: column;
             height: 100%;
             box-sizing: border-box;
         }
-        :host-context([glass-mode="liquid"]) .window,
-        :host-context([glass-mode="blur"]) .window,
-        :host-context([data-glass-mode="liquid"]) .window,
-        :host-context([data-glass-mode="blur"]) .window {
-            border: none;
-            background: var(--glass-bg-panel, rgba(255, 255, 255, 0.9));
-            backdrop-filter: blur(14px) saturate(135%);
-            -webkit-backdrop-filter: blur(14px) saturate(135%);
-            box-shadow:
-                0 0 0 0.5px rgba(0, 0, 0, 0.06),
-                0 14px 34px -6px rgba(0, 38, 59, 0.14),
-                0 3px 8px -2px rgba(0, 38, 59, 0.06),
-                inset 0 1px 1px 0 rgba(255, 255, 255, 0.85);
-        }
-        :host-context([data-theme="dark"][glass-mode="liquid"]) .window,
-        :host-context([data-theme="dark"][glass-mode="blur"]) .window,
-        :host-context([data-theme="dark"][data-glass-mode="liquid"]) .window,
-        :host-context([data-theme="dark"][data-glass-mode="blur"]) .window {
-            border: none;
-            background: var(--glass-bg-panel, rgba(28, 30, 32, 0.9));
-            backdrop-filter: blur(14px) saturate(135%);
-            -webkit-backdrop-filter: blur(14px) saturate(135%);
-            box-shadow:
-                0 0 0 0.5px rgba(255, 255, 255, 0.1),
-                0 18px 40px -6px rgba(0, 0, 0, 0.6),
-                0 4px 10px -2px rgba(0, 0, 0, 0.4),
-                inset 0 1px 0 0 rgba(255, 255, 255, 0.15);
-        }
         :host([snapped]) .window {
             border-color: var(--primary-color, #00263b);
             box-shadow:
-                0 0 0 3px rgba(0, 29, 49, 0.12),
-                var(--shadow-lg, 0 8px 32px rgba(0, 0, 0, 0.12));
+                0 0 0 3px color-mix(in srgb, var(--primary-color, #00263b) 16%, transparent),
+                var(--cgo-shadow-dropdown, var(--shadow-lg, 0 8px 32px rgba(0, 0, 0, 0.12)));
         }
         .header {
             height: 38px;
@@ -81,23 +55,9 @@ export class CgoFloatingWindow extends LitElement {
             align-items: center;
             justify-content: space-between;
             padding: 0 10px 0 14px;
-            border-bottom: 1px solid var(--border-color, #dee2e6);
-            background: var(--card-bg, #fff);
+            border-bottom: 1px solid var(--cgo-floating-header-border, var(--border-color, #dee2e6));
+            background: var(--cgo-floating-header-bg, var(--card-bg, #fff));
             flex-shrink: 0;
-        }
-        :host-context([glass-mode="liquid"]) .header,
-        :host-context([glass-mode="blur"]) .header,
-        :host-context([data-glass-mode="liquid"]) .header,
-        :host-context([data-glass-mode="blur"]) .header {
-            background: rgba(255, 255, 255, 0.5);
-            border-bottom-color: rgba(0, 0, 0, 0.08);
-        }
-        :host-context([data-theme="dark"][glass-mode="liquid"]) .header,
-        :host-context([data-theme="dark"][glass-mode="blur"]) .header,
-        :host-context([data-theme="dark"][data-glass-mode="liquid"]) .header,
-        :host-context([data-theme="dark"][data-glass-mode="blur"]) .header {
-            background: rgba(35, 37, 40, 0.5);
-            border-bottom-color: rgba(255, 255, 255, 0.08);
         }
         .title-wrapper {
             display: flex;
@@ -172,8 +132,32 @@ export class CgoFloatingWindow extends LitElement {
         this.resetOnDragend = false;
 
         this._onPointerDown = this._onPointerDown.bind(this);
+        this._onPointerMoveBound = this._onPointerMove.bind(this);
+        this._onPointerUpBound = this._onPointerUp.bind(this);
         this._toggleMinimize = this._toggleMinimize.bind(this);
         this._close = this._close.bind(this);
+    }
+
+    disconnectedCallback() {
+        super.disconnectedCallback();
+        this._cleanupDrag();
+    }
+
+    _cleanupDrag() {
+        this._isDragging = false;
+        if (this._rafId) {
+            cancelAnimationFrame(this._rafId);
+            this._rafId = null;
+        }
+        if (this._pointerId !== undefined && this._dragHeader && this._dragHeader.releasePointerCapture) {
+            try {
+                this._dragHeader.releasePointerCapture(this._pointerId);
+            } catch (_) {}
+            this._pointerId = undefined;
+        }
+        document.removeEventListener('pointermove', this._onPointerMoveBound);
+        document.removeEventListener('pointerup', this._onPointerUpBound);
+        document.removeEventListener('pointercancel', this._onPointerUpBound);
     }
 
     _onPointerDown(e) {
@@ -183,11 +167,14 @@ export class CgoFloatingWindow extends LitElement {
 
         const rect = this.getBoundingClientRect();
         const style = window.getComputedStyle(this);
-        const offsetParent = this.offsetParent || document.body;
-        const parentRect = offsetParent.getBoundingClientRect();
+        const isFixed = style.position === 'fixed';
+        const offsetParent = isFixed ? null : (this.offsetParent || document.body);
+        const parentRect = isFixed
+            ? { left: 0, top: 0, width: window.innerWidth, height: window.innerHeight }
+            : offsetParent.getBoundingClientRect();
 
-        let initialX = rect.left - parentRect.left;
-        let initialY = rect.top - parentRect.top;
+        const initialX = rect.left - parentRect.left;
+        const initialY = rect.top - parentRect.top;
 
         if (style.position !== 'absolute' && style.position !== 'fixed') {
             this.style.position = 'absolute';
@@ -197,6 +184,7 @@ export class CgoFloatingWindow extends LitElement {
             this.style.margin = '0';
         }
 
+        this._isFixedDrag = isFixed;
         this._x = parseFloat(this.style.left);
         if (isNaN(this._x)) this._x = initialX;
 
@@ -220,10 +208,9 @@ export class CgoFloatingWindow extends LitElement {
             }
         } catch (_) {}
 
-        this._onPointerMoveBound = this._onPointerMove.bind(this);
-        this._onPointerUpBound = this._onPointerUp.bind(this);
         document.addEventListener('pointermove', this._onPointerMoveBound);
         document.addEventListener('pointerup', this._onPointerUpBound);
+        document.addEventListener('pointercancel', this._onPointerUpBound);
 
         this.dispatchEvent(new CustomEvent('cgo-dragstart', { bubbles: true, composed: true }));
         e.preventDefault();
@@ -238,7 +225,7 @@ export class CgoFloatingWindow extends LitElement {
         let newX = this._x + dx;
         let newY = this._y + dy;
 
-        if (this.offsetParent) {
+        if (this._isFixedDrag || this.offsetParent) {
             const maxX = Math.max(0, (this._parentWidth || 0) - (this._compWidth || 0));
             const maxY = Math.max(0, (this._parentHeight || 0) - (this._compHeight || 0));
 
@@ -293,22 +280,7 @@ export class CgoFloatingWindow extends LitElement {
 
     _onPointerUp(e) {
         if (!this._isDragging) return;
-        this._isDragging = false;
-
-        if (this._rafId) {
-            cancelAnimationFrame(this._rafId);
-            this._rafId = null;
-        }
-
-        if (this._pointerId !== undefined && this._dragHeader && this._dragHeader.releasePointerCapture) {
-            try {
-                this._dragHeader.releasePointerCapture(this._pointerId);
-            } catch (_) {}
-            this._pointerId = undefined;
-        }
-
-        document.removeEventListener('pointermove', this._onPointerMoveBound);
-        document.removeEventListener('pointerup', this._onPointerUpBound);
+        this._cleanupDrag();
 
         const clientX = e && e.clientX !== undefined ? e.clientX : 0;
         const clientY = e && e.clientY !== undefined ? e.clientY : 0;
@@ -326,7 +298,6 @@ export class CgoFloatingWindow extends LitElement {
         this._pendingX = undefined;
         this._pendingY = undefined;
 
-        // 仅在明确开启了 map 专用重置模式 (resetOnDragend 或 lockx) 时清理内联 left/top 样式
         if (this.resetOnDragend || this.lockx) {
             this.style.left = '';
             this.style.top = '';
@@ -367,11 +338,17 @@ export class CgoFloatingWindow extends LitElement {
                     </div>
                     <div class="controls">
                         <slot name="header-extra"></slot>
-                        <button class="ctrl" title=${this.minimized ? '还原' : '最小化'} @click=${this._toggleMinimize}>
+                        <button
+                            type="button"
+                            class="ctrl"
+                            title=${this.minimized ? '还原' : '最小化'}
+                            aria-label=${this.minimized ? '还原' : '最小化'}
+                            @click=${this._toggleMinimize}
+                        >
                             ${this.minimized ? '+' : '-'}
                         </button>
                         ${!this.noclose
-                            ? html`<button class="ctrl" title="关闭" @click=${this._close}><cgo-icon name="close" size="12"></cgo-icon></button>`
+                            ? html`<button type="button" class="ctrl" title="关闭" aria-label="关闭" @click=${this._close}><cgo-icon name="close" size="12"></cgo-icon></button>`
                             : ''}
                     </div>
                 </div>
@@ -384,4 +361,3 @@ export class CgoFloatingWindow extends LitElement {
 if (typeof window !== 'undefined' && window.customElements) {
     customElements.get('cgo-floating-window') || customElements.define('cgo-floating-window', CgoFloatingWindow);
 }
-

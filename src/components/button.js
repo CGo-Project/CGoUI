@@ -1,17 +1,17 @@
 import { LitElement, html, css } from 'lit';
 import './icon.js';
-import { hairlineRimLightRules, hairlineRimDarkRules } from '../styles/glass-shared.js';
+import { hairlineRimLightRules } from '../styles/glass-shared.js';
 
 /**
  * <cgo-button variant="info" size="sm" icon="save" loading>保存</cgo-button>
- * variant: primary | info(默认) | dark | danger | success | ghost
+ * variant: primary | info(默认) | dark | danger | success | warning | ghost
  * size:    sm | (默认) | lg | xl
- * 属性:    icon, icon-pos(left|right), disabled, loading, full, icon-only, color, text-color
+ * 属性:    icon, icon-pos(left|right), disabled, loading, full, icon-only, pill, active, dot, type, color, text-color, icon-color
  * 事件:    原生 click 透传（点击 host 即可）
  */
 export class CgoButton extends LitElement {
     static properties = {
-        variant: { type: String },
+        variant: { type: String, reflect: true },
         size: { type: String },
         icon: { type: String },
         iconPos: { type: String, attribute: 'icon-pos' },
@@ -34,6 +34,10 @@ export class CgoButton extends LitElement {
             display: inline-flex;
             vertical-align: middle;
         }
+        :host([disabled]),
+        :host([loading]) {
+            pointer-events: none;
+        }
         .btn-dot {
             position: absolute;
             top: 2px;
@@ -45,10 +49,6 @@ export class CgoButton extends LitElement {
             box-shadow: 0 0 0 2px var(--bg-body, var(--bg-color, #ffffff));
             pointer-events: none;
             z-index: 5;
-        }
-        :host([data-theme='dark']) .btn-dot,
-        :host-context([data-theme='dark']) .btn-dot {
-            box-shadow: 0 0 0 2px var(--bg-body, var(--bg-color, #1f2020));
         }
         :host([full]) {
             display: flex;
@@ -78,7 +78,6 @@ export class CgoButton extends LitElement {
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-            /* Emil Kowalski 规范：显式声明光学与微交互过渡，无位移浮动 */
             transition:
                 color var(--dur-fast, 140ms) ease,
                 background-color var(--dur-fast, 140ms) ease,
@@ -92,13 +91,9 @@ export class CgoButton extends LitElement {
             ${hairlineRimLightRules}
         }
         @media (hover: hover) and (pointer: fine) {
-            button:hover:not([disabled]):not([loading])::before {
+            button:hover:not([disabled])::before {
                 opacity: 0.75;
             }
-        }
-
-        :host-context([data-theme='dark']) button::before {
-            ${hairlineRimDarkRules}
         }
 
         :host([variant='primary']),
@@ -127,18 +122,15 @@ export class CgoButton extends LitElement {
             text-overflow: ellipsis;
         }
 
-        /* 按压微触感反馈：仅在点击时产生 scale(0.98) 弹性回馈，鼠标悬停完全取消位移上升 */
-        button:active:not([disabled]):not([loading]) {
+        /* 按压微触感反馈 */
+        button:active:not([disabled]) {
             transform: scale(0.98);
         }
 
         /* 焦点环指示器 */
         button:focus-visible {
             outline: none;
-            box-shadow: 0 0 0 2px var(--bg-color, #ffffff), 0 0 0 4px var(--primary-color, #006098);
-        }
-        :host-context([data-theme='dark']) button:focus-visible {
-            box-shadow: 0 0 0 2px var(--bg-color, #1a1a1a), 0 0 0 4px var(--primary-hover, #0070b0);
+            box-shadow: 0 0 0 2px var(--cgo-focus-ring-offset, var(--bg-color, #ffffff)), 0 0 0 4px var(--primary-color, #006098);
         }
 
         :host([disabled]) button,
@@ -150,49 +142,32 @@ export class CgoButton extends LitElement {
             box-shadow: none;
         }
 
-        /* ── 变体 1：Primary 主要按钮（纯正品牌色，同系统一）── */
+        /* ── 变体 1：Primary 主要按钮 ── */
         .v-primary {
             background-color: var(--primary-color, #006098);
             color: #ffffff !important;
-            border-color: var(--primary-color, #006098);
-            box-shadow: 0 1px 2px rgba(0, 96, 152, 0.2);
+            box-shadow: var(--cgo-shadow-control, 0 1px 2px rgba(0, 96, 152, 0.2));
         }
         .v-primary.is-active {
             background-color: var(--primary-hover, #004f80);
             color: #ffffff !important;
-            border-color: var(--primary-hover, #004f80);
             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
         }
-        :host-context([data-theme='dark']) .v-primary {
-            background-color: var(--primary-color, #0070b0);
-            color: #ffffff !important;
-            border-color: var(--primary-color, #0070b0);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        }
 
-        /* ── 变体 2：Info 次级按钮（标准次级中性，同系统一）── */
+        /* ── 变体 2：Info 次级按钮 ── */
         .v-info {
             background-color: var(--btn-info-bg, #f1f3f5);
             color: var(--text-main, #00263b);
-            border-color: var(--border-color, #dee2e6);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            box-shadow: var(--cgo-shadow-control, 0 1px 2px rgba(0, 0, 0, 0.04));
         }
         .v-info.is-active {
-            background-color: #dee2e6;
-            border-color: #ced4da;
-        }
-        :host-context([data-theme='dark']) .v-info {
-            background-color: var(--btn-info-bg, #262729);
-            color: var(--text-main, #e5e8ea);
-            border-color: var(--border-color, #383a3c);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+            background-color: var(--cgo-btn-info-active, #dee2e6);
         }
 
         /* ── 变体 3：Dark 深色按钮 ── */
         .v-dark {
             background-color: #1a1a1c;
             color: #f0f2f5;
-            border-color: #2e2f33;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
         }
 
@@ -200,7 +175,6 @@ export class CgoButton extends LitElement {
         .v-danger {
             background-color: var(--danger-color, #ea4335);
             color: #ffffff;
-            border-color: var(--danger-color, #ea4335);
             box-shadow: 0 1px 2px rgba(234, 67, 53, 0.2);
         }
 
@@ -208,7 +182,6 @@ export class CgoButton extends LitElement {
         .v-success {
             background-color: var(--success-color, #34a853);
             color: #ffffff;
-            border-color: var(--success-color, #34a853);
             box-shadow: 0 1px 2px rgba(52, 168, 83, 0.2);
         }
 
@@ -217,7 +190,6 @@ export class CgoButton extends LitElement {
         .v-warn {
             background-color: var(--warning-color, #f59e0b);
             color: #ffffff;
-            border-color: var(--warning-color, #f59e0b);
             box-shadow: 0 1px 2px rgba(245, 158, 11, 0.2);
         }
 
@@ -225,82 +197,51 @@ export class CgoButton extends LitElement {
         .v-ghost {
             background-color: transparent;
             color: var(--primary-color, #006098);
-            border-color: transparent;
             box-shadow: none;
         }
         .v-ghost::before {
             display: none;
-        }
-        :host-context([data-theme='dark']) .v-ghost {
-            color: var(--primary-color, #4dabf7);
-            border-color: transparent;
         }
 
         /* ── 自定义色按钮 ── */
         .v-custom {
             background-color: var(--cgo-button-bg);
             color: var(--cgo-button-fg, var(--btn-text, #fff));
-            border-color: var(--cgo-button-border, var(--cgo-button-bg));
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
         }
 
-        /* 鼠标精准悬停状态保护 (防止触屏点击后 Hover 样式永久黏着) */
         @media (hover: hover) and (pointer: fine) {
             .v-primary:hover {
                 background-color: var(--primary-hover, #004f80);
                 color: #ffffff !important;
-                border-color: var(--primary-hover, #004f80);
                 box-shadow: 0 2px 5px rgba(0, 96, 152, 0.25);
-            }
-            :host-context([data-theme='dark']) .v-primary:hover {
-                background-color: var(--primary-hover, #0084d1);
-                color: #ffffff !important;
-                border-color: var(--primary-hover, #0084d1);
-                box-shadow: 0 2px 6px rgba(0, 112, 176, 0.35);
             }
             .v-info:hover {
                 background-color: var(--btn-info-hover, #e9ecef);
-                border-color: var(--border-hover, #ced4da);
                 color: var(--text-main, #00263b);
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-            }
-            :host-context([data-theme='dark']) .v-info:hover {
-                background-color: var(--btn-info-hover, #323438);
-                border-color: var(--border-hover, #44474b);
-                color: #ffffff;
-                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
+                box-shadow: var(--cgo-shadow-control-hover, 0 2px 4px rgba(0, 0, 0, 0.06));
             }
             .v-dark:hover {
                 background-color: #292a2e;
-                border-color: #3e4046;
                 color: #ffffff;
                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25);
             }
             .v-danger:hover {
                 background-color: var(--danger-hover, #d33828);
-                border-color: var(--danger-hover, #d33828);
                 box-shadow: 0 2px 5px rgba(234, 67, 53, 0.28);
             }
             .v-success:hover {
-                background-color: var(--success-color, #34a853);
-                border-color: var(--success-color, #34a853);
+                background-color: var(--success-hover, #2b9348);
                 box-shadow: 0 2px 5px rgba(52, 168, 83, 0.28);
             }
             .v-warning:hover,
             .v-warn:hover {
                 background-color: #d97706;
-                border-color: #d97706;
                 box-shadow: 0 2px 5px rgba(245, 158, 11, 0.28);
             }
             .v-ghost:hover {
                 background-color: var(--info-bg, #e7f3fb);
                 color: var(--primary-hover, #004f80);
-                border-color: transparent;
-            }
-            :host-context([data-theme='dark']) .v-ghost:hover {
-                background-color: rgba(77, 171, 247, 0.12);
-                color: #70bcfb;
-                border-color: transparent;
             }
             .v-custom:hover {
                 filter: brightness(0.92);
@@ -339,52 +280,28 @@ export class CgoButton extends LitElement {
             width: 44px;
             height: 44px;
         }
+        :host([icon-only]) .s-xl {
+            width: 52px;
+            height: 52px;
+        }
 
-        /* 胶囊形（筛选 / 控制栏 ctrl-btn）*/
+        /* 胶囊形：只控制几何与激活态高光，不覆盖 primary/danger/success 等变体底色 */
         :host([pill]) button {
             height: 36px;
             padding: 0 18px;
             border-radius: var(--radius-full, 9999px);
-            border: none;
-            background-color: var(--btn-info-bg, #f1f3f5);
-            color: var(--text-main, #00263b);
             font-weight: 500;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
         }
-        :host([pill]) button.is-active,
-        :host([pill]) button.v-primary {
+        :host([pill]) button.v-info.is-active {
             background-color: var(--primary-color, #006098);
             color: #ffffff;
             box-shadow: 0 1px 2px rgba(0, 96, 152, 0.2);
         }
-        :host-context([data-theme='dark']):host([pill]) button {
-            background-color: var(--btn-info-bg, #262729);
-            color: var(--text-main, #e5e8ea);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-        }
-        :host-context([data-theme='dark']):host([pill]) button.is-active,
-        :host-context([data-theme='dark']):host([pill]) button.v-primary {
-            background-color: var(--primary-color, #0070b0);
-            color: #ffffff;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        }
         @media (hover: hover) and (pointer: fine) {
-            :host([pill]) button:hover {
-                background-color: var(--btn-info-hover, #e9ecef);
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
-            }
-            :host([pill]) button.is-active:hover,
-            :host([pill]) button.v-primary:hover {
+            :host([pill]) button.v-info.is-active:hover {
                 background-color: var(--primary-hover, #004f80);
-                box-shadow: 0 2px 5px rgba(0, 96, 152, 0.25);
-            }
-            :host-context([data-theme='dark']):host([pill]) button:hover {
-                background-color: var(--btn-info-hover, #323438);
                 color: #ffffff;
-            }
-            :host-context([data-theme='dark']):host([pill]) button.is-active:hover,
-            :host-context([data-theme='dark']):host([pill]) button.v-primary:hover {
-                background-color: var(--primary-hover, #0084d1);
+                box-shadow: 0 2px 5px rgba(0, 96, 152, 0.25);
             }
         }
         :host([pill]) .s-sm {
@@ -434,6 +351,7 @@ export class CgoButton extends LitElement {
                 e.stopImmediatePropagation();
                 return;
             }
+            if (e.defaultPrevented) return;
             if (this.type === 'submit') {
                 const form = this.closest('form');
                 if (form) {
@@ -448,13 +366,27 @@ export class CgoButton extends LitElement {
                 if (form) form.reset();
             }
         };
-        this.addEventListener('click', this._onFormActionClick);
+        this.addEventListener('click', this._onFormActionClick, true);
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
         if (this._onFormActionClick) {
-            this.removeEventListener('click', this._onFormActionClick);
+            this.removeEventListener('click', this._onFormActionClick, true);
+        }
+    }
+
+    updated(changed) {
+        if (changed.has('color') || changed.has('textColor')) {
+            if (this.color) {
+                this.style.setProperty('--cgo-button-bg', this.color);
+                this.style.setProperty('--cgo-button-border', this.color);
+                this.style.setProperty('--cgo-button-fg', this.textColor || 'var(--btn-text, #fff)');
+            } else {
+                this.style.removeProperty('--cgo-button-bg');
+                this.style.removeProperty('--cgo-button-border');
+                this.style.removeProperty('--cgo-button-fg');
+            }
         }
     }
 
@@ -462,24 +394,13 @@ export class CgoButton extends LitElement {
         const rawVariant = (this.variant === 'secondary' || this.variant === 'glass') ? 'info' : (this.variant || 'info');
         const variant = this.color ? 'custom' : rawVariant;
         const cls = `v-${variant} ${this.size ? 's-' + this.size : ''} ${this.active ? 'is-active' : ''}`;
-        const style = this.color
-            ? `--cgo-button-bg:${this.color};--cgo-button-border:${this.color};--cgo-button-fg:${this.textColor || 'var(--btn-text, #fff)'};`
-            : '';
         const iconEl = this.icon
-            ? html`
-                  <cgo-icon name=${this.icon} size="18" color=${this.iconColor || ''}></cgo-icon>
-              `
+            ? html`<cgo-icon name=${this.icon} size="18" color=${this.iconColor || ''}></cgo-icon>`
             : null;
-        const label = html`
-            <span class="btn-label"><slot></slot></span>
-        `;
+        const label = html`<span class="btn-label"><slot></slot></span>`;
         return html`
-            <button class=${cls} style=${style} type=${this.type} ?disabled=${this.disabled || this.loading}>
-                ${this.loading
-                ? html`
-                          <span class="spin"></span>
-                      `
-                : null}
+            <button class=${cls} type=${this.type} ?disabled=${this.disabled || this.loading}>
+                ${this.loading ? html`<span class="spin"></span>` : null}
                 ${!this.loading && this.iconPos !== 'right' ? iconEl : null}
                 ${this.iconOnly && this.icon ? null : label}
                 ${!this.loading && this.iconPos === 'right' ? iconEl : null}

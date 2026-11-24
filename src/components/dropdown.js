@@ -3,20 +3,9 @@ import { injectLiquidGlassFilter } from '../theme.js';
 import {
     glassRefractionStyles,
     tierBPanelUnderlayRules,
-    tierBPanelUnderlayDarkRules,
     tierBRimWeakRules,
-    tierBRimWeakDarkRules,
 } from '../styles/glass-shared.js';
-
-const _openInstances = new Set();
-let _outsideBound = false;
-function _bindOutside() {
-    if (_outsideBound) return;
-    _outsideBound = true;
-    document.addEventListener('click', () => {
-        _openInstances.forEach((inst) => inst.close());
-    });
-}
+import { openFloatingMenu, closeFloatingMenu, closeOtherFloatingMenus } from '../utils/floating-menu.js';
 
 /**
  * <cgo-dropdown align="right">
@@ -28,7 +17,7 @@ function _bindOutside() {
 export class CgoDropdown extends LitElement {
     static properties = {
         open: { type: Boolean, reflect: true },
-        align: { type: String },
+        align: { type: String, reflect: true },
         glassMode: { type: String, attribute: 'glass-mode', reflect: true },
     };
 
@@ -44,10 +33,6 @@ export class CgoDropdown extends LitElement {
         /* 遵循 Tier B 不可交互底板规范 (0.9 衬底，柔和微光圈) */
         .menu {
             display: none;
-            /*
-             * Fix: 升级为 Top Layer Popover + position: fixed，彻底脱离父级 isolation、overflow、
-             * backdrop-filter、transform 包含块约束，以视口为基准精确定位并保持稳定磨砂。
-             */
             position: fixed;
             inset: auto;
             margin: 0;
@@ -55,7 +40,7 @@ export class CgoDropdown extends LitElement {
             background: transparent;
             border: none;
             border-radius: var(--radius-lg, 12px);
-            box-shadow: var(--glass-shadow, 0 8px 24px rgba(0, 38, 59, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04));
+            box-shadow: var(--cgo-shadow-dropdown, var(--glass-shadow, 0 8px 24px rgba(0, 38, 59, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)));
             color: inherit;
             z-index: 100000;
             padding: 6px;
@@ -73,30 +58,20 @@ export class CgoDropdown extends LitElement {
         .menu::after {
             ${tierBPanelUnderlayRules}
         }
-        :host-context([data-theme='dark']) .menu::after {
-            ${tierBPanelUnderlayDarkRules}
-        }
 
-        /* Layer 2: 弱化微光圈 (Tier B 规范: 顶部柔和单向光，与 0.9 高不透明底板自然融合) */
+        /* Layer 2: 弱化微光圈 (Tier B 规范) */
         .menu::before {
             ${tierBRimWeakRules}
-        }
-
-        :host-context([data-theme='dark']) .menu::before {
-            ${tierBRimWeakDarkRules}
-        }
-
-        :host-context([data-theme='dark']) .menu {
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.3);
         }
 
         /* Layer 3: 菜单内容项 */
         .menu-content {
             position: relative;
             z-index: 3;
+            animation: dropdownContentIn var(--dur-fast, 140ms) ease;
         }
 
-        /* align 属性仅影响 transform-origin，坐标已由 JS 全量负责 */
+        /* align 属性仅影响 transform-origin，坐标由 floating-menu helper 计算 */
         :host([align='left']) .menu {
             transform-origin: top left;
         }
@@ -120,10 +95,6 @@ export class CgoDropdown extends LitElement {
         :host([glass-mode='none']) .menu::before,
         :host([glass-mode='none']) .menu::after {
             display: none;
-        }
-        :host-context([data-theme='dark']):host([glass-mode='flat']) .menu {
-            background: var(--card-bg, #1f2020);
-            border-color: var(--border-color, #383a3c);
         }
 
         @keyframes dropdownIn {
@@ -149,9 +120,6 @@ export class CgoDropdown extends LitElement {
             to {
                 opacity: 1;
             }
-        }
-        .menu-content {
-            animation: dropdownContentIn var(--dur-fast, 140ms) ease;
         }
         .menu.closing {
             display: block;
@@ -199,21 +167,8 @@ export class CgoDropdown extends LitElement {
             ::slotted(a:hover),
             ::slotted(button:hover),
             ::slotted(.dropdown-item:hover) {
-                background: var(--btn-info-hover, rgba(0, 38, 59, 0.06)) !important;
+                background: var(--cgo-subtle-hover, var(--btn-info-hover, rgba(0, 38, 59, 0.06))) !important;
                 color: var(--text-main, #00263b);
-            }
-        }
-        :host-context([data-theme='dark']) ::slotted(a),
-        :host-context([data-theme='dark']) ::slotted(button),
-        :host-context([data-theme='dark']) ::slotted(.dropdown-item) {
-            color: var(--text-main, #e5e8ea);
-        }
-        @media (hover: hover) and (pointer: fine) {
-            :host-context([data-theme='dark']) ::slotted(a:hover),
-            :host-context([data-theme='dark']) ::slotted(button:hover),
-            :host-context([data-theme='dark']) ::slotted(.dropdown-item:hover) {
-                background: rgba(255, 255, 255, 0.08) !important;
-                color: #ffffff;
             }
         }
         ::slotted(a:active),
@@ -227,16 +182,7 @@ export class CgoDropdown extends LitElement {
             display: block !important;
             height: 1px;
             margin: 4px 0 !important;
-            background: var(--border-color, rgba(0, 38, 59, 0.08));
-        }
-        :host-context([data-theme='dark']) ::slotted(.dropdown-divider) {
-            background: rgba(255, 255, 255, 0.08);
-        }
-
-        /* 菜单内图标尺寸对齐 */
-        ::slotted(a) cgo-icon,
-        ::slotted(button) cgo-icon {
-            flex-shrink: 0;
+            background: var(--cgo-divider-color, rgba(0, 38, 59, 0.08));
         }
     `;
 
@@ -246,9 +192,9 @@ export class CgoDropdown extends LitElement {
         this.align = 'right';
         this.glassMode = '';
         this._closing = false;
-        this._positionHandler = () => {
-            if (this.open) this._positionMenu();
-        };
+        this._closeTimer = null;
+        this._closeHandler = null;
+        this._closeTarget = null;
     }
 
     connectedCallback() {
@@ -258,13 +204,45 @@ export class CgoDropdown extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        _openInstances.delete(this);
-        window.removeEventListener('resize', this._positionHandler);
-        window.removeEventListener('scroll', this._positionHandler, true);
+        this._clearClosePending();
+        const menu = this.shadowRoot?.querySelector('.menu');
+        closeFloatingMenu(this, menu);
+        this._closing = false;
     }
 
-    firstUpdated() {
-        _bindOutside();
+    _clearClosePending() {
+        if (this._closeTimer) {
+            clearTimeout(this._closeTimer);
+            this._closeTimer = null;
+        }
+        if (this._closeHandler && this._closeTarget) {
+            this._closeTarget.removeEventListener('animationend', this._closeHandler);
+        }
+        this._closeHandler = null;
+        this._closeTarget = null;
+    }
+
+    updated(changedProperties) {
+        if (changedProperties.has('open')) {
+            if (this.open) {
+                this._mountFloatingMenu();
+            } else if (!this._closing) {
+                closeFloatingMenu(this, this.shadowRoot?.querySelector('.menu'));
+            }
+        }
+    }
+
+    _mountFloatingMenu() {
+        const menu = this.shadowRoot?.querySelector('.menu');
+        const trigger = this.shadowRoot?.querySelector('.trigger');
+        if (!menu || !trigger) return;
+        closeOtherFloatingMenus(this);
+        openFloatingMenu(this, menu, trigger, {
+            align: this.align || 'right',
+            gap: 8,
+            minWidth: 190,
+            maxHeight: 420,
+        });
     }
 
     _toggle(e) {
@@ -273,96 +251,43 @@ export class CgoDropdown extends LitElement {
     }
 
     show() {
+        this._clearClosePending();
         this._closing = false;
-        _openInstances.forEach((inst) => {
-            if (inst !== this) inst.close();
-        });
+        closeOtherFloatingMenus(this);
         this.open = true;
-        _openInstances.add(this);
         this.updateComplete.then(() => {
-            const menu = this.shadowRoot?.querySelector('.menu');
-            if (menu && typeof menu.showPopover === 'function') {
-                try {
-                    if (!menu.matches(':popover-open')) menu.showPopover();
-                } catch {}
-            }
-            requestAnimationFrame(() => this._positionMenu());
+            if (!this.open || this._closing) return;
+            this._mountFloatingMenu();
         });
-        window.addEventListener('resize', this._positionHandler);
-        window.addEventListener('scroll', this._positionHandler, true);
-    }
-
-    /**
-     * 基于触发元素的视口坐标动态计算并设置菜单的 fixed / Top Layer 定位。
-     * 配合 popover="manual" 与 position: fixed，彻底脱离父级 isolation/overflow/backdrop-filter/transform 约束。
-     */
-    _positionMenu() {
-        const menu = this.shadowRoot?.querySelector('.menu');
-        const trigger = this.shadowRoot?.querySelector('.trigger');
-        if (!menu || !trigger) return;
-
-        const r = trigger.getBoundingClientRect();
-        const menuW = menu.offsetWidth || 190;
-        const menuH = Math.min(menu.offsetHeight || 220, 420);
-        const viewportW = window.innerWidth;
-        const viewportH = window.innerHeight;
-        const gap = 8;
-
-        // 垂直方向：优先向下展开，下方不足且上方更宽敞时向上翻转
-        const downTop = r.bottom + gap;
-        const upBottom = viewportH - r.top + gap;
-        const fitsDown = downTop + menuH <= viewportH - 8 || viewportH - downTop >= r.top;
-        menu.style.top = fitsDown ? `${Math.round(downTop)}px` : '';
-        menu.style.bottom = !fitsDown ? `${Math.round(upBottom)}px` : '';
-
-        // 水平方向：依据 align 属性对齐，并钳制在视口安全区内
-        menu.style.left = '';
-        menu.style.right = '';
-        if (this.align === 'left') {
-            const left = Math.max(8, Math.min(r.left, viewportW - menuW - 8));
-            menu.style.left = `${Math.round(left)}px`;
-        } else if (this.align === 'center') {
-            const center = r.left + r.width / 2;
-            const left = Math.max(8, Math.min(center - menuW / 2, viewportW - menuW - 8));
-            menu.style.left = `${Math.round(left)}px`;
-        } else {
-            // 默认 align right
-            const desiredLeft = r.right - menuW;
-            const clampedLeft = Math.max(8, Math.min(desiredLeft, viewportW - menuW - 8));
-            menu.style.left = `${Math.round(clampedLeft)}px`;
-        }
     }
 
     close() {
         if (!this.open || this._closing) return;
+        this._clearClosePending();
         this._closing = true;
         this.requestUpdate();
         const menu = this.shadowRoot?.querySelector('.menu');
         const done = () => {
-            if (menu && typeof menu.hidePopover === 'function') {
-                try {
-                    if (menu.matches(':popover-open')) menu.hidePopover();
-                } catch {}
-            }
+            if (!this._closing) return;
+            this._clearClosePending();
+            closeFloatingMenu(this, menu);
             this._closing = false;
             this.open = false;
-            _openInstances.delete(this);
-            window.removeEventListener('resize', this._positionHandler);
-            window.removeEventListener('scroll', this._positionHandler, true);
             this.requestUpdate();
         };
         if (menu) {
-            menu.addEventListener('animationend', done, { once: true });
-            setTimeout(() => {
-                if (this._closing) done();
-            }, 180);
+            this._closeTarget = menu;
+            this._closeHandler = (e) => {
+                if (e.target === menu) done();
+            };
+            menu.addEventListener('animationend', this._closeHandler);
+            this._closeTimer = setTimeout(done, 180);
         } else {
             done();
         }
     }
 
     _onMenuClick(e) {
-        // 点击菜单内的链接/按钮后收起
         const t = e.target.closest('a, button, .dropdown-item');
         if (t) this.close();
     }

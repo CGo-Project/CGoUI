@@ -33,7 +33,7 @@ export { CgoNoticeCard } from './components/notice-card.js';
 export { CgoNoticeCenter } from './components/notice-center.js';
 export { CgoNoticePopup, showNoticePopup } from './components/notice-popup.js';
 
-export { ICONS, buildSvg, iconNames } from './icons/public-icons.js';
+export { ICONS, buildSvg, iconNames } from './icons/icons.js';
 export * as theme from './theme.js';
-export { installGlobalShim, configureGlobalShim, initImgIconWrappers } from './shim/public-global.js';
+export { installGlobalShim, configureGlobalShim, initImgIconWrappers } from './shim/cgo-global.js';
 

@@ -7,7 +7,7 @@ export class CgoInput extends LitElement {
         placeholder: { type: String },
         type: { type: String },
         hint: { type: String },
-        state: { type: String },
+        state: { type: String, reflect: true },
         disabled: { type: Boolean, reflect: true },
     };
 
@@ -34,7 +34,7 @@ export class CgoInput extends LitElement {
             font: inherit;
             font-size: 14px;
             box-sizing: border-box;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+            box-shadow: var(--cgo-shadow-control, 0 1px 2px rgba(0, 0, 0, 0.03));
             -webkit-tap-highlight-color: transparent;
             transition:
                 border-color var(--dur-fast, 140ms) ease,
@@ -43,7 +43,7 @@ export class CgoInput extends LitElement {
         }
         @media (pointer: coarse), (max-width: 640px) {
             input {
-                font-size: 16px; /* 防止 iOS Safari 聚焦输入框时强制缩放视口 */
+                font-size: 16px;
             }
         }
         input::placeholder {
@@ -58,20 +58,8 @@ export class CgoInput extends LitElement {
             outline: none;
             border-color: var(--primary-color, #006098);
             box-shadow:
-                0 0 0 3.5px rgba(0, 96, 152, 0.14),
-                0 1px 2px rgba(0, 96, 152, 0.08);
-        }
-        :host-context([data-theme='dark']) input {
-            background: var(--card-bg, #1e2023);
-            border-color: var(--border-color, rgba(255, 255, 255, 0.14));
-            color: var(--text-main, #e5e8ea);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-        }
-        :host-context([data-theme='dark']) input:focus {
-            border-color: var(--primary-color, #4dabf7);
-            box-shadow:
-                0 0 0 3.5px rgba(77, 171, 247, 0.22),
-                0 1px 3px rgba(0, 0, 0, 0.35);
+                0 0 0 3.5px color-mix(in srgb, var(--primary-color, #006098) 18%, transparent),
+                0 1px 2px rgba(0, 0, 0, 0.08);
         }
         :host([state='success']) input {
             border-color: var(--success-color, #34a853);
@@ -130,17 +118,17 @@ export class CgoInput extends LitElement {
     }
 
     render() {
+        const hintId = this.hint ? 'cgo-input-hint' : undefined;
         return html`
-            ${this.label
-                ? html`
-                      <label>${this.label}</label>
-                  `
-                : null}
+            ${this.label ? html`<label for="cgo-input-el">${this.label}</label>` : null}
             <input
-                .value=${this.value}
+                id="cgo-input-el"
+                .value=${this.value ?? ''}
                 type=${this.type}
                 placeholder=${this.placeholder}
                 ?disabled=${this.disabled}
+                aria-invalid=${this.state === 'danger' ? 'true' : 'false'}
+                aria-describedby=${hintId || ''}
                 @input=${(e) => {
                     this.value = e.target.value;
                     this.dispatchEvent(
@@ -148,11 +136,7 @@ export class CgoInput extends LitElement {
                     );
                 }}
             />
-            ${this.hint
-                ? html`
-                      <div class="hint ${this.state}">${this.hint}</div>
-                  `
-                : null}
+            ${this.hint ? html`<div id="cgo-input-hint" class="hint ${this.state}">${this.hint}</div>` : null}
         `;
     }
 }

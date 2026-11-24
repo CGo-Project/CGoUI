@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import { hairlineRimLightRules, hairlineRimDarkRules } from '../styles/glass-shared.js';
+import { hairlineRimLightRules } from '../styles/glass-shared.js';
 
 /**
  * <cgo-badge variant="primary">NEW</cgo-badge>
@@ -33,20 +33,14 @@ export class CgoBadge extends LitElement {
             user-select: none;
             overflow: hidden;
             isolation: isolate;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            box-shadow: var(--cgo-shadow-control, 0 1px 2px rgba(0, 0, 0, 0.04));
             border: none;
         }
 
-        /* 同步 cgo-button 精致 1px 双轴微光描边 (Layer 2 Masked 1px Hairline Rim Light) */
         .badge::before {
             ${hairlineRimLightRules}
         }
 
-        :host-context([data-theme='dark']) .badge::before {
-            ${hairlineRimDarkRules}
-        }
-
-        /* 保证徽章内容在 Layer 3 (z-index: 3) 绝对清晰 */
         .badge > *,
         ::slotted(*) {
             position: relative;
@@ -74,42 +68,25 @@ export class CgoBadge extends LitElement {
             box-shadow: 0 1px 2px rgba(245, 158, 11, 0.2);
         }
         .info {
-            background: var(--info-bg, #e7f3fb);
-            color: var(--info-color, #006098);
+            background: var(--cgo-badge-info-bg, var(--info-bg, #e7f3fb));
+            color: var(--cgo-badge-info-color, var(--info-color, #006098));
         }
         .muted {
-            background: var(--btn-info-bg, #f1f3f5);
-            color: var(--text-main, #00263b);
+            background: var(--cgo-badge-muted-bg, var(--btn-info-bg, #f1f3f5));
+            color: var(--cgo-badge-muted-color, var(--text-main, #00263b));
         }
 
-        /* 胶囊外观（同步 cgo-button pill） */
         :host([pill]) .badge {
             padding: 4px 14px;
             border-radius: var(--radius-full, 9999px);
             font-size: var(--text-xs, 12px);
             font-weight: 600;
             letter-spacing: 0.02em;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-        }
-
-        :host-context([data-theme='dark']) .info {
-            background: rgba(56, 189, 248, 0.16);
-            color: #38bdf8;
-        }
-        :host-context([data-theme='dark']) .muted {
-            background: var(--btn-info-bg, #262729);
-            color: var(--text-main, #e5e8ea);
-        }
-        :host-context([data-theme='dark']) .primary {
-            background: var(--primary-color, #0070b0);
-            color: #ffffff;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-        }
-        :host-context([data-theme='dark']) :host([pill]) .badge {
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+            box-shadow: var(--cgo-shadow-control, 0 1px 2px rgba(0, 0, 0, 0.05));
         }
 
         .brand {
+            background: var(--cgo-badge-brand-bg, var(--primary-color, #006098));
             color: #fff;
             border-radius: var(--radius-full, 9999px);
             font-size: var(--text-xs, 12px);
@@ -135,16 +112,28 @@ export class CgoBadge extends LitElement {
         this.pill = false;
     }
 
+    _effectiveSubsystem() {
+        const raw = this.subsystem || (this.variant?.startsWith('brand-') ? this.variant.slice(6) : '');
+        const trimmed = String(raw || '').trim();
+        return /^[a-zA-Z0-9_-]+$/.test(trimmed) ? trimmed : '';
+    }
+
+    updated() {
+        const sub = this._effectiveSubsystem();
+        if (sub) {
+            this.style.setProperty('--cgo-badge-brand-bg', `var(--brand-gradient-${sub})`);
+        } else {
+            this.style.removeProperty('--cgo-badge-brand-bg');
+        }
+    }
+
     render() {
-        // subsystem 优先：使用品牌渐变 token（兼容 variant="brand-xxx" 写法）
-        const effectiveSubsystem = this.subsystem || (this.variant?.startsWith('brand-') ? this.variant.slice(6) : '');
-        if (effectiveSubsystem) {
-            const style = `background:var(--brand-gradient-${effectiveSubsystem});`;
+        if (this._effectiveSubsystem()) {
             return html`
-                <span class="badge brand" style=${style}><slot></slot></span>
+                <span class="badge brand"><slot></slot></span>
             `;
         }
-        const effectiveVariant = this.variant === 'secondary' ? 'info' : (this.variant || 'primary');
+        const effectiveVariant = this.variant === 'secondary' ? 'info' : this.variant || 'primary';
         return html`
             <span class="badge ${effectiveVariant}"><slot></slot></span>
         `;

@@ -1,5 +1,5 @@
 import { LitElement, html, css } from 'lit';
-import { ICONS, buildSvg } from '../icons/public-icons.js';
+import { ICONS, buildSvg } from '../icons/icons.js';
 
 /**
  * <cgo-icon name="back" size="20"></cgo-icon>
@@ -40,7 +40,8 @@ export class CgoIcon extends LitElement {
 
     updated(changedProperties) {
         if (changedProperties.has('size')) {
-            const s = this.size ? (isNaN(this.size) ? this.size : `${this.size}px`) : '';
+            const raw = String(this.size || '').trim();
+            const s = raw ? (/^\d+(?:\.\d+)?$/.test(raw) ? `${raw}px` : raw) : '';
             if (s) {
                 this.style.setProperty('--cgo-icon-size', s);
                 this.style.width = s;
@@ -54,8 +55,7 @@ export class CgoIcon extends LitElement {
     }
 
     render() {
-        const entry = ICONS[this.name];
-        if (!entry) return html``;
+        if (typeof this.name !== 'string' || !Object.hasOwn(ICONS, this.name)) return html``;
         const svgStr = buildSvg(this.name, {
             size: this.size || undefined,
             color: this.color || undefined,

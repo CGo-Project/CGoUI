@@ -21,6 +21,7 @@ export const CgoAvatar: any;
 export const CgoChatBubble: any;
 export const CgoCaptcha: any;
 export const CgoThemeToggle: any;
+export const CgoHeaderToggle: any;
 export const CgoSideNav: any;
 export const CgoNavItem: any;
 export const CgoToolbarSelect: any;

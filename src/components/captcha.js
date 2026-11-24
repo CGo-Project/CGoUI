@@ -1,15 +1,27 @@
 import { LitElement, html, css } from 'lit';
-import { hairlineRimLightRules, hairlineRimDarkRules } from '../styles/glass-shared.js';
+import { hairlineRimLightRules } from '../styles/glass-shared.js';
+
+function _randFloat() {
+    if (typeof crypto !== 'undefined' && typeof crypto.getRandomValues === 'function') {
+        const buf = new Uint32Array(1);
+        crypto.getRandomValues(buf);
+        return buf[0] / 4294967296;
+    }
+    return Math.random();
+}
+
+function _randInt(max) {
+    return Math.floor(_randFloat() * max);
+}
 
 /**
- * generateCaptcha() — 纯前端生成 SVG 计算题验证码。
- * 与 CGO.generateCaptcha 行为一致。
+ * generateCaptcha() — 纯前端生成 SVG 计算题验证码（仅用于界面交互提示，非服务端安全校验）。
  * @returns {{svg:string, answer:string}}
  */
 export function generateCaptcha() {
-    const num1 = Math.floor(Math.random() * 10) + 1;
-    const num2 = Math.floor(Math.random() * 10) + 1;
-    const op = ['+', '-'][Math.floor(Math.random() * 2)];
+    const num1 = _randInt(10) + 1;
+    const num2 = _randInt(10) + 1;
+    const op = ['+', '-'][_randInt(2)];
     let text = '',
         answer = 0;
     if (op === '+') {
@@ -26,28 +38,28 @@ export function generateCaptcha() {
         height = 36;
     let lines = '';
     for (let i = 0; i < 3; i++) {
-        const x1 = Math.floor(Math.random() * width),
-            y1 = Math.floor(Math.random() * height);
-        const x2 = Math.floor(Math.random() * width),
-            y2 = Math.floor(Math.random() * height);
-        const c = `rgb(${Math.floor(Math.random() * 120) + 50},${Math.floor(Math.random() * 120) + 50},${Math.floor(Math.random() * 120) + 50})`;
+        const x1 = _randInt(width),
+            y1 = _randInt(height);
+        const x2 = _randInt(width),
+            y2 = _randInt(height);
+        const c = `rgb(${_randInt(120) + 50},${_randInt(120) + 50},${_randInt(120) + 50})`;
         lines += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${c}" stroke-width="1.5" />`;
     }
     let dots = '';
     for (let i = 0; i < 30; i++) {
-        const cx = Math.floor(Math.random() * width),
-            cy = Math.floor(Math.random() * height);
-        const r = Math.random() * 1.2 + 0.4;
-        const c = `rgb(${Math.floor(Math.random() * 150) + 50},${Math.floor(Math.random() * 150) + 50},${Math.floor(Math.random() * 150) + 50})`;
+        const cx = _randInt(width),
+            cy = _randInt(height);
+        const r = _randFloat() * 1.2 + 0.4;
+        const c = `rgb(${_randInt(150) + 50},${_randInt(150) + 50},${_randInt(150) + 50})`;
         dots += `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${c}" />`;
     }
     const chars = text.split(' ');
     let textElements = '',
         startX = 12;
     for (const char of chars) {
-        const rot = Math.floor(Math.random() * 24) - 12;
-        const dy = Math.floor(Math.random() * 8) - 4;
-        const c = `rgb(${Math.floor(Math.random() * 120)},${Math.floor(Math.random() * 120)},${Math.floor(Math.random() * 120)})`;
+        const rot = _randInt(24) - 12;
+        const dy = _randInt(8) - 4;
+        const c = `rgb(${_randInt(120)},${_randInt(120)},${_randInt(120)})`;
         textElements += `<text x="${startX}" y="${25 + dy}" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="${c}" transform="rotate(${rot}, ${startX + 5}, ${22 + dy})">${char}</text>`;
         startX += char.length * 10 + 6;
     }
@@ -85,7 +97,7 @@ export class CgoCaptcha extends LitElement {
             border-radius: var(--radius-sm, 6px);
             background-color: var(--btn-info-bg, #f1f3f5);
             color: var(--text-main, #00263b);
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+            box-shadow: var(--cgo-shadow-control, 0 1px 2px rgba(0, 0, 0, 0.04));
             cursor: pointer;
             flex-shrink: 0;
             user-select: none;
@@ -110,7 +122,7 @@ export class CgoCaptcha extends LitElement {
             .zoom-btn:hover {
                 background-color: var(--btn-info-hover, #e9ecef);
                 color: var(--text-main, #00263b);
-                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.06);
+                box-shadow: var(--cgo-shadow-control-hover, 0 2px 4px rgba(0, 0, 0, 0.06));
             }
 
             .zoom-btn:hover::before {
@@ -120,10 +132,11 @@ export class CgoCaptcha extends LitElement {
 
         .zoom-btn:active {
             transform: scale(0.96);
-            background-color: #dee2e6;
+            background-color: var(--cgo-btn-info-active, #dee2e6);
         }
 
-        .zoom-btn:focus-visible {
+        .zoom-btn:focus-visible,
+        .box:focus-visible {
             outline: none;
             box-shadow: 0 0 0 2px var(--bg-color, #ffffff), 0 0 0 4px var(--primary-color, #006098);
         }
@@ -131,38 +144,6 @@ export class CgoCaptcha extends LitElement {
         :host([zoomed]) .zoom-btn {
             background-color: var(--btn-info-hover, #e9ecef);
             color: var(--primary-color, #006098);
-        }
-
-        /* 暗色模式适配 */
-        :host-context([data-theme='dark']) .zoom-btn {
-            background-color: var(--btn-info-bg, #262729);
-            color: var(--text-main, #e5e8ea);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-        }
-
-        :host-context([data-theme='dark']) .zoom-btn::before {
-            ${hairlineRimDarkRules}
-        }
-
-        @media (hover: hover) and (pointer: fine) {
-            :host-context([data-theme='dark']) .zoom-btn:hover {
-                background-color: var(--btn-info-hover, #323438);
-                color: #ffffff;
-                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
-            }
-        }
-
-        :host-context([data-theme='dark']) .zoom-btn:active {
-            background-color: #383a3c;
-        }
-
-        :host-context([data-theme='dark']) .zoom-btn:focus-visible {
-            box-shadow: 0 0 0 2px var(--bg-color, #1a1a1a), 0 0 0 4px var(--primary-hover, #0070b0);
-        }
-
-        :host-context([data-theme='dark']):host([zoomed]) .zoom-btn {
-            background-color: var(--btn-info-hover, #323438);
-            color: var(--primary-color, #4dabf7);
         }
 
         .zoom-btn svg {
@@ -193,30 +174,18 @@ export class CgoCaptcha extends LitElement {
 
         @media (hover: hover) and (pointer: fine) {
             .box:hover {
-                border-color: var(--border-hover, #ced4da);
+                border-color: var(--cgo-border-hover, #ced4da);
             }
-
-            :host-context([data-theme='dark']) .box:hover {
-                border-color: var(--border-hover, #44474b);
-            }
-        }
-
-        :host-context([data-theme='dark']) .box {
-            border-color: var(--border-color, #383a3c);
         }
 
         :host([zoomed]) .box {
             transform: scale(1.65);
-            box-shadow: var(--shadow-lg, 0 8px 32px rgba(0, 0, 0, 0.12));
+            box-shadow: var(--cgo-shadow-zoom, 0 8px 32px rgba(0, 0, 0, 0.12));
             z-index: 3;
             transition:
                 transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
                 box-shadow 0.22s ease,
                 border-color 0.22s ease;
-        }
-
-        :host-context([data-theme='dark']):host([zoomed]) .box {
-            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -232,7 +201,15 @@ export class CgoCaptcha extends LitElement {
         this.zoom = false;
         this.zoomed = false;
         this._svg = '';
-        this.refresh();
+    }
+
+    connectedCallback() {
+        super.connectedCallback();
+        if (!this._svg) this.refresh();
+    }
+
+    verify(input) {
+        return String(input ?? '').trim() === this.answer;
     }
 
     refresh() {
@@ -244,6 +221,13 @@ export class CgoCaptcha extends LitElement {
         );
     }
 
+    _onBoxKeyDown(e) {
+        if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            this.refresh();
+        }
+    }
+
     render() {
         const tpl = document.createElement('template');
         tpl.innerHTML = this._svg;
@@ -253,6 +237,7 @@ export class CgoCaptcha extends LitElement {
                       <button
                           class="zoom-btn"
                           type="button"
+                          aria-label=${this.zoomed ? '收起验证码' : '放大验证码'}
                           title=${this.zoomed ? '收起验证码' : '放大验证码'}
                           @click=${(event) => {
                               event.stopPropagation();
@@ -282,7 +267,17 @@ export class CgoCaptcha extends LitElement {
                       </button>
                   `
                 : null}
-            <div class="box" title="点击刷新" @click=${() => this.refresh()}>${tpl.content.cloneNode(true)}</div>
+            <div
+                class="box"
+                role="button"
+                tabindex="0"
+                aria-label="刷新验证码"
+                title="点击刷新"
+                @click=${() => this.refresh()}
+                @keydown=${this._onBoxKeyDown}
+            >
+                ${tpl.content.cloneNode(true)}
+            </div>
         `;
     }
 }

@@ -6,8 +6,6 @@ import './icon.js';
  *   <cgo-tab label="实时录音" icon="speaker">录音内容</cgo-tab>
  *   <cgo-tab label="本地上传" icon="upload">上传内容</cgo-tab>
  * </cgo-tabs>
- * 移植自 CGo-Voice 声音克隆中心的高颜值分段胶囊标签组 (.tab-pill-group)。
- * 支持 icon、pill 胶囊圆角、full 全宽、size 尺寸，支持深浅主题自适应。
  * 事件: cgo-tab-change（detail.index）。
  */
 export class CgoTab extends LitElement {
@@ -77,13 +75,12 @@ export class CgoTabs extends LitElement {
             width: auto;
         }
 
-        /* 移植自 CGo-Voice 声音克隆中心的高颜值分段胶囊标签组 (.tab-pill-group) */
         .tab-pill-group {
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            background: var(--office-hover, rgba(0, 38, 59, 0.05));
-            border: 1px solid var(--office-border, rgba(0, 0, 0, 0.08));
+            background: var(--cgo-subtle-hover, rgba(0, 38, 59, 0.05));
+            border: 1px solid var(--cgo-subtle-border, rgba(0, 0, 0, 0.08));
             border-radius: var(--radius-md, 8px);
             padding: 3px;
             box-sizing: border-box;
@@ -106,11 +103,6 @@ export class CgoTabs extends LitElement {
         :host([pill]) .tab-pill-group {
             border-radius: var(--radius-full, 9999px);
             padding: 4px;
-        }
-
-        :host-context([data-theme="dark"]) .tab-pill-group {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(255, 255, 255, 0.1);
         }
 
         /* 分段选项卡按钮 */
@@ -165,37 +157,25 @@ export class CgoTabs extends LitElement {
         @media (hover: hover) and (pointer: fine) {
             .tab-btn:hover:not(.active):not([disabled]) {
                 color: var(--text-main, #00263b);
-                background: rgba(0, 0, 0, 0.03);
+                background: var(--cgo-subtle-hover, rgba(0, 0, 0, 0.03));
             }
+        }
 
-            :host-context([data-theme="dark"]) .tab-btn:hover:not(.active):not([disabled]) {
-                color: #e2e8f0;
-                background: rgba(255, 255, 255, 0.04);
-            }
+        .tab-btn:focus-visible {
+            box-shadow: 0 0 0 2px var(--primary-color, #006098);
         }
 
         /* 激活选中项（高光浮起卡片质感） */
         .tab-btn.active {
-            background: var(--card-bg, #ffffff);
+            background: var(--cgo-tab-active-bg, var(--card-bg, #ffffff));
             color: var(--primary-color, #006098);
             font-weight: 600;
-            border-color: rgba(0, 0, 0, 0.04);
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+            border-color: var(--cgo-subtle-border, rgba(0, 0, 0, 0.04));
+            box-shadow: var(--cgo-tab-active-shadow, 0 1px 3px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04));
         }
 
         .tab-btn.active cgo-icon {
             color: var(--primary-color, #006098);
-        }
-
-        :host-context([data-theme="dark"]) .tab-btn.active {
-            background: rgba(255, 255, 255, 0.14);
-            color: #38bdf8;
-            border-color: rgba(255, 255, 255, 0.15);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-        }
-
-        :host-context([data-theme="dark"]) .tab-btn.active cgo-icon {
-            color: #38bdf8;
         }
 
         .tab-btn:active:not([disabled]) {
@@ -236,25 +216,84 @@ export class CgoTabs extends LitElement {
         this.pill = false;
         this.size = '';
         this.inline = false;
+        this._initialized = false;
     }
 
     get _tabs() {
         return [...this.querySelectorAll('cgo-tab')];
     }
 
-    _select(i) {
+    _resolveValidIndex(candidate, tabs) {
+        if (!tabs.length) return 0;
+        let idx = Number.isFinite(candidate) ? Math.trunc(candidate) : 0;
+        if (idx < 0 || idx >= tabs.length) idx = 0;
+        if (tabs[idx]?.disabled) {
+            const firstEnabled = tabs.findIndex((t) => !t.disabled);
+            return firstEnabled >= 0 ? firstEnabled : idx;
+        }
+        return idx;
+    }
+
+    _syncActive(i, emit = false) {
         const tabs = this._tabs;
         if (!tabs.length) return;
-        if (tabs[i] && tabs[i].disabled) return;
-        this.index = i;
+        const targetIdx = this._resolveValidIndex(i, tabs);
+        if (tabs[targetIdx]?.disabled) return;
+        const changed = this.index !== targetIdx;
+        this.index = targetIdx;
         tabs.forEach((t, idx) => {
-            t.active = idx === i;
+            t.active = idx === targetIdx;
         });
         this.requestUpdate();
-        this.dispatchEvent(new CustomEvent('cgo-tab-change', { detail: { index: i }, bubbles: true, composed: true }));
+        if (emit && (changed || i === targetIdx)) {
+            this.dispatchEvent(new CustomEvent('cgo-tab-change', { detail: { index: targetIdx }, bubbles: true, composed: true }));
+        }
+    }
+
+    _select(i) {
+        const tabs = this._tabs;
+        if (!tabs.length || i < 0 || i >= tabs.length) return;
+        if (tabs[i]?.disabled) return;
+        this._syncActive(i, true);
+    }
+
+    _onKeyDown(e, i) {
+        const tabs = this._tabs;
+        if (!tabs.length) return;
+        const move = (start, delta) => {
+            for (let step = 1; step <= tabs.length; step++) {
+                const candidate = (start + delta * step + tabs.length) % tabs.length;
+                if (!tabs[candidate]?.disabled) return candidate;
+            }
+            return start;
+        };
+        let nextIdx = -1;
+        if (e.key === 'ArrowRight') nextIdx = move(i, 1);
+        else if (e.key === 'ArrowLeft') nextIdx = move(i, -1);
+        else if (e.key === 'Home') nextIdx = move(-1, 1);
+        else if (e.key === 'End') nextIdx = move(0, -1);
+        else return;
+
+        e.preventDefault();
+        this._select(nextIdx);
+        this.updateComplete.then(() => {
+            const btns = this.shadowRoot?.querySelectorAll('.tab-btn');
+            btns?.[nextIdx]?.focus();
+        });
+    }
+
+    _syncHasPanels() {
+        const tabs = this._tabs;
+        const hasPanels = tabs.some((t) => (t.textContent || '').trim().length > 0 || t.children.length > 0);
+        if (hasPanels) {
+            if (!this.hasAttribute('has-panels')) this.setAttribute('has-panels', '');
+        } else if (this.hasAttribute('has-panels')) {
+            this.removeAttribute('has-panels');
+        }
     }
 
     updated(changedProperties) {
+        this._syncHasPanels();
         if (changedProperties.has('index')) {
             const tabs = this._tabs;
             tabs.forEach((t, idx) => {
@@ -264,26 +303,24 @@ export class CgoTabs extends LitElement {
     }
 
     firstUpdated() {
+        this._syncHasPanels();
         const tabs = this._tabs;
         const activeIdx = tabs.findIndex((t) => t.hasAttribute('active') || t.active);
-        this._select(activeIdx >= 0 ? activeIdx : this.index || 0);
+        this._initialized = true;
+        this._syncActive(activeIdx >= 0 ? activeIdx : (this.index || 0), false);
     }
 
     _onSlotChange() {
-        this.requestUpdate();
-        this._select(this.index || 0);
+        this._syncHasPanels();
+        if (!this._initialized) return;
+        const tabs = this._tabs;
+        const activeIdx = tabs.findIndex((t) => t.hasAttribute('active') || t.active);
+        this._syncActive(activeIdx >= 0 ? activeIdx : (this.index || 0), false);
     }
 
     render() {
         const tabs = this._tabs;
-        const hasPanels = tabs.some(
-            (t) => (t.textContent || '').trim().length > 0 || t.children.length > 0
-        );
-        if (hasPanels) {
-            if (!this.hasAttribute('has-panels')) this.setAttribute('has-panels', '');
-        } else {
-            if (this.hasAttribute('has-panels')) this.removeAttribute('has-panels');
-        }
+        const hasPanels = tabs.some((t) => (t.textContent || '').trim().length > 0 || t.children.length > 0);
 
         return html`
             <div class="tab-pill-group" role="tablist">
@@ -294,8 +331,10 @@ export class CgoTabs extends LitElement {
                             role="tab"
                             class="tab-btn ${i === this.index ? 'active' : ''}"
                             ?disabled=${t.disabled}
-                            aria-selected=${i === this.index}
+                            tabindex=${i === this.index ? '0' : '-1'}
+                            aria-selected=${String(i === this.index)}
                             @click=${() => this._select(i)}
+                            @keydown=${(e) => this._onKeyDown(e, i)}
                         >
                             ${t.icon ? html`<cgo-icon name="${t.icon}" size="${this.size === 'sm' ? '13' : '14'}"></cgo-icon>` : null}
                             <span>${t.label}</span>

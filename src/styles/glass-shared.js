@@ -2,13 +2,9 @@ import { css } from 'lit';
 
 /**
  * CGoUI 2.2 液态玻璃共享微光与光学样式库 (Liquid Glass Shared Styles)
- * 遵循 Ponytail / YAGNI 复用规范：消除跨 Web Components 样式孤岛与重复字面量维护。
+ * 通过 --cgo-rim-* 继承变量支持 Safari / Firefox / Chrome 全浏览器暗色切换，无需 :host-context。
  */
 
-/**
- * Layer 0: SVG 折射与高斯模糊滤镜通用层样式
- * 在所有含有 .glass-refraction 的组件中共享
- */
 export const glassRefractionStyles = css`
     .glass-refraction {
         position: absolute;
@@ -17,11 +13,6 @@ export const glassRefractionStyles = css`
         border-radius: inherit;
         backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%));
         -webkit-backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%));
-        /*
-         * Fix: Shadow DOM 内 filter: url(#id) 因文档边界而静默失效（Chromium 117+）。
-         * --glass-refraction-filter 由 theme.js 注入到 :root，CSS 变量继承穿透 Shadow boundary，
-         * 在宿主文档上下文中解析 SVG ID，确保折射滤镜跨组件可靠生效。
-         */
         filter: var(--glass-refraction-filter, none);
         pointer-events: none;
         overflow: hidden;
@@ -29,16 +20,26 @@ export const glassRefractionStyles = css`
     }
 `;
 
-/**
- * Layer 2: 控件级 1px 双轴微光描边规则 (适用于按钮、输入框触发器、徽章等)
- */
-export const hairlineRimLightRules = css`
+const rimMaskBase = css`
     content: '';
     position: absolute;
     inset: 0;
     border-radius: inherit;
     padding: 1px;
-    background:
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 2;
+`;
+
+/**
+ * Layer 2: 控件级 1px 双轴微光描边规则 (适用于按钮、输入框触发器、徽章等)
+ */
+export const hairlineRimLightRules = css`
+    ${rimMaskBase}
+    background: var(--cgo-rim-hairline-bg,
         linear-gradient(to right,
             rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 0,
             rgba(0, 0, 0, 0) var(--lg-rim-side, 3px),
@@ -49,66 +50,33 @@ export const hairlineRimLightRules = css`
             rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) var(--lg-rim-hold, 1px),
             rgba(255, 255, 255, 0) 8px,
             rgba(0, 0, 0, 0.02) calc(100% - 4px),
-            rgba(0, 0, 0, 0.12) 100%);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    z-index: 2;
+            rgba(0, 0, 0, 0.12) 100%));
     opacity: 0.64;
     transition: opacity var(--dur-fast, 140ms) ease;
 `;
 
-export const hairlineRimDarkRules = css`
-    background:
-        linear-gradient(to bottom,
-            rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 1.5)) 0,
-            rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 1.5)) 1px,
-            rgba(255, 255, 255, 0) 8px,
-            rgba(255, 255, 255, 0) calc(100% - 4px),
-            rgba(255, 255, 255, 0.08) 100%);
-`;
+export const hairlineRimDarkRules = css``;
 
 /**
  * Layer 2: Tier B 弱化单向微光描边规则 (适用于大底板、对话框、表格底板、下拉菜单浮层等)
  */
 export const tierBRimWeakRules = css`
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(to bottom,
+    ${rimMaskBase}
+    background: var(--cgo-rim-tierb-bg, linear-gradient(to bottom,
         rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45 * 0.75)) 0,
         rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45 * 0.75)) var(--lg-rim-hold, 1px),
-        rgba(255, 255, 255, 0) var(--lg-rim-fade, 12px));
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    z-index: 2;
+        rgba(255, 255, 255, 0) var(--lg-rim-fade, 12px)));
     opacity: 0.8;
 `;
 
-export const tierBRimWeakDarkRules = css`
-    background: linear-gradient(to bottom,
-        rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 0.45 * 1.5)) 0,
-        rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 0.45 * 1.5)) 1px,
-        rgba(255, 255, 255, 0) 8px);
-`;
+export const tierBRimWeakDarkRules = css``;
 
 /**
  * Layer 2: Tier C / 卡片级完整双轴微光描边规则 (保留完整 lit 0.95 顶部光)
  */
 export const tierCRimRules = css`
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    padding: 1px;
-    background:
+    ${rimMaskBase}
+    background: var(--cgo-rim-tierc-bg,
         linear-gradient(to right,
             rgba(0, 38, 59, var(--lg-rim-dark, 0.04)) 0,
             rgba(0, 0, 0, 0) var(--lg-rim-side, 4px),
@@ -120,25 +88,11 @@ export const tierCRimRules = css`
             rgba(255, 255, 255, 0) var(--lg-rim-fade, 12px),
             rgba(255, 255, 255, 0) calc(100% - var(--lg-rim-fade, 12px)),
             rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.4)) calc(100% - var(--lg-rim-hold, 1px)),
-            rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.4)) 100%);
-    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    z-index: 2;
+            rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.4)) 100%));
     opacity: 0.95;
 `;
 
-export const tierCRimDarkRules = css`
-    background:
-        linear-gradient(to bottom,
-            rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 1.5)) 0,
-            rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 1.5)) 1px,
-            rgba(255, 255, 255, 0) 8px,
-            rgba(255, 255, 255, 0) calc(100% - 4px),
-            rgba(255, 255, 255, 0.12) 100%);
-`;
+export const tierCRimDarkRules = css``;
 
 /**
  * Layer 1: Tier B 半透明高不透明衬底 (0.9 固定)
@@ -154,9 +108,7 @@ export const tierBPanelUnderlayRules = css`
     transition: background-color 0.25s ease;
 `;
 
-export const tierBPanelUnderlayDarkRules = css`
-    background: var(--glass-bg-panel, rgba(31, 32, 34, 0.9));
-`;
+export const tierBPanelUnderlayDarkRules = css``;
 
 /**
  * Layer 1: Tier C 半透明强调表面衬底 (0.72 固定，与 <cgo-card> 完全一致)
@@ -172,6 +124,4 @@ export const tierCSurfaceUnderlayRules = css`
     transition: background-color 0.25s ease;
 `;
 
-export const tierCSurfaceUnderlayDarkRules = css`
-    background: var(--glass-bg-surface, rgba(31, 32, 34, 0.72));
-`;
+export const tierCSurfaceUnderlayDarkRules = css``;

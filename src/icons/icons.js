@@ -90,9 +90,6 @@ export const ICONS = {
     'export-img': {
         d: '<path d="M19,3H5c-1.1,0-2,.9-2,2v14c0,1.1.9,2,2,2h14c1.1,0,2-.9,2-2V5c0-1.1-.9-2-2-2ZM18.59,18.79H5.41c-.11,0-.2-.09-.2-.2V5.41c0-.11.09-.2.2-.2h13.18c.11,0,.2.09.2.2v10.16l-3.03-4.59c-.08-.12-.25-.12-.33,0l-3.03,4.45c-.08.11-.25.12-.33,0l-2.07-2.83c-.08-.11-.25-.11-.33,0l-2.96,4.33c-.1.14,0,.35.15.35h11.92v1.31c0,.11-.09.2-.2.2Z"/><circle cx="8.22" cy="8.48" r="1.54"/>',
     },
-    'export-svg': {
-        d: '<path d="M20.71,5.63l-2.34-2.34c-.39-.39-1.02-.39-1.41,0l-1.69,1.69c-.08.08-.08.2,0,.28l3.47,3.47c.08.08.2.08.28,0l1.69-1.69c.39-.39.39-1.02,0-1.41Z"/><path d="M3,17.33v3.47c0,.11.09.2.2.2h3.47c.05,0,.1-.02.14-.06l10.86-10.86c.08-.08.08-.2,0-.28l-3.47-3.47c-.08-.08-.2-.08-.28,0L3.06,17.19s-.06.09-.06.14Z"/>',
-    },
     'export-json': {
         d: '<path d="M9.87,17.5h-2.32c-.1,0-.2-.04-.28-.12l-5.21-5.24c-.07-.07-.07-.19,0-.27l5.21-5.25c.08-.08.18-.12.28-.12h2.33c.11,0,.17.16.08.24l-5.18,5.19s-.04.1,0,.14l5.17,5.19c.08.08.03.24-.08.24Z"/><path d="M14.13,6.5h2.32c.1,0,.2.04.28.12l5.21,5.24c.07.07.07.19,0,.27l-5.21,5.25c-.08.08-.18.12-.28.12h-2.33c-.11,0-.17-.16-.08-.24l5.18-5.19s.04-.1,0-.14l-5.17-5.19c-.08-.08-.03-.24.08-.24Z"/>',
     },
@@ -123,12 +120,6 @@ export const ICONS = {
     /* ──────────────────────────────────────
       箭头 / 方向 (Arrows & Directions)
    ────────────────────────────────────── */
-    'arrow-left': {
-        d: '<path d="M14.62,19h-2.81c-.13,0-.25-.05-.34-.13l-7.41-6.72c-.09-.08-.09-.22,0-.3l7.41-6.72c.09-.08.21-.13.34-.13h2.81c.14,0,.2.17.1.26l-6.12,5.54h11.19c.11,0,.2.09.2.2v1.99c0,.11-.09.2-.2.2h-11.19l6.12,5.54c.1.09.04.26-.1.26Z"/>',
-    },
-    'arrow-right': {
-        d: '<path d="M9.38,5h2.81c.13,0,.25.05.34.13l7.41,6.72c.09.08.09.22,0,.3l-7.41,6.72c-.09.08-.21.13-.34.13h-2.81c-.14,0-.2-.17-.1-.26l6.12-5.54H4.2c-.11,0-.2-.09-.2-.2v-1.99c0-.11.09-.2.2-.2h11.19l-6.12-5.54c-.1-.09-.04-.26.1-.26Z"/>',
-    },
     'arrow-up': {
         d: '<path d="M5,14.62v-2.81c0-.13.05-.25.13-.34l6.72-7.41c.08-.09.22-.09.3,0l6.72,7.41c.08.09.13.21.13.34v2.81c0,.14-.17.2-.26.1l-5.54-6.12v11.19c0,.11-.09.2-.2.2h-1.99c-.11,0-.2-.09-.2-.2v-11.19l-5.54,6.12c-.09.1-.26.04-.26-.1Z"/>',
     },
@@ -146,12 +137,6 @@ export const ICONS = {
     },
     'chevron-down': {
         d: '<path d="M18,7.32v2.81c0,.12-.05.24-.13.34l-5.72,6.31c-.08.09-.21.09-.29,0l-5.73-6.31c-.08-.09-.13-.21-.13-.34v-2.82c0-.14.17-.2.26-.1l5.66,6.27s.11.04.15,0l5.66-6.26c.09-.1.26-.04.26.1Z"/>',
-    },
-    'expand-more': {
-        d: '<path d="M18,7.32v2.81c0,.12-.05.24-.13.34l-5.72,6.31c-.08.09-.21.09-.29,0l-5.73-6.31c-.08-.09-.13-.21-.13-.34v-2.82c0-.14.17-.2.26-.1l5.66,6.27s.11.04.15,0l5.66-6.26c.09-.1.26-.04.26.1Z"/>',
-    },
-    'expand-less': {
-        d: '<path d="M6,16.68v-2.81c0-.12.05-.24.13-.34l5.72-6.31c.08-.09.21-.09.29,0l5.73,6.31c.08.09.13.21.13.34v2.82c0,.14-.17.2-.26.1l-5.66-6.27s-.11-.04-.15,0l-5.66,6.26c-.09.1-.26.04-.26-.1Z"/>',
     },
     unfold: {
         d: '<path d="M6.5,9.87v-2.32c0-.1.04-.2.12-.28l5.24-5.21c.07-.07.19-.07.27,0l5.25,5.21c.08.08.12.18.12.28v2.33c0,.11-.16.17-.24.08l-5.19-5.18s-.1-.04-.14,0l-5.19,5.17c-.08.08-.24.03-.24-.08Z"/><path d="M17.5,14.13v2.32c0,.1-.04.2-.12.28l-5.24,5.21c-.07.07-.19.07-.27,0l-5.25-5.21c-.08-.08-.12-.18-.12-.28v-2.33c0-.11.16-.17.24-.08l5.19,5.18s.1.04.14,0l5.19-5.17c.08-.08.24-.03.24.08Z"/>',
@@ -209,14 +194,8 @@ export const ICONS = {
     'fullscn-exit': {
         d: '<path d="M5.2,16h2.6c.11,0,.2.09.2.2v2.6c0,.11.09.2.2.2h1.6c.11,0,.2-.09.2-.2v-4.6c0-.11-.09-.2-.2-.2h-4.6c-.11,0-.2.09-.2.2v1.6c0,.11.09.2.2.2Z"/><path d="M7.8,8h-2.6c-.11,0-.2.09-.2.2v1.6c0,.11.09.2.2.2h4.6c.11,0,.2-.09.2-.2v-4.6c0-.11-.09-.2-.2-.2h-1.6c-.11,0-.2.09-.2.2v2.6c0,.11-.09.2-.2.2Z"/><path d="M14.2,19h1.6c.11,0,.2-.09.2-.2v-2.6c0-.11.09-.2.2-.2h2.6c.11,0,.2-.09.2-.2v-1.6c0-.11-.09-.2-.2-.2h-4.6c-.11,0-.2.09-.2.2v4.6c0,.11.09.2.2.2Z"/><path d="M16,7.8v-2.6c0-.11-.09-.2-.2-.2h-1.6c-.11,0-.2.09-.2.2v4.6c0,.11.09.2.2.2h4.6c.11,0,.2-.09.2-.2v-1.6c0-.11-.09-.2-.2-.2h-2.6c-.11,0-.2-.09-.2-.2Z"/>',
     },
-    'zoom-in': {
-        d: '<path d="M19.3,10.8h-6.1v-6.1c0-.11-.09-.2-.2-.2h-2c-.11,0-.2.09-.2.2v6.1h-6.1c-.11,0-.2.09-.2.2v2c0,.11.09.2.2.2h6.1v6.1c0,.11.09.2.2.2h2c.11,0,.2-.09.2-.2v-6.1h6.1c.11,0,.2-.09.2-.2v-2c0-.11-.09-.2-.2-.2Z"/>',
-    },
     'zoom-out': {
         d: '<rect x="10.8" y="4.5" width="2.4" height="15" rx=".2" ry=".2" transform="translate(24) rotate(90)"/>',
-    },
-    'zoom-reset': {
-        d: '<path d="M20.99,4.89c0-.13-.06-.24-.14-.33l-2.06-2.02c-.1-.09-.26-.02-.25.12l.49,6.74-1.94-1.92-.57-.57c-1.47-1.33-3.42-2.15-5.56-2.17h-.08c-3.58,0-6.87,2.23-7.95,5.65-1.84,5.79,2.43,11.11,7.95,11.11,3.63,0,6.73-2.32,7.88-5.55.05-.13-.05-.26-.18-.27l-2.09-.12c-.08,0-.15.04-.19.11-1.05,2.25-3.45,3.73-6.17,3.41s-4.91-2.54-5.22-5.25c-.42-3.64,2.42-6.71,5.96-6.71,1.66,0,3.16.67,4.24,1.76l2.21,2.19-.84-.06-6.01-.42c-.14-.01-.21.15-.12.25l2.06,2.02c.09.08.2.14.32.14l4.13.24,2.38.14,2.04.12c.12.01.22-.09.21-.21l-.51-8.4Z"/>',
     },
     reverse: {
         d: '<path d="M15.64,8.78H7.25l4.55-4.04c.09-.08.03-.23-.09-.23h-2.61c-.11,0-.21.04-.3.11l-5.74,5.1c-.08.07-.08.2,0,.27l5.74,5.1c.08.07.19.11.3.11h2.61c.12,0,.18-.15.09-.23l-4.55-4.04h8.31c1.73,0,3.14,1.4,3.14,3.14h0c0,1.73-1.4,3.14-3.14,3.14h-.09c-.64,0-1.15.51-1.15,1.15h0c0,.64.51,1.15,1.15,1.15h.17c2.96,0,5.36-2.4,5.36-5.36h0c0-2.96-2.4-5.36-5.36-5.36Z"/><rect x="4.88" y="17.2" width="2.3" height="2.3" rx="1.15" ry="1.15"/><rect x="11.17" y="17.2" width="2.3" height="2.3" rx="1.15" ry="1.15"/><rect x="8.03" y="17.2" width="2.3" height="2.3" rx="1.15" ry="1.15"/>',
@@ -302,9 +281,6 @@ export const ICONS = {
     /* ──────────────────────────────────────
       媒体 (Media)
    ────────────────────────────────────── */
-    image: {
-        d: '<path d="M19,3H5c-1.1,0-2,.9-2,2v14c0,1.1.9,2,2,2h14c1.1,0,2-.9,2-2V5c0-1.1-.9-2-2-2ZM18.59,18.79H5.41c-.11,0-.2-.09-.2-.2V5.41c0-.11.09-.2.2-.2h13.18c.11,0,.2.09.2.2v10.16l-3.03-4.59c-.08-.12-.25-.12-.33,0l-3.03,4.45c-.08.11-.25.12-.33,0l-2.07-2.83c-.08-.11-.25-.11-.33,0l-2.96,4.33c-.1.14,0,.35.15.35h11.92v1.31c0,.11-.09.2-.2.2Z"/><circle cx="8.22" cy="8.48" r="1.54"/>',
-    },
     camera: {
         d: '<path d="M20,5.39h-3c-.11,0-.21-.04-.29-.12l-1.59-1.65c-.08-.08-.18-.12-.29-.12h-5.66c-.11,0-.21.04-.29.12l-1.59,1.65c-.08.08-.18.12-.29.12h-3c-1.1,0-2,.85-2,1.89v11.33c0,1.04.9,1.89,2,1.89h16c1.1,0,2-.85,2-1.89V7.28c0-1.04-.9-1.89-2-1.89ZM12,17.94c-2.76,0-5-2.24-5-5s2.24-5,5-5,5,2.24,5,5-2.24,5-5,5Z"/><circle cx="12" cy="12.94" r="3"/>',
     },
@@ -341,9 +317,6 @@ export const ICONS = {
 
     link: {
         d: '<path d="M3.96,11.38c.29-1.47,1.66-2.48,3.16-2.48h3.68c.11,0,.2-.09.2-.2v-1.5c0-.11-.09-.2-.2-.2h-3.58c-2.61,0-4.94,1.91-5.19,4.51-.29,2.98,2.05,5.49,4.98,5.49h3.8c.11,0,.2-.09.2-.2v-1.5c0-.11-.09-.2-.2-.2h-3.8c-1.91,0-3.42-1.74-3.04-3.72Z"/><rect x="8" y="11" width="8" height="2" rx=".2" ry=".2"/><path d="M16.78,7h-3.58c-.11,0-.2.09-.2.2v1.5c0,.11.09.2.2.2h3.68c1.5,0,2.88,1.01,3.16,2.48.38,1.98-1.13,3.72-3.04,3.72h-3.8c-.11,0-.2.09-.2.2v1.5c0,.11.09.2.2.2h3.8c2.92,0,5.26-2.51,4.98-5.49-.25-2.6-2.58-4.51-5.19-4.51Z"/>',
-    },
-    code: {
-        d: '<path d="M9.87,17.5h-2.32c-.1,0-.2-.04-.28-.12l-5.21-5.24c-.07-.07-.07-.19,0-.27l5.21-5.25c.08-.08.18-.12.28-.12h2.33c.11,0,.17.16.08.24l-5.18,5.19s-.04.1,0,.14l5.17,5.19c.08.08.03.24-.08.24Z"/><path d="M14.13,6.5h2.32c.1,0,.2.04.28.12l5.21,5.24c.07.07.07.19,0,.27l-5.21,5.25c-.08.08-.18.12-.28.12h-2.33c-.11,0-.17-.16-.08-.24l5.18-5.19s-.04-.1,0-.14l-5.17-5.19c-.08-.08-.03-.24.08-.24Z"/>',
     },
     layer: {
         d: '<path d="M11.87,18.92l-7.23-5.55c-.07-.06-.18-.06-.25,0l-1.31,1.01c-.1.08-.1.24,0,.32l8.8,6.76c.07.06.18.06.25,0l8.8-6.76c.1-.08.1-.24,0-.32l-1.32-1.02c-.07-.06-.18-.06-.25,0l-7.24,5.56c-.07.06-.18.06-.25,0Z"/><path d="M11.88,16.38c.07.06.18.06.25,0l7.34-5.65,1.46-1.11c.1-.08.1-.24,0-.32L12.12,2.54c-.07-.06-.18-.06-.25,0L3.08,9.3c-.1.08-.1.24,0,.32l1.45,1.11,7.35,5.65Z"/>',
@@ -683,23 +656,35 @@ ICONS['arrival'] = ICONS.arrive;
 ICONS['departure'] = ICONS.depart;
 ICONS['compass'] = ICONS.north;
 ICONS['cgo-app'] = ICONS.cgoapp;
+ICONS['arrow-left'] = ICONS.back;
+ICONS['arrow-right'] = ICONS.forward;
+ICONS['zoom-in'] = ICONS.add;
+ICONS['export-svg'] = ICONS.edit;
+ICONS['zoom-reset'] = ICONS.refresh;
+ICONS['image'] = ICONS['export-img'];
+ICONS['expand-more'] = ICONS['chevron-down'];
+ICONS['expand-less'] = ICONS['chevron-up'];
+ICONS['code'] = ICONS['export-json'];
 /* ── 城市别名映射 ── */
 ICONS['xianggang'] = ICONS.hongkong;
 ICONS['taibei'] = ICONS.taipei;
 ICONS['gaoxiong'] = ICONS.kaohsiung;
 ICONS['haerbin'] = ICONS.harbin;
 ICONS['xi-an'] = ICONS.xian;
+Object.freeze(ICONS);
 
 
 /* ── Icon Color System v2.0 ──
  * 三种颜色模式:
  *   auto  (默认): 所有路径统一使用 currentColor，跟随界面颜色
  *   fixed (指定): 所有路径统一使用声明的固定颜色
- *   brand (品牌): 品牌路径使用品牌渐变色 url(#cgo-brand-grad)，
+ *   brand (品牌): 品牌路径使用品牌渐变色 url(#cgo-brand-grad-*),
  *                 其余路径使用 currentColor 适配界面
  */
-const _BRAND_GRAD =
-    '<linearGradient id="cgo-brand-grad" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stop-color="var(--brand-gradient-start-appname)"/><stop offset="100%" stop-color="var(--brand-gradient-end-appname)"/></linearGradient>';
+let _gradUid = 0;
+function _buildBrandGrad(id) {
+    return `<linearGradient id="${id}" x1="0%" y1="100%" x2="0%" y2="0%"><stop offset="0%" stop-color="var(--brand-gradient-start-appname)"/><stop offset="100%" stop-color="var(--brand-gradient-end-appname)"/></linearGradient>`;
+}
 const _BRAND_IDX = {
     a11yclimber: [0, 1, 2],
     a11ytoilet: [5, 6, 7],
@@ -708,6 +693,7 @@ const _BRAND_IDX = {
     arrive: [2],
     baby: [2],
     "bar-chart": [0],
+    bell: [0],
     bus: [1,2],
     calendar: [1,3,5],
     cgo: [1],
@@ -732,7 +718,8 @@ const _BRAND_IDX = {
     "escalator-up": [2],
     "export-svg": [0],
     eye: [1],
-    "horizontal-flip": [1],
+    "flip-h": [1],
+    "flip-v": [1],
     layer: [0],
     light: [1,2],
     link: [1],
@@ -761,7 +748,6 @@ const _BRAND_IDX = {
     train: [0,1],
     tram: [5],
     unlock: [0],
-    "vertical-flip": [1],
     "vi-clss": [0],
     "vi-line": [0],
     "vi-nbr": [1],
@@ -783,7 +769,12 @@ function _injectFill(el, fill) {
 }
 
 function esc(str) {
-    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
 }
 
 /**
@@ -793,28 +784,30 @@ function esc(str) {
  * @returns {string}
  */
 export function buildSvg(name, opts = {}) {
-    const entry = ICONS[name];
+    const entry = typeof name === 'string' && Object.hasOwn(ICONS, name) ? ICONS[name] : null;
     if (!entry) {
         console.warn('[CGO.icon] 未找到图标："' + name + '"');
         return '';
     }
     const size = opts.size !== undefined ? opts.size : 24;
-    const sizeStr = typeof size === 'number' ? size + 'px' : size;
+    const sizeStr = esc(typeof size === 'number' ? size + 'px' : size);
     const isStroke = entry.type === 'stroke';
-    const cls = 'cgo-svg-icon' + (isStroke ? ' cgo-stroke-icon' : '') + (opts.class ? ' ' + opts.class : '');
+    const cls = esc('cgo-svg-icon' + (isStroke ? ' cgo-stroke-icon' : '') + (opts.class ? ' ' + opts.class : ''));
     const ariaH = opts.ariaHidden !== false ? ' aria-hidden="true"' : '';
     const titleEl = opts.title ? '<title>' + esc(opts.title) + '</title>' : '';
     const colorMode = opts.colorMode || (opts.color ? 'fixed' : 'auto');
-    const brandIdx = _BRAND_IDX[name] || [];
+    const brandIdx = Object.hasOwn(_BRAND_IDX, name) ? _BRAND_IDX[name] : [];
     const hasBrand = brandIdx.length > 0;
+    const viewBox = esc(entry.viewBox || '0 0 24 24');
 
     /* ── Brand 模式：按路径索引分别着色 ── */
     if (colorMode === 'brand' && hasBrand) {
-        let inner = titleEl + '<defs>' + _BRAND_GRAD + '</defs>';
+        const gradId = 'cgo-brand-grad-' + (++_gradUid);
+        let inner = titleEl + '<defs>' + _buildBrandGrad(gradId) + '</defs>';
         const paths = _splitD(entry.d);
         const unifiedFill = isStroke ? 'none' : 'var(--icon-clr, currentColor)';
         for (let i = 0; i < paths.length; i++) {
-            const fill = brandIdx.includes(i) ? 'url(#cgo-brand-grad)' : unifiedFill;
+            const fill = brandIdx.includes(i) ? `url(#${gradId})` : unifiedFill;
             inner += _injectFill(paths[i], fill);
         }
         return (
@@ -823,7 +816,7 @@ export function buildSvg(name, opts = {}) {
             '"' +
             ' xmlns="http://www.w3.org/2000/svg"' +
             ' viewBox="' +
-            (entry.viewBox || '0 0 24 24') +
+            viewBox +
             '"' +
             ' width="' +
             sizeStr +
@@ -848,7 +841,7 @@ export function buildSvg(name, opts = {}) {
         '"' +
         ' xmlns="http://www.w3.org/2000/svg"' +
         ' viewBox="' +
-        (entry.viewBox || '0 0 24 24') +
+        viewBox +
         '"' +
         ' width="' +
         sizeStr +
@@ -857,7 +850,7 @@ export function buildSvg(name, opts = {}) {
         sizeStr +
         '"' +
         ' fill="' +
-        fillAttr +
+        esc(fillAttr) +
         '"' +
         (isStroke ? ' stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"' : '') +
         ariaH +

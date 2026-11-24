@@ -3,6 +3,7 @@ import { LitElement, html, css } from 'lit';
 export class CgoMediaViewer extends LitElement {
     static properties = {
         label: { type: String },
+        _hasActions: { state: true },
     };
 
     static styles = css`
@@ -38,18 +39,31 @@ export class CgoMediaViewer extends LitElement {
             border-top: 1px solid var(--border-color, #dee2e6);
             background: var(--card-bg, #fff);
         }
+        .actions[hidden] {
+            display: none;
+        }
     `;
 
     constructor() {
         super();
         this.label = '图片/媒体预览区域 (自适应背景网格点)';
+        this._hasActions = false;
+    }
+
+    _onActionsSlotChange(e) {
+        const assigned = e.target.assignedNodes({ flatten: true }).filter((n) => {
+            return n.nodeType === 1 || (n.nodeType === 3 && n.textContent.trim());
+        });
+        this._hasActions = assigned.length > 0;
     }
 
     render() {
         return html`
             <div class="viewer">
                 <div class="display"><slot>${this.label}</slot></div>
-                <div class="actions"><slot name="actions"></slot></div>
+                <div class="actions" ?hidden=${!this._hasActions}>
+                    <slot name="actions" @slotchange=${this._onActionsSlotChange}></slot>
+                </div>
             </div>
         `;
     }

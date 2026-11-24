@@ -7,7 +7,7 @@ import './button.js';
  * <cgo-header-toggle storage-key="custom_header_mode"></cgo-header-toggle>
  * 顶栏模式切换按钮：
  * - 点击在「经典吸顶顶栏 (classic)」与「悬浮双岛菜单栏 (floating)」之间平滑切换；
- * - 长按 800ms 恢复默认吸顶模式；
+ * - 长按 800ms 恢复默认悬浮菜单栏；
  * - 自动同步页面中所有 cgo-header-toggle 实例与 localStorage。
  */
 export class CgoHeaderToggle extends LitElement {
@@ -81,6 +81,11 @@ export class CgoHeaderToggle extends LitElement {
 
     disconnectedCallback() {
         super.disconnectedCallback();
+        this._cancel();
+        if (this._tipTimer) {
+            clearTimeout(this._tipTimer);
+            this._tipTimer = null;
+        }
         if (typeof window !== 'undefined') {
             window.removeEventListener('cgo-header-mode-change', this._onModeChange);
         }
@@ -93,6 +98,7 @@ export class CgoHeaderToggle extends LitElement {
 
     _start = (e) => {
         if (e.button !== 0 && e.pointerType === 'mouse') return;
+        this._cancel();
         this._isLongPress = false;
         this._pressTimer = setTimeout(() => {
             this._isLongPress = true;

@@ -10,6 +10,7 @@ import './spinner.js';
 export class CgoNoticePopup extends LitElement {
     static properties = {
         position: { type: String, reflect: true },
+        maxVisible: { type: Number, attribute: 'max-visible' },
         _popups: { state: true }
     };
 
@@ -48,7 +49,7 @@ export class CgoNoticePopup extends LitElement {
             pointer-events: auto;
             transform: translateX(110%);
             opacity: 0;
-            transition: 
+            transition:
                 transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
                 opacity 0.22s ease-out;
         }
@@ -100,26 +101,18 @@ export class CgoNoticePopup extends LitElement {
             line-height: 1.4;
             word-break: break-word;
             border: none;
-            background: rgba(0, 38, 59, 0.85);
+            background: var(--cgo-tooltip-bg, rgba(0, 38, 59, 0.85));
             color: #ffffff;
             backdrop-filter: blur(14px) saturate(140%);
             -webkit-backdrop-filter: blur(14px) saturate(140%);
             box-shadow:
-                0 0 0 0.5px rgba(255, 255, 255, 0.1),
+                0 0 0 0.5px rgba(255, 255, 255, 0.12),
                 0 10px 30px -4px rgba(0, 0, 0, 0.35),
                 inset 0 1px 0 rgba(255, 255, 255, 0.25);
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 10px;
-        }
-
-        :host-context([data-theme="dark"]) .toast-card {
-            background: rgba(24, 26, 28, 0.85);
-            box-shadow:
-                0 0 0 0.5px rgba(255, 255, 255, 0.12),
-                0 12px 34px -4px rgba(0, 0, 0, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
 
         .toast-message {
@@ -162,8 +155,10 @@ export class CgoNoticePopup extends LitElement {
     constructor() {
         super();
         this.position = 'top-right';
+        this.maxVisible = 5;
         this._popups = [];
         this._seq = 0;
+        this._leaveTimers = new Set();
         this._onVisibilityChange = () => {
             if (document.hidden) {
                 this._pauseAll();
@@ -192,6 +187,8 @@ export class CgoNoticePopup extends LitElement {
                 p.timerId = null;
             }
         });
+        this._leaveTimers.forEach(t => clearTimeout(t));
+        this._leaveTimers.clear();
     }
 
     _pauseItem(id) {
@@ -204,11 +201,13 @@ export class CgoNoticePopup extends LitElement {
         const elapsed = Date.now() - (p.startTime || Date.now());
         p.remaining = Math.max(0, (p.remaining ?? p.duration) - elapsed);
         p.paused = true;
+        this._popups = [...this._popups];
     }
 
     _resumeItem(id) {
         const p = this._popups.find(item => item.id === id);
         if (!p || p.state === 'leaving' || !p.duration || !p.paused) return;
+        if (typeof document !== 'undefined' && document.hidden) return;
         p.paused = false;
         p.startTime = Date.now();
         const rem = p.remaining ?? p.duration;
@@ -219,6 +218,7 @@ export class CgoNoticePopup extends LitElement {
         } else {
             this.remove(id);
         }
+        this._popups = [...this._popups];
     }
 
     _pauseAll() {
@@ -231,83 +231,88 @@ export class CgoNoticePopup extends LitElement {
 
     /**
      * 推送一条通知气泡或 Toast 提示
-     * @param {Object} item - 配置项。支持通知 ({ title, category, content, actions, imageUrl }) 或 Toast ({ isToast: true, message, type })
+     * @param {Object} item - 配置项
      * @param {number} [duration] - 自动关闭显示时长(ms)，默认 5000，传 0 则不自动关闭
      */
-    push(item, duration = 5000) {
+    push(item = {}, duration = 5000) {
         const id = item.id || `popup_${++this._seq}`;
-        let popupItem;
-        if (item.isToast) {
-            popupItem = {
-                id,
-                isToast: true,
-                message: item.message || '',
-                type: item.type || 'info',
-                duration: duration || 3000,
-                remaining: duration || 3000,
-                startTime: Date.now(),
-                paused: false,
-                timerId: null,
-                state: 'entering'
-            };
-        } else {
-            popupItem = {
-                id,
-                isToast: false,
-                category: item.category || 'software',
-                title: item.title || item.noticeTitle || '',
-                content: item.content || '',
-                imageUrl: item.imageUrl || item.image || '',
-                actions: item.actions || [],
-                duration: duration,
-                remaining: duration,
-                startTime: Date.now(),
-                paused: false,
-                timerId: null,
-                state: 'entering'
-            };
+        const rawDuration = item.isToast ? (duration === undefined ? 3000 : duration) : duration;
+        const resolvedDuration = Math.max(0, Number(rawDuration) || 0);
+        const hiddenNow = typeof document !== 'undefined' && document.hidden;
+
+        const popupItem = item.isToast
+            ? {
+                  id,
+                  isToast: true,
+                  message: item.message || '',
+                  type: item.type || 'info',
+                  duration: resolvedDuration,
+                  remaining: resolvedDuration,
+                  startTime: Date.now(),
+                  paused: hiddenNow && resolvedDuration > 0,
+                  timerId: null,
+                  state: 'entering',
+              }
+            : {
+                  id,
+                  isToast: false,
+                  category: item.category || 'software',
+                  title: item.title || item.noticeTitle || '',
+                  content: item.content || '',
+                  imageUrl: item.imageUrl || item.image || '',
+                  actions: item.actions || [],
+                  duration: resolvedDuration,
+                  remaining: resolvedDuration,
+                  startTime: Date.now(),
+                  paused: hiddenNow && resolvedDuration > 0,
+                  timerId: null,
+                  state: 'entering',
+              };
+
+        const active = this._popups.filter(p => p.state !== 'leaving');
+        if (this.maxVisible > 0 && active.length >= this.maxVisible) {
+            const overflow = active.slice(0, active.length - this.maxVisible + 1);
+            overflow.forEach(old => this.remove(old.id));
         }
 
         this._popups = [...this._popups, popupItem];
 
-        // 触发滑入动画
         requestAnimationFrame(() => {
-            this._popups = this._popups.map(p => p.id === id ? { ...p, state: 'show' } : p);
+            this._popups = this._popups.map(p => (p.id === id && p.state === 'entering' ? { ...p, state: 'show' } : p));
         });
 
-        if (duration > 0 && !document.hidden) {
+        if (resolvedDuration > 0 && !hiddenNow) {
             popupItem.timerId = setTimeout(() => {
                 this.remove(id);
-            }, duration);
+            }, resolvedDuration);
         }
 
         return id;
     }
 
-    /**
-     * 移除特定 ID 的气泡
-     */
     remove(id) {
         const item = this._popups.find(p => p.id === id);
-        if (item && item.timerId) {
+        if (!item || item.state === 'leaving') return;
+        if (item.timerId) {
             clearTimeout(item.timerId);
             item.timerId = null;
         }
         this._popups = this._popups.map(p => p.id === id ? { ...p, state: 'leaving' } : p);
-        setTimeout(() => {
+        const t = setTimeout(() => {
+            this._leaveTimers.delete(t);
             this._popups = this._popups.filter(p => p.id !== id);
         }, 220);
+        this._leaveTimers.add(t);
     }
 
-    /**
-     * 清空所有气泡
-     */
     clear() {
         this._clearAllTimers();
         this._popups = this._popups.map(p => ({ ...p, state: 'leaving' }));
-        setTimeout(() => {
+        const t = setTimeout(() => {
+            this._leaveTimers.delete(t);
             this._popups = [];
         }, 220);
+        this._leaveTimers.add(t);
     }
 
     _handleItemClose(id, e) {
@@ -335,16 +340,19 @@ export class CgoNoticePopup extends LitElement {
                     @mouseenter=${() => this._pauseItem(p.id)}
                     @mouseleave=${() => this._resumeItem(p.id)}>
                     ${p.isToast ? html`
-                        <div class="toast-card ${p.type === 'success' ? 'success' : p.type === 'error' || p.type === 'danger' ? 'danger' : p.type === 'warning' ? 'warning' : 'info'}">
+                        <div class="toast-card ${p.type === 'success' ? 'success' : p.type === 'error' || p.type === 'danger' ? 'danger' : p.type === 'warning' || p.type === 'warn' ? 'warning' : 'info'}">
                             <span class="toast-message">${p.message}</span>
-                            <cgo-spinner
-                                mode="progress"
-                                size="20"
-                                duration="${p.duration}"
-                                fill-mode="fill"
-                                direction="cw"
-                                class="toast-progress-ring"
-                            ></cgo-spinner>
+                            ${p.duration > 0 ? html`
+                                <cgo-spinner
+                                    mode="progress"
+                                    size="20"
+                                    duration="${p.duration}"
+                                    ?paused=${p.paused}
+                                    fill-mode="fill"
+                                    direction="cw"
+                                    class="toast-progress-ring"
+                                ></cgo-spinner>
+                            ` : null}
                         </div>
                     ` : html`
                         <cgo-notice-card
@@ -356,6 +364,7 @@ export class CgoNoticePopup extends LitElement {
                             image-url=${p.imageUrl}
                             .actions=${p.actions}
                             duration=${p.duration || 0}
+                            ?paused=${p.paused}
                             @cgo-notice-close=${(e) => this._handleItemClose(p.id, e)}
                             @cgo-notice-action=${(e) => this._handleItemAction(p.id, e)}
                         ></cgo-notice-card>

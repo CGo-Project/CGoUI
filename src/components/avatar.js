@@ -1,10 +1,6 @@
 import { LitElement, html, css } from 'lit';
 import { injectLiquidGlassFilter } from '../theme.js';
-import {
-    glassRefractionStyles,
-    tierBRimWeakRules,
-    tierBRimWeakDarkRules,
-} from '../styles/glass-shared.js';
+import { glassRefractionStyles, tierBRimWeakRules } from '../styles/glass-shared.js';
 
 /**
  * <cgo-avatar name="张三" color="#006098" size="60"></cgo-avatar>
@@ -18,6 +14,7 @@ export class CgoAvatar extends LitElement {
         color: { type: String },
         size: { type: String },
         glassMode: { type: String, attribute: 'glass-mode', reflect: true },
+        _imgFailed: { state: true },
     };
 
     static styles = css`
@@ -26,7 +23,6 @@ export class CgoAvatar extends LitElement {
             vertical-align: middle;
         }
 
-        /* 遵循 Tier B 不可交互底板规范 (0.9 衬底，柔和微光圈，50% 纯圆轮廓) */
         .av {
             position: relative;
             display: flex;
@@ -38,7 +34,7 @@ export class CgoAvatar extends LitElement {
             box-sizing: border-box;
             background: transparent;
             border: none;
-            box-shadow: var(--glass-shadow, 0 8px 24px rgba(0, 38, 59, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04));
+            box-shadow: var(--cgo-shadow-dropdown, var(--glass-shadow, 0 8px 24px rgba(0, 38, 59, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)));
             color: #ffffff;
             font-family: var(--font-sans, system-ui, sans-serif);
             font-weight: 700;
@@ -50,14 +46,8 @@ export class CgoAvatar extends LitElement {
             transition: box-shadow 0.25s ease;
         }
 
-        :host-context([data-theme='dark']) .av {
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Layer 0: 折射磨砂层 (Tier B 规范) */
         ${glassRefractionStyles}
 
-        /* Layer 1: 半透明底色衬底层 (Tier B 规范: 0.9 固定) */
         .av::after {
             content: '';
             position: absolute;
@@ -69,20 +59,10 @@ export class CgoAvatar extends LitElement {
             transition: background-color 0.25s ease;
         }
 
-        :host-context([data-theme='dark']) .av:not(.has-color):not(.has-src)::after {
-            background: var(--glass-bg-panel, rgba(31, 32, 34, 0.9));
-        }
-
-        /* Layer 2: 弱化微光圈 (Tier B 规范: 顶部柔和单向光，在 50% 圆形上呈现精致穹顶高光) */
         .av::before {
             ${tierBRimWeakRules}
         }
 
-        :host-context([data-theme='dark']) .av::before {
-            ${tierBRimWeakDarkRules}
-        }
-
-        /* Layer 3: 头像内容区 (首字母文本或图片) */
         .av-content {
             position: relative;
             z-index: 3;
@@ -102,7 +82,6 @@ export class CgoAvatar extends LitElement {
             display: block;
         }
 
-        /* 传统扁平降级 */
         :host([glass-mode='flat']) .av,
         :host([glass-mode='none']) .av {
             background: var(--cgo-avatar-flat-bg, var(--card-bg, #fff));
@@ -124,6 +103,8 @@ export class CgoAvatar extends LitElement {
         this.src = '';
         this.color = '';
         this.size = '60';
+        this.glassMode = '';
+        this._imgFailed = false;
     }
 
     connectedCallback() {
@@ -131,44 +112,53 @@ export class CgoAvatar extends LitElement {
         injectLiquidGlassFilter();
     }
 
+    updated(changedProperties) {
+        if (changedProperties.has('src')) {
+            this._imgFailed = false;
+        }
+        if (changedProperties.has('size') || changedProperties.has('color') || changedProperties.has('src')) {
+            const rawSize = String(this.size || '').trim();
+            if (rawSize) {
+                const sizeStr = /^\d+(?:\.\d+)?$/.test(rawSize) ? `${rawSize}px` : rawSize;
+                this.style.setProperty('--cgo-avatar-size', sizeStr);
+            } else {
+                this.style.removeProperty('--cgo-avatar-size');
+            }
+            const rawColor = String(this.color || '').trim() || 'var(--primary-color, #006098)';
+            if (this.src && !this._imgFailed) {
+                this.style.setProperty('--cgo-avatar-bg', 'var(--glass-bg-panel, rgba(255, 255, 255, 0.9))');
+                this.style.removeProperty('--cgo-avatar-flat-bg');
+            } else {
+                this.style.setProperty('--cgo-avatar-bg', `color-mix(in srgb, ${rawColor} 90%, transparent)`);
+                this.style.setProperty('--cgo-avatar-flat-bg', rawColor);
+            }
+        }
+    }
+
     _initials() {
         if (!this.name) return '';
         const n = this.name.trim();
-        // 中文取末字，英文取首字母
-        if (/[一-龥]/.test(n)) return n.slice(-1);
+        if (!n) return '';
+        if (/[\u4e00-\u9fa5]/.test(n)) return [...n].slice(-1)[0];
         return n
             .split(/\s+/)
-            .map((s) => s[0])
+            .map((s) => [...s][0] || '')
             .slice(0, 2)
             .join('')
             .toUpperCase();
     }
 
     render() {
-        const sizeStr = /^\d+$/.test(this.size) ? this.size + 'px' : this.size;
-        const rawColor = this.color || 'var(--primary-color, #006098)';
-        // 0.9 高不透明度衬底与折射融合
-        const glassBg = `color-mix(in srgb, ${rawColor} 90%, transparent)`;
-        
-        let styles = `--cgo-avatar-size:${sizeStr};`;
-        if (this.src) {
-            styles += `--cgo-avatar-bg:var(--glass-bg-panel, rgba(255, 255, 255, 0.9));`;
-        } else {
-            styles += `--cgo-avatar-bg:${glassBg};--cgo-avatar-flat-bg:${rawColor};`;
-        }
-
-        const classes = [
-            'av',
-            this.color ? 'has-color' : '',
-            this.src ? 'has-src' : ''
-        ].filter(Boolean).join(' ');
+        const showImg = Boolean(this.src) && !this._imgFailed;
+        const isFlat = this.glassMode === 'flat' || this.glassMode === 'none';
+        const classes = ['av', this.color ? 'has-color' : '', showImg ? 'has-src' : ''].filter(Boolean).join(' ');
 
         return html`
-            <div class="${classes}" style="${styles}">
-                <div class="glass-refraction" aria-hidden="true"></div>
+            <div class="${classes}">
+                ${!isFlat ? html`<div class="glass-refraction" aria-hidden="true"></div>` : null}
                 <div class="av-content">
-                    ${this.src
-                        ? html`<img src=${this.src} alt=${this.name || 'avatar'} />`
+                    ${showImg
+                        ? html`<img src=${this.src} alt=${this.name || 'avatar'} @error=${() => (this._imgFailed = true)} />`
                         : html`<span>${this._initials()}</span>`}
                 </div>
             </div>

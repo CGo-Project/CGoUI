@@ -28,7 +28,7 @@ import { CgoSideNav as CgoSideNavClass, CgoNavItem as CgoNavItemClass } from './
 import { CgoToolbarSelect as CgoToolbarSelectClass } from './components/toolbar-select.js';
 import { CgoNoticeCard as CgoNoticeCardClass } from './components/notice-card.js';
 import { CgoNoticeCenter as CgoNoticeCenterClass } from './components/notice-center.js';
-import { CgoNoticePopup as CgoNoticePopupClass, showNoticePopup } from './components/notice-popup.js';
+import { CgoNoticePopup as CgoNoticePopupClass } from './components/notice-popup.js';
 
 export const CgoIcon = createComponent({ react: React, tagName: 'cgo-icon', elementClass: CgoIconClass });
 export const CgoButton = createComponent({ react: React, tagName: 'cgo-button', elementClass: CgoButtonClass });
@@ -108,9 +108,6 @@ export const CgoDropdown = createComponent({
     react: React,
     tagName: 'cgo-dropdown',
     elementClass: CgoDropdownClass,
-    events: {
-        oncgochange: 'cgo-change',
-    },
 });
 
 export const CgoModal = createComponent({
@@ -161,7 +158,14 @@ export const CgoHeaderToggle = createComponent({
     elementClass: CgoHeaderToggleClass,
 });
 
-export const CgoSideNav = createComponent({ react: React, tagName: 'cgo-side-nav', elementClass: CgoSideNavClass });
+export const CgoSideNav = createComponent({
+    react: React,
+    tagName: 'cgo-side-nav',
+    elementClass: CgoSideNavClass,
+    events: {
+        oncgonavchange: 'cgo-nav-change',
+    },
+});
 export const CgoNavItem = createComponent({ react: React, tagName: 'cgo-nav-item', elementClass: CgoNavItemClass });
 
 export const CgoToolbarSelect = createComponent({

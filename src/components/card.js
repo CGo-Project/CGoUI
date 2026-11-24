@@ -1,9 +1,10 @@
 import { LitElement, html, css } from 'lit';
+import './icon.js';
 import { injectLiquidGlassFilter } from '../theme.js';
 import {
     glassRefractionStyles,
+    tierBRimWeakRules,
     tierCRimRules,
-    tierCRimDarkRules,
 } from '../styles/glass-shared.js';
 
 export class CgoCard extends LitElement {
@@ -53,19 +54,19 @@ export class CgoCard extends LitElement {
         /* Layer 0: 折射磨砂层 (Tier C 默认) */
         ${glassRefractionStyles}
 
-        /* Tier A Layer 0: 较轻模糊 (blur(5px) saturate(130%)) */
+        /* Tier A Layer 0: 较轻模糊 */
         .tier-a .glass-refraction {
             backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%));
             -webkit-backdrop-filter: var(--glass-backdrop-filter, blur(5px) saturate(130%));
         }
 
-        /* Tier B Layer 0: 深度模糊与折射 (blur(14px) saturate(135%)) */
+        /* Tier B Layer 0: 深度模糊与折射 */
         .tier-b .glass-refraction {
             backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%));
             -webkit-backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%));
         }
 
-        /* Layer 1: 半透明底色衬底层 (默认 Tier C: 亮色 0.72, 暗色 0.72) */
+        /* Layer 1: 半透明底色衬底层 (默认 Tier C: 0.72) */
         .card:not(.flat):not(.info):not(.danger)::after {
             content: "";
             position: absolute;
@@ -75,10 +76,6 @@ export class CgoCard extends LitElement {
             background: var(--glass-bg-surface, rgba(255, 255, 255, 0.72));
             pointer-events: none;
             transition: background-color 0.25s ease;
-        }
-
-        :host-context([data-theme='dark']) .card:not(.flat):not(.info):not(.danger)::after {
-            background: var(--glass-bg-surface, rgba(31, 32, 34, 0.72));
         }
 
         /* 默认 Tier C / .tier-c: 严禁 hover 任何视觉或位移变化 */
@@ -95,17 +92,10 @@ export class CgoCard extends LitElement {
         .card:not(.tier-a):not(.tier-b):not(.flat):not(.info):not(.danger):hover::after {
             background: var(--glass-bg-surface, rgba(255, 255, 255, 0.72)) !important;
         }
-        :host-context([data-theme='dark']) .tier-c:hover::after,
-        :host-context([data-theme='dark']) .card:not(.tier-a):not(.tier-b):not(.flat):not(.info):not(.danger):hover::after {
-            background: var(--glass-bg-surface, rgba(31, 32, 34, 0.72)) !important;
-        }
 
         /* Tier B (.tier-b): 高不透明衬底 (0.9 固定)，严禁 hover 反应 */
         .tier-b::after {
             background: var(--glass-bg-panel, rgba(255, 255, 255, 0.9)) !important;
-        }
-        :host-context([data-theme='dark']) .tier-b::after {
-            background: var(--glass-bg-panel, rgba(31, 32, 34, 0.9)) !important;
         }
         .tier-b:hover {
             transform: none !important;
@@ -113,9 +103,6 @@ export class CgoCard extends LitElement {
         }
         .tier-b:hover::after {
             background: var(--glass-bg-panel, rgba(255, 255, 255, 0.9)) !important;
-        }
-        :host-context([data-theme='dark']) .tier-b:hover::after {
-            background: var(--glass-bg-panel, rgba(31, 32, 34, 0.9)) !important;
         }
 
         /* Tier A (.tier-a): 可交互卡片 (0.60 -> hover 0.68 + translateY(-4px)) */
@@ -127,9 +114,6 @@ export class CgoCard extends LitElement {
         .tier-a::after {
             background: var(--glass-bg, rgba(255, 255, 255, 0.60)) !important;
         }
-        :host-context([data-theme='dark']) .tier-a::after {
-            background: var(--glass-bg, rgba(31, 32, 34, 0.60)) !important;
-        }
         @media (hover: hover) and (pointer: fine) {
             .tier-a:hover {
                 transform: translateY(-4px);
@@ -137,9 +121,6 @@ export class CgoCard extends LitElement {
             }
             .tier-a:hover::after {
                 background: var(--glass-bg-hover, rgba(255, 255, 255, 0.68)) !important;
-            }
-            :host-context([data-theme='dark']) .tier-a:hover::after {
-                background: var(--glass-bg-hover, rgba(38, 40, 44, 0.68)) !important;
             }
         }
         .tier-a:active {
@@ -151,16 +132,10 @@ export class CgoCard extends LitElement {
         .card:not(.flat):not(.info):not(.danger)::before {
             ${tierCRimRules}
         }
-        :host-context([data-theme='dark']) .card:not(.flat):not(.info):not(.danger)::before {
-            ${tierCRimDarkRules}
-        }
 
         /* Tier B 弱化微光圈 */
-        .tier-b::before {
-            background: linear-gradient(to bottom,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) 0,
-                rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.95) * 0.45)) 1px,
-                rgba(255, 255, 255, 0) 12px);
+        .card.tier-b:not(.flat):not(.info):not(.danger)::before {
+            ${tierBRimWeakRules}
         }
 
         /* Layer 3: 内容容器 */
@@ -169,7 +144,7 @@ export class CgoCard extends LitElement {
             z-index: 3;
         }
 
-        /* 传统扁平卡片（仅当开发者显式指定 flat 时降级） */
+        /* 传统扁平卡片（仅当显式指定 flat 时降级） */
         .card.flat,
         :host([glass-mode="flat"]) .card,
         :host([glass-mode="none"]) .card {
@@ -203,12 +178,6 @@ export class CgoCard extends LitElement {
             background: var(--danger-bg, #fff1f1);
             color: var(--text-main, #00263b);
             cursor: default;
-        }
-        :host-context([data-theme='dark']) .danger {
-            background: rgba(234, 67, 53, 0.12);
-            border-color: rgba(234, 67, 53, 0.35);
-            border-left-color: var(--danger-color, #ea4335);
-            color: var(--text-main, #e5e8ea);
         }
         .header-row {
             display: flex;
@@ -258,10 +227,11 @@ export class CgoCard extends LitElement {
         const rawTier = (this.tier || '').toLowerCase().trim();
         const normalizedTier = rawTier === 'a' || this.variant === 'interactive' ? 'a' : (rawTier === 'b' ? 'b' : 'c');
         const tierClass = normalizedTier === 'a' ? 'tier-a' : (normalizedTier === 'b' ? 'tier-b' : 'tier-c');
+        const classes = ['card', this.variant, isGlass ? tierClass : ''].filter(Boolean).join(' ');
         const headingText = this.title || this.header;
 
         return html`
-            <section class="card ${this.variant} ${tierClass}">
+            <section class=${classes}>
                 ${isGlass ? html`<div class="glass-refraction" aria-hidden="true"></div>` : null}
                 <div class="content-wrapper">
                     ${headingText

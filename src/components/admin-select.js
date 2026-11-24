@@ -3,27 +3,11 @@ import { injectLiquidGlassFilter } from '../theme.js';
 import './icon.js';
 import {
     hairlineRimLightRules,
-    hairlineRimDarkRules,
     glassRefractionStyles,
     tierBPanelUnderlayRules,
-    tierBPanelUnderlayDarkRules,
     tierBRimWeakRules,
-    tierBRimWeakDarkRules,
 } from '../styles/glass-shared.js';
-
-const _openAdminSelects = new Set();
-let _outsideAdminSelectBound = false;
-function _bindOutsideAdminSelect() {
-    if (_outsideAdminSelectBound) return;
-    _outsideAdminSelectBound = true;
-    document.addEventListener('click', (event) => {
-        _openAdminSelects.forEach((inst) => {
-            if (!event.composedPath().includes(inst)) {
-                inst.close();
-            }
-        });
-    });
-}
+import { openFloatingMenu, closeFloatingMenu, closeOtherFloatingMenus } from '../utils/floating-menu.js';
 
 export class CgoAdminSelect extends LitElement {
     static properties = {
@@ -43,7 +27,6 @@ export class CgoAdminSelect extends LitElement {
             vertical-align: middle;
         }
 
-        /* ── 1. 功能入口收起时：参考 <cgo-button> 的液态玻璃与物理微交互 ── */
         .select {
             position: relative;
             display: grid;
@@ -69,8 +52,7 @@ export class CgoAdminSelect extends LitElement {
             isolation: isolate;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-            /* 显式过渡与微触感反馈 */
+            box-shadow: var(--cgo-shadow-control, 0 1px 2px rgba(0, 0, 0, 0.05));
             transition:
                 color var(--dur-fast, 140ms) ease,
                 background-color var(--dur-fast, 140ms) ease,
@@ -78,38 +60,23 @@ export class CgoAdminSelect extends LitElement {
                 transform var(--dur-micro, 100ms) cubic-bezier(0.23, 1, 0.32, 1);
         }
 
-        /* <cgo-button> 同款 1px 双轴微光描边 (Layer 2 Masked 1px Hairline Rim Light，唯一描边来源) */
         .select::before {
             ${hairlineRimLightRules}
         }
 
-        .select:hover:not(:disabled)::before {
-            opacity: 0.75;
+        @media (hover: hover) and (pointer: fine) {
+            .select:hover:not(:disabled)::before {
+                opacity: 0.75;
+            }
+            .select:hover:not(:disabled) {
+                box-shadow: var(--cgo-shadow-control-hover, 0 2px 5px rgba(0, 0, 0, 0.08));
+            }
         }
 
-        .select:hover:not(:disabled) {
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
-        }
-
-        /* 收起未打开状态下的按压触感反馈 */
         :host(:not([open])) .select:active:not(:disabled) {
             transform: scale(0.98);
         }
 
-        :host-context([data-theme='dark']) .select {
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
-            color: var(--text-main, #e5e8ea);
-        }
-
-        :host-context([data-theme='dark']) .select:hover:not(:disabled) {
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
-        }
-
-        :host-context([data-theme='dark']) .select::before {
-            ${hairlineRimDarkRules}
-        }
-
-        /* 保证文字和指示小点在 Layer 3 (z-index: 3) 绝对清晰 */
         .dot,
         .label,
         .arrow {
@@ -143,11 +110,6 @@ export class CgoAdminSelect extends LitElement {
             flex-shrink: 0;
         }
 
-        :host-context([data-theme='dark']) .arrow {
-            color: var(--text-main, #e5e8ea);
-        }
-
-        /* 各状态背景色（纯色背景，不设置实体 border，由 ::before 提供单一微光描边） */
         :host([state='enabled']) .select {
             background: var(--permission-enabled-soft, #edf8f1);
         }
@@ -180,9 +142,6 @@ export class CgoAdminSelect extends LitElement {
             box-shadow: none;
         }
 
-        /* ── 2. 功能入口打开时：参考 <cgo-input> 激活时的样式效果 ──
-           彻底移除 ::before 伪元素微光，使用单组 box-shadow 绘制 1px 轮廓线 + 3.5px 扩散光晕，
-           绝无多层边框套圈与内缩重影！ */
         :host([open]) .select::before {
             display: none !important;
         }
@@ -193,7 +152,7 @@ export class CgoAdminSelect extends LitElement {
             transform: none !important;
             box-shadow:
                 0 0 0 1px var(--permission-inherit, #64748b),
-                0 0 0 3.5px color-mix(in srgb, var(--permission-inherit, #64748b) 16%, transparent),
+                0 0 0 3.5px color-mix(in srgb, var(--permission-inherit, #64748b) 20%, transparent),
                 0 1px 2px rgba(0, 0, 0, 0.06) !important;
         }
 
@@ -204,66 +163,34 @@ export class CgoAdminSelect extends LitElement {
         :host([open][state='enabled']) .select {
             box-shadow:
                 0 0 0 1px var(--permission-enabled, #16803d),
-                0 0 0 3.5px color-mix(in srgb, var(--permission-enabled, #16803d) 18%, transparent),
+                0 0 0 3.5px color-mix(in srgb, var(--permission-enabled, #16803d) 20%, transparent),
                 0 1px 2px rgba(22, 128, 61, 0.08) !important;
         }
 
         :host([open][state='disabled']) .select {
             box-shadow:
                 0 0 0 1px var(--permission-disabled, #52637a),
-                0 0 0 3.5px color-mix(in srgb, var(--permission-disabled, #52637a) 16%, transparent),
+                0 0 0 3.5px color-mix(in srgb, var(--permission-disabled, #52637a) 20%, transparent),
                 0 1px 2px rgba(0, 0, 0, 0.06) !important;
         }
 
         :host([open][state='hidden']) .select {
             box-shadow:
                 0 0 0 1px var(--permission-hidden, #c62828),
-                0 0 0 3.5px color-mix(in srgb, var(--permission-hidden, #c62828) 18%, transparent),
+                0 0 0 3.5px color-mix(in srgb, var(--permission-hidden, #c62828) 20%, transparent),
                 0 1px 2px rgba(198, 40, 40, 0.08) !important;
         }
 
-        /* 暗色模式下打开/激活状态的 Focus Ring */
-        :host-context([data-theme='dark']):host([open]) .select {
-            box-shadow:
-                0 0 0 1px var(--permission-inherit, #a1b0cb),
-                0 0 0 3.5px color-mix(in srgb, var(--permission-inherit, #a1b0cb) 25%, transparent),
-                0 1px 3px rgba(0, 0, 0, 0.35) !important;
-        }
-
-        :host-context([data-theme='dark']):host([open][state='enabled']) .select {
-            box-shadow:
-                0 0 0 1px var(--permission-enabled, #81c995),
-                0 0 0 3.5px color-mix(in srgb, var(--permission-enabled, #81c995) 26%, transparent),
-                0 1px 3px rgba(0, 0, 0, 0.35) !important;
-        }
-
-        :host-context([data-theme='dark']):host([open][state='disabled']) .select {
-            box-shadow:
-                0 0 0 1px var(--permission-disabled, #94a3b8),
-                0 0 0 3.5px color-mix(in srgb, var(--permission-disabled, #94a3b8) 25%, transparent),
-                0 1px 3px rgba(0, 0, 0, 0.35) !important;
-        }
-
-        :host-context([data-theme='dark']):host([open][state='hidden']) .select {
-            box-shadow:
-                0 0 0 1px var(--permission-hidden, #ff8a80),
-                0 0 0 3.5px color-mix(in srgb, var(--permission-hidden, #ff8a80) 26%, transparent),
-                0 1px 3px rgba(0, 0, 0, 0.35) !important;
-        }
-
-        /* ── 3. 打开时的下拉菜单：参考 <cgo-dropdown> 的下拉菜单添加与 card B 一致的液态玻璃效果 ── */
         .menu {
             display: none;
-            /*
-             * Fix: position: fixed 直接以视口为定位基准，完全脱离父级的 isolation、overflow、backdrop-filter 约束。
-             * 坐标由 JS _positionMenu() 动态计算。
-             */
             position: fixed;
+            inset: auto;
+            margin: 0;
             min-width: 140px;
             background: transparent;
             border: none;
             border-radius: var(--radius-md, 8px);
-            box-shadow: var(--glass-shadow, 0 8px 24px rgba(0, 38, 59, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04));
+            box-shadow: var(--cgo-shadow-dropdown, var(--glass-shadow, 0 8px 24px rgba(0, 38, 59, 0.08), 0 2px 6px rgba(0, 0, 0, 0.04)));
             z-index: 100000;
             padding: 6px;
             overflow: hidden;
@@ -276,32 +203,16 @@ export class CgoAdminSelect extends LitElement {
             display: block;
         }
 
-        /* Layer 0: 折射磨砂层 (Tier B 规范) */
         ${glassRefractionStyles}
 
-        /* Layer 1: 半透明底色衬底层 (Tier B 规范: 0.9 固定) */
         .menu::after {
             ${tierBPanelUnderlayRules}
         }
 
-        :host-context([data-theme='dark']) .menu::after {
-            ${tierBPanelUnderlayDarkRules}
-        }
-
-        /* Layer 2: 弱化微光圈 (Tier B 规范: 顶部柔和单向光，与 0.9 高不透明底板自然融合) */
         .menu::before {
             ${tierBRimWeakRules}
         }
 
-        :host-context([data-theme='dark']) .menu::before {
-            ${tierBRimWeakDarkRules}
-        }
-
-        :host-context([data-theme='dark']) .menu {
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45), 0 4px 12px rgba(0, 0, 0, 0.3);
-        }
-
-        /* Layer 3: 菜单内容项 */
         .menu-content {
             position: relative;
             z-index: 3;
@@ -323,10 +234,6 @@ export class CgoAdminSelect extends LitElement {
         :host([glass-mode='none']) .menu::before,
         :host([glass-mode='none']) .menu::after {
             display: none;
-        }
-        :host-context([data-theme='dark']):host([glass-mode='flat']) .menu {
-            background: var(--card-bg, #1f2020);
-            border-color: var(--border-color, #383a3c);
         }
 
         @keyframes dropdownIn {
@@ -363,18 +270,11 @@ export class CgoAdminSelect extends LitElement {
                 transform var(--dur-micro, 100ms) ease;
         }
 
-        .option:hover {
-            background: var(--btn-info-hover, rgba(0, 38, 59, 0.06));
-            color: var(--text-main, #00263b);
-        }
-
-        :host-context([data-theme='dark']) .option {
-            color: var(--text-main, #e5e8ea);
-        }
-
-        :host-context([data-theme='dark']) .option:hover {
-            background: rgba(255, 255, 255, 0.08);
-            color: #ffffff;
+        @media (hover: hover) and (pointer: fine) {
+            .option:hover {
+                background: var(--cgo-subtle-hover, var(--btn-info-hover, rgba(0, 38, 59, 0.06)));
+                color: var(--text-main, #00263b);
+            }
         }
 
         .option:active {
@@ -382,7 +282,7 @@ export class CgoAdminSelect extends LitElement {
         }
 
         .option[aria-selected='true'] {
-            background: var(--btn-info-hover, rgba(0, 38, 59, 0.08));
+            background: var(--cgo-subtle-active, rgba(0, 38, 59, 0.08));
             font-weight: 700;
         }
 
@@ -429,63 +329,55 @@ export class CgoAdminSelect extends LitElement {
         this.open = false;
         this.glassMode = '';
         this.disabled = false;
-        this._positionHandler = () => {
-            if (this.open) this._positionMenu();
-        };
     }
 
     connectedCallback() {
         super.connectedCallback();
         injectLiquidGlassFilter();
-        _bindOutsideAdminSelect();
     }
 
     disconnectedCallback() {
         super.disconnectedCallback();
-        _openAdminSelects.delete(this);
-        window.removeEventListener('resize', this._positionHandler);
-        window.removeEventListener('scroll', this._positionHandler, true);
+        closeFloatingMenu(this, this.shadowRoot?.querySelector('.menu'));
+    }
+
+    updated(changed) {
+        if (changed.has('open')) {
+            if (this.open) {
+                this._mountFloatingMenu();
+            } else {
+                closeFloatingMenu(this, this.shadowRoot?.querySelector('.menu'));
+            }
+        }
+    }
+
+    _mountFloatingMenu() {
+        const menu = this.shadowRoot?.querySelector('.menu');
+        const select = this.shadowRoot?.querySelector('.select');
+        if (!menu || !select) return;
+        closeOtherFloatingMenus(this);
+        openFloatingMenu(this, menu, select, {
+            gap: 6,
+            matchTriggerWidth: true,
+            minWidth: 140,
+            maxHeight: 200,
+            align: 'left',
+        });
     }
 
     openSelect() {
         if (this.disabled) return;
-        _openAdminSelects.forEach((inst) => {
-            if (inst !== this) inst.close();
-        });
+        closeOtherFloatingMenus(this);
         this.open = true;
-        _openAdminSelects.add(this);
-        requestAnimationFrame(() => this._positionMenu());
-        window.addEventListener('resize', this._positionHandler);
-        window.addEventListener('scroll', this._positionHandler, true);
-    }
-
-    /**
-     * 基于触发元素的视口坐标动态计算 .menu 的 fixed 定位。
-     */
-    _positionMenu() {
-        const menu = this.shadowRoot?.querySelector('.menu');
-        const select = this.shadowRoot?.querySelector('.select');
-        if (!menu || !select) return;
-
-        const r = select.getBoundingClientRect();
-        const viewportH = window.innerHeight;
-        const gap = 6;
-        const downTop = r.bottom + gap;
-        const upBottom = viewportH - r.top + gap;
-        const fitsDown = downTop + 200 < viewportH;
-
-        menu.style.top = fitsDown ? `${downTop}px` : '';
-        menu.style.bottom = !fitsDown ? `${upBottom}px` : '';
-        menu.style.left = `${r.left}px`;
-        menu.style.width = `${r.width}px`;
+        this.updateComplete.then(() => {
+            if (this.open) this._mountFloatingMenu();
+        });
     }
 
     close() {
         if (!this.open) return;
         this.open = false;
-        _openAdminSelects.delete(this);
-        window.removeEventListener('resize', this._positionHandler);
-        window.removeEventListener('scroll', this._positionHandler, true);
+        closeFloatingMenu(this, this.shadowRoot?.querySelector('.menu'));
     }
 
     toggle(event) {
@@ -496,10 +388,10 @@ export class CgoAdminSelect extends LitElement {
 
     _options() {
         return [
-            { state: 'inherit', label: '继承权限' },
-            { state: 'enabled', label: '允许访问' },
-            { state: 'disabled', label: '拒绝访问' },
-            { state: 'hidden', label: '隐藏入口' },
+            { state: 'inherit', label: '继承权限', optionText: '继承 (Inherit)' },
+            { state: 'enabled', label: '允许访问', optionText: '允许 (Allow)' },
+            { state: 'disabled', label: '拒绝访问', optionText: '拒绝 (Deny)' },
+            { state: 'hidden', label: '隐藏入口', optionText: '隐藏 (Hide)' },
         ];
     }
 
@@ -522,14 +414,14 @@ export class CgoAdminSelect extends LitElement {
                 class="select"
                 type="button"
                 ?disabled=${this.disabled}
-                aria-expanded=${this.open}
+                aria-expanded=${String(this.open)}
                 @click=${(event) => this.toggle(event)}
             >
                 <span class="dot"></span>
                 <span class="label">${current.label}</span>
                 <cgo-icon class="arrow" name="chevron-down" size="18" aria-hidden="true"></cgo-icon>
             </button>
-            <div class="menu">
+            <div class="menu" popover="manual" role="listbox">
                 ${!isFlat ? html`<div class="glass-refraction" aria-hidden="true"></div>` : null}
                 <div class="menu-content">
                     ${this._options().map(
@@ -537,17 +429,12 @@ export class CgoAdminSelect extends LitElement {
                             <button
                                 class="option ${option.state}"
                                 type="button"
-                                aria-selected=${option.state === this.state}
+                                role="option"
+                                aria-selected=${String(option.state === this.state)}
                                 @click=${() => this._select(option)}
                             >
                                 <span class="dot"></span>
-                                ${option.label === '继承权限'
-                                    ? '继承 (Inherit)'
-                                    : option.label === '允许访问'
-                                      ? '允许 (Allow)'
-                                      : option.label === '拒绝访问'
-                                        ? '拒绝 (Deny)'
-                                        : '隐藏 (Hide)'}
+                                ${option.optionText}
                             </button>
                         `
                     )}

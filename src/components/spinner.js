@@ -3,27 +3,11 @@ import { LitElement, html, css } from 'lit';
 /**
  * <cgo-spinner>
  * 环形加载指示器与进度圆环组件
- * 
- * 模式 (mode):
- * - mode="spinner" (默认) 加载旋转指示器
- * - mode="progress" 进度圆环
- * 
- * 尺寸 (size):
- * - size="sm" (20px)
- * - size="" (40px)
- * - size="lg" (60px)
- * - 或数字/自定义像素 (如 size="80")
- * 
- * Spinner 属性:
- * - speed="slow|medium|fast" (默认 medium)
- * - direction="cw|ccw" (默认 cw)
- * 
- * Progress 属性:
- * - fill-mode="fill|clear" (默认 fill)
- * - direction="cw|ccw" (默认 cw)
- * - value="0..100" (实时进度)
- * - duration="3000" 或 "3s" (设定时间自动过渡)
- * - show-text / show-percentage (显示百分比数字模式 vs 不显示百分比纯圆环模式)
+ *
+ * 模式 (mode): spinner(默认) | progress
+ * 尺寸 (size): sm(20px) | (默认 40px) | lg(60px) | 数字/CSS尺寸
+ * Spinner 属性: speed="slow|medium|fast", direction="cw|ccw", paused
+ * Progress 属性: fill-mode="fill|clear", direction="cw|ccw", value="0..100", duration="3000"|"3s", show-text, show-percentage, paused
  */
 export class CgoSpinner extends LitElement {
     static properties = {
@@ -36,6 +20,7 @@ export class CgoSpinner extends LitElement {
         duration: { type: String },
         showText: { type: Boolean, attribute: 'show-text' },
         showPercentage: { type: Boolean, attribute: 'show-percentage' },
+        paused: { type: Boolean, reflect: true },
     };
 
     static styles = css`
@@ -105,6 +90,11 @@ export class CgoSpinner extends LitElement {
             animation: spin-ccw-anim var(--spin-duration, 0.75s) linear infinite;
         }
 
+        :host([paused]) .spin-cw,
+        :host([paused]) .spin-ccw {
+            animation-play-state: paused;
+        }
+
         @media (prefers-reduced-motion: reduce) {
             .spin-cw, .spin-ccw {
                 animation-duration: 2.5s !important;
@@ -147,7 +137,7 @@ export class CgoSpinner extends LitElement {
             position: absolute;
             font-size: 11px;
             font-weight: 600;
-            color: var(--text-color, #212529);
+            color: var(--text-main, var(--text-color, #212529));
             user-select: none;
             text-align: center;
             line-height: 1;
@@ -173,14 +163,18 @@ export class CgoSpinner extends LitElement {
         this.duration = '';
         this.showText = false;
         this.showPercentage = false;
+        this.paused = false;
 
         this._animTimer = null;
-        this._startTime = null;
+        this._mounted = false;
+        this._totalDurationMs = 0;
+        this._elapsedMs = 0;
+        this._lastTick = 0;
     }
 
     connectedCallback() {
         super.connectedCallback();
-        if (this.duration) {
+        if (this.duration && this._mounted) {
             this._checkAutoStartDuration();
         }
     }
@@ -190,9 +184,27 @@ export class CgoSpinner extends LitElement {
         this._stopDurationAnim();
     }
 
+    firstUpdated() {
+        this._mounted = true;
+        if (this.duration) {
+            this._checkAutoStartDuration();
+        }
+    }
+
     updated(changedProps) {
+        if (!this._mounted) return;
         if (changedProps.has('duration') && this.duration) {
             this._checkAutoStartDuration();
+        }
+        if (changedProps.has('paused') && this._totalDurationMs > 0) {
+            if (this.paused) {
+                if (this._animTimer) {
+                    this._elapsedMs = Math.min(this._totalDurationMs, this._elapsedMs + (performance.now() - this._lastTick));
+                    this._stopDurationAnim();
+                }
+            } else if (!this._animTimer && this._elapsedMs < this._totalDurationMs) {
+                this._runAnimLoop();
+            }
         }
     }
 
@@ -204,7 +216,7 @@ export class CgoSpinner extends LitElement {
     }
 
     _parseDurationMs(dur) {
-        if (typeof dur === 'number') return dur;
+        if (typeof dur === 'number') return Number.isFinite(dur) ? dur : 0;
         if (!dur) return 0;
         const str = String(dur).trim();
         if (str.endsWith('ms')) return parseFloat(str) || 0;
@@ -221,27 +233,47 @@ export class CgoSpinner extends LitElement {
         if (ms <= 0) return;
 
         this._stopDurationAnim();
-
+        this._totalDurationMs = ms;
+        this._elapsedMs = 0;
         this.value = 0;
-        const startTime = performance.now();
+
+        if (!this.paused) {
+            this._runAnimLoop();
+        }
+    }
+
+    _runAnimLoop() {
+        const ms = this._totalDurationMs;
+        if (ms <= 0) return;
+        this._lastTick = performance.now();
 
         const step = (now) => {
-            const elapsed = now - startTime;
-            const progress = Math.min(1, elapsed / ms);
-            this.value = Math.round(progress * 100);
+            if (this.paused) {
+                this._animTimer = null;
+                return;
+            }
+            const delta = Math.max(0, now - this._lastTick);
+            this._lastTick = now;
+            this._elapsedMs = Math.min(ms, this._elapsedMs + delta);
+            const progress = Math.min(1, this._elapsedMs / ms);
+            const nextVal = Math.round(progress * 100);
 
-            this.dispatchEvent(
-                new CustomEvent('cgo-progress-change', {
-                    detail: { value: this.value },
-                    bubbles: true,
-                    composed: true,
-                })
-            );
+            if (nextVal !== this.value) {
+                this.value = nextVal;
+                this.dispatchEvent(
+                    new CustomEvent('cgo-progress-change', {
+                        detail: { value: this.value },
+                        bubbles: true,
+                        composed: true,
+                    })
+                );
+            }
 
             if (progress < 1) {
                 this._animTimer = requestAnimationFrame(step);
             } else {
                 this._animTimer = null;
+                this._totalDurationMs = 0;
                 this.dispatchEvent(
                     new CustomEvent('cgo-progress-complete', {
                         detail: { value: this.value },
@@ -255,9 +287,6 @@ export class CgoSpinner extends LitElement {
         this._animTimer = requestAnimationFrame(step);
     }
 
-    /**
-     * 停止自动过渡
-     */
     _stopDurationAnim() {
         if (this._animTimer) {
             cancelAnimationFrame(this._animTimer);
@@ -265,20 +294,17 @@ export class CgoSpinner extends LitElement {
         }
     }
 
-    /**
-     * 重置进度
-     */
     reset() {
         this._stopDurationAnim();
+        this._totalDurationMs = 0;
+        this._elapsedMs = 0;
         this.value = 0;
     }
 
-    /**
-     * 手动设定进度值
-     * @param {number} val (0-100)
-     */
     setValue(val) {
         this._stopDurationAnim();
+        this._totalDurationMs = 0;
+        this._elapsedMs = 0;
         this.value = val;
     }
 
@@ -293,7 +319,7 @@ export class CgoSpinner extends LitElement {
         const s = (this.speed || '').toLowerCase();
         if (s === 'slow' || s === 'slow速' || s === '慢') return '1.4s';
         if (s === 'fast' || s === 'fast速' || s === '快') return '0.45s';
-        return '0.75s'; // medium / default
+        return '0.75s';
     }
 
     _getNormalizedDirection() {
@@ -301,7 +327,7 @@ export class CgoSpinner extends LitElement {
         if (d === 'ccw' || d === 'counterclockwise' || d === 'counter-clockwise' || d === '逆时针') {
             return 'ccw';
         }
-        return 'cw'; // default
+        return 'cw';
     }
 
     _getNormalizedFillMode() {
@@ -309,13 +335,12 @@ export class CgoSpinner extends LitElement {
         if (f === 'clear' || f === '清空') {
             return 'clear';
         }
-        return 'fill'; // default
+        return 'fill';
     }
 
     _getNormalizedValue() {
         let v = parseFloat(this.value);
         if (isNaN(v)) v = 0;
-        if (v > 0 && v <= 1) v = v * 100;
         return Math.min(100, Math.max(0, v));
     }
 
@@ -332,9 +357,8 @@ export class CgoSpinner extends LitElement {
                 ? `width: ${typeof this.size === 'number' || !isNaN(this.size) ? `${this.size}px` : this.size}; height: ${typeof this.size === 'number' || !isNaN(this.size) ? `${this.size}px` : this.size};`
                 : '';
 
-        // 圆形几何参数 (半径 r=16, 周长 C ≈ 100.531)
         const radius = 16;
-        const circumference = 2 * Math.PI * radius; // 100.5309649
+        const circumference = 2 * Math.PI * radius;
 
         if (mode === 'spinner') {
             const speedDuration = this._getNormalizedSpeed();
@@ -342,8 +366,8 @@ export class CgoSpinner extends LitElement {
             const dashArray = `${circumference * 0.25} ${circumference * 0.75}`;
 
             return html`
-                <div class="spinner-container ${sizeClass}" style="${customSizeStyle}">
-                    <svg viewBox="0 0 40 40">
+                <div class="spinner-container ${sizeClass}" style="${customSizeStyle}" role="status" aria-label="加载中">
+                    <svg viewBox="0 0 40 40" aria-hidden="true">
                         <circle class="track" cx="20" cy="20" r="${radius}"></circle>
                         <circle
                             class="indicator ${animClass}"
@@ -358,27 +382,25 @@ export class CgoSpinner extends LitElement {
             `;
         }
 
-        // Progress 模式
         const fillMode = this._getNormalizedFillMode();
         const val = this._getNormalizedValue();
         const progressFrac = val / 100;
-
-        let filledFrac;
-        if (fillMode === 'fill') {
-            // 填色模式：从 0 增加到 val
-            filledFrac = progressFrac;
-        } else {
-            // 清空模式：从 100% 减少 (1 - progressFrac)
-            filledFrac = 1 - progressFrac;
-        }
-
+        const filledFrac = fillMode === 'fill' ? progressFrac : 1 - progressFrac;
         const strokeDashoffset = circumference * (1 - filledFrac);
         const dirClass = dir === 'ccw' ? 'dir-ccw' : 'dir-cw';
         const transitionDuration = this._animTimer ? '0.05s' : '0.3s';
+        const rounded = Math.round(val);
 
         return html`
-            <div class="spinner-container ${sizeClass}" style="${customSizeStyle}">
-                <svg viewBox="0 0 40 40">
+            <div
+                class="spinner-container ${sizeClass}"
+                style="${customSizeStyle}"
+                role="progressbar"
+                aria-valuemin="0"
+                aria-valuemax="100"
+                aria-valuenow=${rounded}
+            >
+                <svg viewBox="0 0 40 40" aria-hidden="true">
                     <circle class="track" cx="20" cy="20" r="${radius}"></circle>
                     <circle
                         class="indicator progress-indicator ${dirClass}"
@@ -390,7 +412,7 @@ export class CgoSpinner extends LitElement {
                         style="--dash-transition: ${transitionDuration};"
                     ></circle>
                 </svg>
-                ${this._shouldShowText() ? html`<span class="progress-text">${Math.round(val)}%</span>` : ''}
+                ${this._shouldShowText() ? html`<span class="progress-text">${rounded}%</span>` : ''}
             </div>
         `;
     }

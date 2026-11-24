@@ -1,32 +1,31 @@
-import { LitElement, html, css } from 'lit';
+import { LitElement, html, css, svg } from 'lit';
 import { injectLiquidGlassFilter } from '../theme.js';
 import {
     glassRefractionStyles,
     tierCSurfaceUnderlayRules,
-    tierCSurfaceUnderlayDarkRules,
     tierCRimRules,
-    tierCRimDarkRules,
 } from '../styles/glass-shared.js';
 import './spinner.js';
 import './icon.js';
-
-const DEFAULT_ICONS = {
-    software: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`,
-    operation: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>`,
-    promotion: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>`,
-    system: `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`
-};
 
 const CATEGORY_NAMES = {
     software: '软件消息',
     operation: '运营信息',
     promotion: '推广内容',
-    system: '系统消息'
+    system: '系统消息',
 };
+
+function _isSafeUrl(url) {
+    if (!url || typeof url !== 'string') return false;
+    const t = url.trim();
+    if (!t) return false;
+    if (/^(https?:)?\/\//i.test(t) || /^[./]/.test(t)) return true;
+    return /^data:image\/(png|jpe?g|webp|gif|svg\+xml);/i.test(t);
+}
 
 /**
  * <cgo-notice-card> — CGoPush 标准通知卡片组件
- * 遵循次世代 Liquid Glass Tier C 规范，默认全量呈现 Card Tier C 液态玻璃质感与双轴微光圈。
+ * 遵循次世代 Liquid Glass Tier C 规范。
  */
 export class CgoNoticeCard extends LitElement {
     static properties = {
@@ -37,10 +36,23 @@ export class CgoNoticeCard extends LitElement {
         popup: { type: Boolean, reflect: true },
         closable: { type: Boolean, reflect: true },
         embedded: { type: Boolean, reflect: true },
-        actions: { type: Array },
+        actions: {
+            type: Array,
+            converter: (value) => {
+                if (!value) return [];
+                if (Array.isArray(value)) return value;
+                try {
+                    const parsed = JSON.parse(value);
+                    return Array.isArray(parsed) ? parsed : [];
+                } catch {
+                    return [];
+                }
+            },
+        },
         customCatName: { type: String, attribute: 'cat-name' },
         duration: { type: Number },
-        glassMode: { type: String, attribute: 'glass-mode', reflect: true }
+        paused: { type: Boolean },
+        glassMode: { type: String, attribute: 'glass-mode', reflect: true },
     };
 
     static styles = css`
@@ -55,15 +67,6 @@ export class CgoNoticeCard extends LitElement {
             --cat-system: var(--cgopush-cat-system, #6b7280);
         }
 
-        :host([data-theme='dark']),
-        :host-context([data-theme='dark']) {
-            --cat-software: #38bdf8;
-            --cat-operation: #ffca28;
-            --cat-promotion: #4ade80;
-            --cat-system: #a0b0b9;
-        }
-
-        /* 遵循 Card Tier C 液态玻璃规范：透明底板、物理微光投影、零实体边框 */
         .notice-card {
             position: relative;
             background: transparent;
@@ -79,70 +82,35 @@ export class CgoNoticeCard extends LitElement {
             isolation: isolate;
         }
 
-        :host-context([data-theme='dark']) .notice-card {
-            color: var(--text-main, #e6edf3);
-            box-shadow: var(--glass-shadow);
-        }
-
         :host([popup]) .notice-card {
             width: 280px;
             max-width: 80vw;
             padding-right: 32px;
-            box-shadow:
-                0 0 0 0.5px rgba(0, 0, 0, 0.08),
-                0 12px 32px -6px rgba(0, 38, 59, 0.16),
-                0 4px 12px -2px rgba(0, 38, 59, 0.08),
-                inset 0 1px 1px 0 rgba(255, 255, 255, 0.9);
+            box-shadow: var(--cgo-shadow-dropdown, var(--glass-shadow));
         }
 
-        :host-context([data-theme='dark']):host([popup]) .notice-card {
-            box-shadow:
-                0 0 0 0.5px rgba(255, 255, 255, 0.15),
-                0 16px 36px -6px rgba(0, 0, 0, 0.45),
-                0 6px 14px -2px rgba(0, 0, 0, 0.3),
-                inset 0 1px 1px 0 rgba(255, 255, 255, 0.2);
-        }
-
-        /* Layer 0: 折射磨砂层 (Card Tier C 规范: 14px 高斯模糊 + 135% 饱和度 + SVG 空间微折射) */
         ${glassRefractionStyles}
 
-        /* Layer 1: 半透明底色衬底层 (Card Tier C 规范: 0.72 固定，与 <cgo-card> 完全一致) */
         .notice-card::after {
             ${tierCSurfaceUnderlayRules}
         }
 
-        :host-context([data-theme='dark']) .notice-card::after {
-            ${tierCSurfaceUnderlayDarkRules}
-        }
-
-        /* Layer 2: 完整双轴微光圈层 (Card Tier C 规范: 保留顶部 lit 0.95 物理微光，杜绝实体边框重影) */
         .notice-card::before {
             ${tierCRimRules}
         }
 
-        :host-context([data-theme='dark']) .notice-card::before {
-            ${tierCRimDarkRules}
-        }
-
-        /* Layer 3: 内容容器 */
         .card-content {
             position: relative;
             z-index: 3;
         }
 
-        /* 传统扁平降级模式与通知中心内嵌卡片（避免三层嵌套 backdrop-filter 与 SVG 折射伪影） */
+        /* 通知中心内嵌卡片 & 扁平降级 */
         :host([embedded]) .notice-card {
-            background: rgba(255, 255, 255, 0.72);
-            border: 1px solid rgba(0, 38, 59, 0.07);
+            background: var(--cgo-notice-embedded-bg, rgba(255, 255, 255, 0.72));
+            border: 1px solid var(--cgo-notice-embedded-border, rgba(0, 38, 59, 0.07));
             box-shadow: 0 1px 3px rgba(0, 38, 59, 0.04);
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
-        }
-        :host([embedded][data-theme='dark']) .notice-card,
-        :host-context([data-theme='dark']):host([embedded]) .notice-card {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.22);
         }
         :host([embedded]) .notice-card::before,
         :host([embedded]) .notice-card::after,
@@ -157,13 +125,6 @@ export class CgoNoticeCard extends LitElement {
             backdrop-filter: none;
             -webkit-backdrop-filter: none;
         }
-
-        :host-context([data-theme='dark']):host([glass-mode='flat']) .notice-card,
-        :host-context([data-theme='dark']):host([glass-mode='none']) .notice-card {
-            background: var(--card-bg, #1e2022);
-            border-color: rgba(255, 255, 255, 0.1);
-        }
-
         :host([glass-mode='flat']) .notice-card::before,
         :host([glass-mode='flat']) .notice-card::after,
         :host([glass-mode='none']) .notice-card::before,
@@ -204,10 +165,6 @@ export class CgoNoticeCard extends LitElement {
             word-break: break-word;
         }
 
-        :host-context([data-theme="dark"]) .title {
-            color: var(--text-main, #f1f5f9);
-        }
-
         :host(:not([popup])) .title {
             font-size: 14px;
             margin-bottom: 6px;
@@ -219,10 +176,6 @@ export class CgoNoticeCard extends LitElement {
             color: var(--text-light, #666666);
             margin-top: 6px;
             word-break: break-word;
-        }
-
-        :host-context([data-theme="dark"]) .content-body {
-            color: var(--text-light, #a0b0b9);
         }
 
         :host([popup]) .content-body {
@@ -256,8 +209,8 @@ export class CgoNoticeCard extends LitElement {
             font-weight: 600;
             padding: 4px 10px;
             border-radius: var(--radius-xs, 4px);
-            border: 1px solid var(--border-color, rgba(0, 0, 0, 0.12));
-            background: var(--bg-color, #f8f9fa);
+            border: 1px solid var(--cgo-subtle-border, rgba(0, 0, 0, 0.12));
+            background: var(--cgo-notice-action-bg, #f8f9fa);
             color: var(--text-main, #00263b);
             cursor: pointer;
             touch-action: manipulation;
@@ -270,23 +223,11 @@ export class CgoNoticeCard extends LitElement {
                 transform var(--dur-micro, 100ms) cubic-bezier(0.16, 1, 0.3, 1);
         }
 
-        :host-context([data-theme="dark"]) .action-btn {
-            border-color: rgba(255, 255, 255, 0.15);
-            background: rgba(255, 255, 255, 0.08);
-            color: #ffffff;
-        }
-
         @media (hover: hover) and (pointer: fine) {
             .action-btn:hover {
-                background: var(--tab-hover, rgba(0, 0, 0, 0.06));
+                background: var(--cgo-notice-action-hover, rgba(0, 0, 0, 0.06));
                 border-color: var(--primary-color, #006098);
                 color: var(--primary-color, #006098);
-            }
-
-            :host-context([data-theme="dark"]) .action-btn:hover {
-                background: rgba(255, 255, 255, 0.15);
-                border-color: var(--primary-color, #38bdf8);
-                color: var(--primary-color, #38bdf8);
             }
         }
 
@@ -303,10 +244,10 @@ export class CgoNoticeCard extends LitElement {
         @media (hover: hover) and (pointer: fine) {
             .action-btn.primary:hover {
                 background: var(--primary-hover, #004d7a);
+                color: #ffffff;
             }
         }
 
-        /* 关闭按钮容器与圆形底色 */
         .close-container {
             position: absolute;
             top: 10px;
@@ -323,7 +264,7 @@ export class CgoNoticeCard extends LitElement {
             width: 20px;
             height: 20px;
             border-radius: 50%;
-            background: rgba(0, 0, 0, 0.06);
+            background: var(--cgo-notice-close-bg, rgba(0, 0, 0, 0.06));
             color: var(--text-main, #00263b);
             border: none;
             display: flex;
@@ -336,28 +277,17 @@ export class CgoNoticeCard extends LitElement {
             z-index: 2;
         }
 
-        /* 当存在倒计时环时，按钮自身背景透明，让外圈倒计时环完整透出 */
         .close-container.has-spinner .close-btn {
             background: transparent;
         }
 
-        :host([data-theme='dark']) .close-btn,
-        :host-context([data-theme='dark']) .close-btn {
-            background: rgba(255, 255, 255, 0.15);
-            color: #ffffff;
+        @media (hover: hover) and (pointer: fine) {
+            .close-btn:hover {
+                background: var(--cgo-notice-close-hover, rgba(0, 0, 0, 0.14)) !important;
+                color: var(--danger-color, #ea4335);
+            }
         }
 
-        .close-btn:hover {
-            background: rgba(0, 0, 0, 0.14) !important;
-            color: var(--danger-color, #ea4335);
-        }
-
-        :host-context([data-theme="dark"]) .close-btn:hover {
-            background: rgba(255, 255, 255, 0.25) !important;
-            color: var(--danger-color, #f87171);
-        }
-
-        /* 倒计时进度圆环 */
         .close-spinner {
             position: absolute;
             inset: 0;
@@ -366,11 +296,7 @@ export class CgoNoticeCard extends LitElement {
             pointer-events: none;
             z-index: 1;
             --primary-color: var(--cat-software, #0085c4);
-            --border-color: rgba(0, 0, 0, 0.10);
-        }
-
-        :host-context([data-theme="dark"]) .close-spinner {
-            --border-color: rgba(255, 255, 255, 0.16);
+            --border-color: var(--cgo-subtle-border, rgba(0, 0, 0, 0.10));
         }
 
         .cat-operation .close-spinner { --primary-color: var(--cat-operation, #d29700); }
@@ -390,6 +316,7 @@ export class CgoNoticeCard extends LitElement {
         this.actions = [];
         this.customCatName = '';
         this.duration = 0;
+        this.paused = false;
         this.glassMode = '';
     }
 
@@ -409,26 +336,39 @@ export class CgoNoticeCard extends LitElement {
 
     _handleAction(actionItem, e) {
         e.stopPropagation();
+        if (!actionItem) return;
+        const actionValue = typeof actionItem === 'string'
+            ? actionItem
+            : (actionItem.type || actionItem.action || actionItem);
         this.dispatchEvent(new CustomEvent('cgo-notice-action', {
             bubbles: true,
             composed: true,
-            detail: { action: actionItem.type || actionItem.action || actionItem, title: this.noticeTitle }
+            detail: { action: actionValue, title: this.noticeTitle }
         }));
     }
 
     renderHeaderIcon() {
-        const iconSvg = DEFAULT_ICONS[this.category] || DEFAULT_ICONS.software;
-        return html`<span .innerHTML=${iconSvg}></span>`;
+        if (this.category === 'operation') {
+            return svg`<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>`;
+        }
+        if (this.category === 'promotion') {
+            return svg`<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 12 20 22 4 22 4 12"></polyline><rect x="2" y="7" width="20" height="5"></rect><line x1="12" y1="22" x2="12" y2="7"></line><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path></svg>`;
+        }
+        if (this.category === 'system') {
+            return svg`<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`;
+        }
+        return svg`<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`;
     }
 
     render() {
         const catName = this.customCatName || CATEGORY_NAMES[this.category] || '通知消息';
-        const renderActions = Array.isArray(this.actions) && this.actions.length > 0;
+        const actions = Array.isArray(this.actions) ? this.actions.filter(Boolean) : [];
         const hasCountdown = this.duration > 0;
         const isFlat = this.glassMode === 'flat' || this.glassMode === 'none';
+        const safeImage = _isSafeUrl(this.imageUrl) ? this.imageUrl : '';
 
         return html`
-            <div class="notice-card cat-${this.category}">
+            <div class="notice-card cat-${this.category || 'software'}">
                 ${!isFlat && !this.embedded ? html`<div class="glass-refraction" aria-hidden="true"></div>` : null}
 
                 ${this.closable ? html`
@@ -438,12 +378,13 @@ export class CgoNoticeCard extends LitElement {
                                 mode="progress"
                                 size="20"
                                 duration="${this.duration}"
+                                ?paused=${this.paused}
                                 fill-mode="fill"
                                 direction="cw"
                                 class="close-spinner"
                             ></cgo-spinner>
                         ` : null}
-                        <button class="close-btn" @click=${this._handleClose} title="关闭">
+                        <button type="button" class="close-btn" @click=${this._handleClose} title="关闭" aria-label="关闭通知">
                             <cgo-icon name="close" size="11"></cgo-icon>
                         </button>
                     </div>
@@ -459,21 +400,21 @@ export class CgoNoticeCard extends LitElement {
 
                     ${this.content ? html`<div class="content-body">${this.content}</div>` : null}
 
-                    ${this.imageUrl ? html`
+                    ${safeImage ? html`
                         <div class="image-wrap">
-                            <img src="${this.imageUrl}" alt="Notice Image" loading="lazy" />
+                            <img src="${safeImage}" alt="Notice Image" loading="lazy" />
                         </div>
                     ` : null}
 
                     <slot></slot>
 
-                    ${renderActions ? html`
+                    ${actions.length > 0 ? html`
                         <div class="actions">
-                            ${this.actions.map(act => {
-                                const label = typeof act === 'string' ? act : act.label || act.type;
-                                const isPrimary = typeof act === 'object' && act.primary;
+                            ${actions.map(act => {
+                                const label = typeof act === 'string' ? act : (act.label || act.type || '');
+                                const isPrimary = typeof act === 'object' && Boolean(act.primary);
                                 return html`
-                                    <button class="action-btn ${isPrimary ? 'primary' : ''}" @click=${(e) => this._handleAction(act, e)}>
+                                    <button type="button" class="action-btn ${isPrimary ? 'primary' : ''}" @click=${(e) => this._handleAction(act, e)}>
                                         ${label}
                                     </button>
                                 `;
