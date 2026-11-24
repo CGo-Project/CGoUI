@@ -21,7 +21,7 @@
             color: var(--text-main, #00263b);
             padding: 40px 20px;
             margin: 0;
-            min-height: 100vh;
+            min-height: 100dvh;
             box-sizing: border-box;
             transition: background-color 0.3s, color 0.3s;
             display: flex;
@@ -97,12 +97,12 @@
             height: calc(env(safe-area-inset-top, 0px) + 16px);
             background: linear-gradient(
                 to bottom,
-                var(--theme-bg, var(--bg-color, #f8f9fa)) constant(safe-area-inset-top, 0px),
+                var(--bg-color, #f8f9fa) constant(safe-area-inset-top, 0px),
                 transparent calc(constant(safe-area-inset-top, 0px) + 16px)
             );
             background: linear-gradient(
                 to bottom,
-                var(--theme-bg, var(--bg-color, #f8f9fa)) env(safe-area-inset-top, 0px),
+                var(--bg-color, #f8f9fa) env(safe-area-inset-top, 0px),
                 transparent calc(env(safe-area-inset-top, 0px) + 16px)
             );
             z-index: 50001;
@@ -136,7 +136,7 @@
         
         <p>这是一个完全使用 <strong>npm/jsDelivr CDN</strong> 动态加载的测试页面。除了这行远程 JS 以外，没有在页面的 <code>&lt;head&gt;</code> 中手动关联引入任何样式表文件：</p>
         
-        <pre>&lt;script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.1.0/dist/cgo-ui.js"&gt;&lt;/script&gt;</pre>
+        <pre>&lt;script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.2.2/dist/cgo-ui.js"&gt;&lt;/script&gt;</pre>
 
         <div class="section-title">1. 按钮组件 (&lt;cgo-button&gt;)</div>
         <div class="demo-row">
@@ -224,7 +224,13 @@
         </div>
     </div>
 
+    <script>
+        window.__CGO_LOCALE__ = new URLSearchParams(location.search).get('locale') || 'zh';
+        window.__CGO_LOCALE_SOURCE__ = location.href;
+        window.__CGO_I18N_SITE_ROOT__ = new URL('./', location.href).href;
+    </script>
+    <script type="module" src="./i18n/runtime.js"></script>
     <!-- 唯一引用的外部资源：CDN 分发脚本，将自动初始化明暗主题并注入 CSS 变量系统 -->
-    <script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.1.0/dist/cgo-ui.js"></script>
+    <script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.2.2/dist/cgo-ui.js"></script>
 </body>
 </html>

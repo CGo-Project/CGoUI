@@ -44,7 +44,7 @@ const COMPONENTS = [
         tag: 'cgo-button',
         title: '按钮 Button',
         icon: 'touch',
-        desc: '语义化按钮，支持 7 种变体、4 档尺寸、图标、加载态、纯图标与块级布局。全系深度融入液态玻璃（Liquid Glass）光学质感与微边框高光，并符合 /all-emil 物理微交互与按压反馈规范。点击 host 即触发原生 click。',
+        desc: '语义化按钮，支持 7 种变体、4 档尺寸、图标、加载态、纯图标与块级布局。全系深度融入液态玻璃（Liquid Glass）光学质感与微边框高光，具备物理微交互与按压反馈。点击 host 即触发原生 click。',
         examples: [
             {
                 title: '变体',
@@ -179,7 +179,7 @@ const COMPONENTS = [
         tag: 'cgo-icon',
         title: '图标 Icon',
         icon: 'layer',
-        desc: '自包含 SVG 图标组件，数据来自共享图标注册表（共 158 个核心图标）。支持三种颜色模式：自适应界面颜色（默认）、固定颜色、品牌渐变色。',
+        desc: '自包含 SVG 图标组件，数据来自共享图标注册表（内置 200+ 个矢量图标与城轨标识）。支持三种颜色模式：自适应界面颜色（默认）、固定颜色、品牌渐变色。',
         examples: [
             {
                 title: '基础用法与尺寸',
@@ -387,18 +387,18 @@ CGO.icon("edit", { colorMode: "brand" });`,
                 code: `<div style="display: flex; gap: 16px; flex-wrap: wrap;">
   <cgo-dropdown align="left">
     <cgo-button slot="trigger" variant="primary" icon="file">文件</cgo-button>
-    <a href="#"><cgo-icon name="upload" size="18"></cgo-icon> 导入配置文件</a>
-    <a href="#"><cgo-icon name="export-img" size="18"></cgo-icon> 导出 PNG</a>
+    <a href="javascript:void(0)"><cgo-icon name="upload" size="18"></cgo-icon> 导入配置文件</a>
+    <a href="javascript:void(0)"><cgo-icon name="export-img" size="18"></cgo-icon> 导出 PNG</a>
     <div class="dropdown-divider"></div>
-    <a href="#"><cgo-icon name="edit" size="18"></cgo-icon> 导出 SVG</a>
+    <a href="javascript:void(0)"><cgo-icon name="edit" size="18"></cgo-icon> 导出 SVG</a>
   </cgo-dropdown>
 
   <cgo-dropdown align="left">
     <cgo-button slot="trigger" variant="info" icon="settings">更多选项</cgo-button>
-    <a href="#"><cgo-icon name="user" size="18"></cgo-icon> 个人中心</a>
-    <a href="#"><cgo-icon name="help" size="18"></cgo-icon> 使用帮助</a>
+    <a href="javascript:void(0)"><cgo-icon name="user" size="18"></cgo-icon> 个人中心</a>
+    <a href="javascript:void(0)"><cgo-icon name="help" size="18"></cgo-icon> 使用帮助</a>
     <div class="dropdown-divider"></div>
-    <a href="#" style="color:var(--danger-color)"><cgo-icon name="delete" size="18"></cgo-icon> 退出登录</a>
+    <a href="javascript:void(0)" style="color:var(--danger-color)"><cgo-icon name="delete" size="18"></cgo-icon> 退出登录</a>
   </cgo-dropdown>
 </div>`,
             },
@@ -568,7 +568,7 @@ CGO.icon("edit", { colorMode: "brand" });`,
     <cgo-card icon="sparkle" title="液态引擎">
       <p style="margin:0;font-size:13px;color:var(--text-light);">SVG 空间微折射管线正常，微光圈光子追踪已就绪。</p>
     </cgo-card>
-    <cgo-card icon="chart" title="分级监控">
+    <cgo-card icon="bar-chart" title="分级监控">
       <p style="margin:0;font-size:13px;color:var(--text-light);">底板 Tier B (0.9) 稳态运行，卡片 Tier C (0.72) 呈现。</p>
     </cgo-card>
   </div>
@@ -583,7 +583,7 @@ CGO.icon("edit", { colorMode: "brand" });`,
                 code: `<cgo-button variant="primary" onclick="CGO.showHelpModal({
   title: 'CGo UI Library',
   subtitle: 'Central Go 前端视觉库 · 2026年6月26日更新',
-  iconPath: '../icon.png',
+  iconPath: './design.png',
   content: '<div class=&quot;help-grid&quot;><div class=&quot;help-card&quot;><div class=&quot;help-card-icon&quot;>🎨</div><h4>配色系统</h4><ul><li>完整亮/暗主题切换</li><li>28条地铁线路色</li><li>30种头像预制配色</li></ul></div><div class=&quot;help-card&quot;><div class=&quot;help-card-icon&quot;>🧩</div><h4>组件库</h4><ul><li>按钮、表单、表格</li><li>弹窗、Toast、下拉菜单</li><li>地图控件、聊天气泡</li></ul></div></div><div class=&quot;help-data-info&quot;><span>接入方法：引入 4 个 CSS 文件 + 1 个 JS 核心文件，无需任何构建工具。</span></div>',
   maxWidth: '520px'
 })">打开帮助弹窗</cgo-button>`,
@@ -643,14 +643,14 @@ CGO.icon("edit", { colorMode: "brand" });`,
     category="software"
     notice-title="CGoUI 2.0 正式发布"
     content="包含全新的 Web Components 架构、深色模式自适应与 CGoPush 通知体系支持。"
-    .actions=\${[{ label: '查看详情', primary: true }]}
+    actions='[{"label": "查看详情", "primary": true}]'
   ></cgo-notice-card>
   
   <cgo-notice-card
     category="operation"
     notice-title="北京地铁一期工程开通运营"
     content="玉泉路站至北京火车站段于今日起投入试运营，请乘客注意换乘标志。"
-    .actions=\${['已读']}
+    actions='["已读"]'
   ></cgo-notice-card>
 
   <cgo-notice-card
@@ -663,7 +663,7 @@ CGO.icon("edit", { colorMode: "brand" });`,
     category="system"
     notice-title="系统收到一条新留言回复"
     content="管理员回复了您的关于「亦庄T1线颜色」的反馈。"
-    .actions=\${['忽略', { label: '查看回复', primary: true }]}
+    actions='["忽略", {"label": "查看回复", "primary": true}]'
   ></cgo-notice-card>
 </div>`,
             },
@@ -674,7 +674,7 @@ CGO.icon("edit", { colorMode: "brand" });`,
     category="software"
     notice-title="CGoUI 2.2 液态物理折射就绪"
     content="标准 Card Tier C 物理质感：14px 磨砂高斯模糊、SVG 空间微折射、0.72 半透明衬底与全双轴微光圈。"
-    .actions=\${[{ label: '查看效果', primary: true }]}
+    actions='[{"label": "查看效果", "primary": true}]'
   ></cgo-notice-card>
   
   <cgo-notice-card
@@ -830,10 +830,13 @@ CGO.icon("edit", { colorMode: "brand" });`,
   <div style="display:flex;align-items:center;gap:12px;">
     <input type="range" id="spinner-slider" min="0" max="100" value="65" style="flex:1;" oninput="
       ['sp-cw-fill', 'sp-ccw-fill', 'sp-cw-clear', 'sp-ccw-clear'].forEach(id => {
-        document.getElementById(id).value = this.value;
+        const el = document.getElementById(id);
+        if (el) el.value = this.value;
       });
+      const valEl = document.getElementById('spinner-slider-val');
+      if (valEl) valEl.textContent = this.value + '%';
     ">
-    <span style="font-size:13px;font-weight:bold;width:40px;">65%</span>
+    <span id="spinner-slider-val" style="font-size:13px;font-weight:bold;width:40px;">65%</span>
   </div>
   <div style="display:flex;align-items:center;justify-content:space-around;gap:16px;background:var(--bg-card, #f8f9fa);padding:16px;border-radius:8px;">
     <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
@@ -1239,9 +1242,9 @@ ${AVATAR_COLORS.map((color, i) => `<button class="avatar-color-copy" data-copy-c
     }
 ];
 
-/* ============ 工具栏下拉选择器（纯 CSS 组件）============ */
+/* ============ 工具栏下拉选择器 ============ */
 function renderToolbarSelect() {
-    const demoCode = `<div class="cgo-toolbar-group">
+    const demoHtml = `<div class="cgo-toolbar-group">
     <div class="cgo-toolbar-group-title">模板设置</div>
     <div class="cgo-toolbar-row">
         <span class="cgo-toolbar-label">选择模板</span>
@@ -1266,7 +1269,8 @@ function renderToolbarSelect() {
     <button class="cgo-toolbar-btn cgo-toolbar-btn-primary" onclick="CGO.showToast('模板已应用','success')">
         <cgo-icon name="save" size="16"></cgo-icon> 应用模板
     </button>
-</div>
+</div>`;
+    const demoCode = `${demoHtml}
 
 <script>
   document.querySelectorAll('cgo-toolbar-select').forEach(sel => {
@@ -1286,7 +1290,7 @@ function renderToolbarSelect() {
             <div class="example-title">模板选择 + 线路色选择（WebComponent，点击可交互）</div>
             <div class="preview" style="flex-direction:column;align-items:flex-start;min-height:420px;padding:24px;">
                 <div style="width:100%;max-width:300px;display:flex;flex-direction:column;gap:0;">
-                    ${demoCode}
+                    ${demoHtml}
                 </div>
             </div>
             <div class="code-wrap"><button class="copy-btn" data-copy>复制</button><pre><code>${esc(demoCode)}</code></pre></div>
@@ -1402,8 +1406,8 @@ const SHADOW_TOKENS = ['--shadow-xs', '--shadow-sm', '--shadow-md', '--shadow-lg
 
 /* ============ 渲染：欢迎页 ============ */
 function renderWelcome() {
-    return `<h1 class="doc-h1"><img src="./design.png" alt="Logo" style="width: 28px; height: 28px;"> Central Go 前端视觉库 <span class="doc-tag">2.2 Beta</span></h1>
-        <p class="doc-lead">专为「面向大众提供可靠服务的网站」和「在线数字效率工具套件」打造的轻量级 Web Components 组件库。新版本测试中<br>更新日期：2026-10-19</p>
+    return `<h1 class="doc-h1"><img src="./design.png" alt="Logo" style="width: 28px; height: 28px;"> Central Go 前端视觉库 <span class="doc-tag">2.2</span></h1>
+        <p class="doc-lead">专为「面向大众提供可靠服务的网站」和「在线数字效率工具套件」打造的轻量级 Web Components 组件库。<br>更新日期：2026-11-24</p>
 
         <!-- NPM 发布信息 Banner (Tier C 强调表面) -->
         <div class="glass-surface" style="margin-bottom: 24px; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
@@ -1524,7 +1528,7 @@ function renderWelcome() {
                 </p>
                 <ul style="color:var(--text-light);font-size:13px;line-height:1.8;margin:0;padding-left:20px;">
                     <li><strong>NPM 部署（推荐）：</strong>在工程中执行 <code>npm install @centralgo/cgo-ui</code>，对于 React / Next.js 项目可直接从 <code>@centralgo/cgo-ui/react</code> 导入使用。详细教程见 <a href="#/usage" style="color:var(--primary-color);">快速接入指南</a>。</li>
-                    <li><strong>CDN 部署：</strong>在 HTML 中插入固定版本的 <code>&lt;script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.1.0/dist/cgo-ui.js"&gt;&lt;/script&gt;</code>，无需任何打包工具即可在浏览器使用组件。</li>
+                    <li><strong>CDN 部署：</strong>在 HTML 中插入固定版本的 <code>&lt;script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.2.2/dist/cgo-ui.js"&gt;&lt;/script&gt;</code>，无需任何打包工具即可在浏览器使用组件。</li>
                 </ul>
             </div>
         </div>
@@ -1612,7 +1616,7 @@ function codeBlock(code) {
 
 function apiTable(title, cols, rows) {
     if (!rows || !rows.length) return '';
-    const head = cols.map((c) => `<th>${c}</th>`).join('');
+    const head = cols.map((c) => `<th>${esc(c)}</th>`).join('');
     const body = rows
         .map(
             (r) =>
@@ -1621,13 +1625,13 @@ function apiTable(title, cols, rows) {
                     .map((cell, i) => {
                         const cls =
                             cols[i] === '类型' ? 'class="t-type"' : cols[i] === '默认值' ? 'class="t-default"' : '';
-                        return `<td ${cls}>${cell}</td>`;
+                        return `<td ${cls}>${esc(cell)}</td>`;
                     })
                     .join('') +
                 '</tr>'
         )
         .join('');
-    return `<h2 class="doc-h2">${title}</h2>
+    return `<h2 class="doc-h2">${esc(title)}</h2>
         <table class="api-table"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
 }
 
@@ -1650,7 +1654,7 @@ function renderComponent(meta) {
     const methodsTable = apiTable('Methods / API', ['方法', '说明'], meta.methods);
 
     return `
-        <h1 class="doc-h1">${meta.icon ? `<cgo-icon name="${meta.icon}" size="28"></cgo-icon>` : meta.emoji || ''} ${meta.title} <span class="doc-tag">&lt;${meta.tag}&gt;</span></h1>
+        <h1 class="doc-h1">${meta.icon ? `<cgo-icon name="${escAttr(meta.icon)}" size="28"></cgo-icon>` : esc(meta.emoji || '')} ${esc(meta.title)} <span class="doc-tag">&lt;${esc(meta.tag)}&gt;</span></h1>
         <p class="doc-lead">${esc(meta.desc)}</p>
         <h2 class="doc-h2">实例演示</h2>
         ${examples}
@@ -1978,14 +1982,15 @@ function initCustomThemeInteractions(root) {
     const renderDerivedGrid = (palette) => {
         if (!palette) return;
         grid.innerHTML = DERIVED_FIELDS.map(f => {
-            const val = palette[f.key] || '#000000';
+            const raw = String(palette[f.key] || '#000000');
+            const val = /^#[0-9a-fA-F]{6}$/.test(raw) ? raw : '#000000';
             return `
             <div class="glass-surface" style="padding:10px;display:flex;align-items:center;gap:10px;margin-bottom:0;">
                 <div class="liquid-glass-effect" aria-hidden="true"></div>
                 <div style="width:36px;height:36px;border-radius:6px;background:${val};border:1px solid rgba(0,0,0,0.1);flex-shrink:0;position:relative;z-index:3;"></div>
                 <div style="flex:1;min-width:0;position:relative;z-index:3;">
-                    <div style="font-size:11px;color:var(--text-light);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.label}</div>
-                    <input type="text" data-derived-key="${f.key}" value="${val}" style="font-family:var(--font-mono);font-size:12px;width:100%;padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-color);color:var(--text-main);box-sizing:border-box;">
+                    <div style="font-size:11px;color:var(--text-light);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(f.label)}</div>
+                    <input type="text" data-derived-key="${escAttr(f.key)}" value="${escAttr(val)}" style="font-family:var(--font-mono);font-size:12px;width:100%;padding:3px 6px;border:1px solid var(--border-color);border-radius:4px;background:var(--bg-color);color:var(--text-main);box-sizing:border-box;">
                 </div>
             </div>`;
         }).join('');
@@ -2382,8 +2387,7 @@ function renderMetro() {
                     <div class="filter-tag" data-line="4号线大兴线">4号线大兴线</div>
                     <div class="filter-tag" data-line="10号线">10号线</div>
                     <div class="filter-tag" data-line="大兴机场线">大兴机场线</div>
-                </div>
-        </div>`;
+                </div>`;
 }
 
 /* ============ 渲染：字体排版 ============ */
@@ -2399,7 +2403,7 @@ function renderTypography() {
                 <div style="font-size:14px;font-weight:400;margin-bottom:6px;">正文 Body · 14px Regular — 北京地铁线路图工具套件，供 CGo 工作室使用</div>
                 <div style="font-size:12px;color:var(--text-light);margin-bottom:6px;">辅助文字 Caption · 12px — Secondary text used for descriptions and hints</div>
                 <div style="font-size:10px;color:var(--text-light);margin-top:4px;">极小文字 · 10px — badge, label, meta info</div>
-                <div style="font-family:var(--font-mono);font-size:12px;margin-top:14px;background:var(--help-code-bg);padding:8px 12px;border-radius:6px;">等宽字体 · JetBrains Mono — const version = "2.1.0";</div>
+                <div style="font-family:var(--font-mono);font-size:12px;margin-top:14px;background:var(--help-code-bg);padding:8px 12px;border-radius:6px;">等宽字体 · JetBrains Mono — const version = "2.2.2";</div>
             </div>
         </div>`;
 }
@@ -2411,14 +2415,14 @@ function renderTokens() {
         (
             t,
             i
-        ) => `<button class="token-tile copy-swatch" data-copy-color="${cs.getPropertyValue(t).trim()}" title="点击复制 ${t}">
+        ) => `<button class="token-tile copy-swatch" data-copy-color="var(${t})" title="点击复制 var(${t})">
         <span class="token-square" style="border-radius:var(${t});"></span>
         <span>${radiusLabels[i]} · ${cs.getPropertyValue(t).trim()}</span>
     </button>`
     ).join('');
     const shadowLabels = ['xs', 'sm', 'md', 'lg', 'xl'];
     const shadow = SHADOW_TOKENS.map(
-        (t, i) => `<button class="token-tile copy-swatch" data-copy-color="${t}" title="点击复制 ${t}">
+        (t, i) => `<button class="token-tile copy-swatch" data-copy-color="var(${t})" title="点击复制 var(${t})">
         <span class="token-square shadow" style="box-shadow:var(${t});"></span>
         <span>${shadowLabels[i]}</span>
     </button>`
@@ -2431,7 +2435,7 @@ function renderTokens() {
 
 /* ============ 渲染：快速接入指南（NPM 部署与接入）============ */
 function renderUsage() {
-    const npmInstall = `npm install @centralgo/cgo-ui@2.1.0`;
+    const npmInstall = `npm install @centralgo/cgo-ui@2.2.2`;
 
     const reactUsage = `import React from 'react';
 import { CgoButton, CgoBadge, CgoIcon, showToast } from '@centralgo/cgo-ui/react';
@@ -2471,7 +2475,7 @@ const nextConfig = {
     <title>CGoUI CDN 接入示例</title>
 
     <!-- 1. 核心 Bundle 最高优先级预加载 (Resource Hints，加速首屏响应) -->
-                <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.1.0/dist/cgo-ui.js">
+                <link rel="modulepreload" href="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.2.2/dist/cgo-ui.js">
 
     <!-- 2. Web Components 元素未注册前的占位与防无样式闪烁防护 (FOUC Protection) -->
     <style>
@@ -2492,7 +2496,7 @@ const nextConfig = {
     <cgo-captcha></cgo-captcha>
 
     <!-- 引入 CDN bundle 脚本（组件自动注册并自动注入系统主题样式） -->
-                <script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.1.0/dist/cgo-ui.js"></script>
+                <script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.2.2/dist/cgo-ui.js"></script>
 </body>
 </html>`;
 
@@ -2653,6 +2657,15 @@ function initLegacyInteractions(root) {
         card.style.cursor = 'pointer';
     });
 
+    root.querySelectorAll('cgo-toolbar-select').forEach((sel) => {
+        if (sel.id === 'cgo-i18n-language-select') return;
+        sel.addEventListener('cgo-change', (e) => {
+            if (window.CGO?.showToast) {
+                window.CGO.showToast(`已选: ${e.detail?.label || e.detail?.value || ''}`, 'info', 1400);
+            }
+        });
+    });
+
     if (window.CGO && window.CGO.initDropdowns) window.CGO.initDropdowns(root);
     initCustomThemeInteractions(root);
     injectLiquidGlassToCards(root);
@@ -2705,15 +2718,24 @@ function escAttr(str) {
     return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
+function copyToClipboard(text) {
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+        return navigator.clipboard.writeText(text);
+    }
+    return Promise.reject(new Error('Clipboard API unavailable'));
+}
+
 /* ============ 路由 ============ */
 async function route() {
-    const id = location.hash.replace(/^#\/?/, '') || 'colors';
+    let id = location.hash.replace(/^#\/?/, '') || 'welcome';
     const main = document.getElementById('doc-main');
-    const page = findPage(id);
+    let page = findPage(id);
 
     if (!page) {
-        location.hash = '#/colors';
-        return;
+        id = 'welcome';
+        history.replaceState(null, '', '#/welcome');
+        page = findPage('welcome');
+        if (!page || !main) return;
     }
 
     if (page.render) main.innerHTML = page.render();
@@ -2721,43 +2743,47 @@ async function route() {
 
     injectLiquidGlassToCards(main);
 
-    // 注入后渲染旧式 <i data-icon> 图标（路由内容是动态插入的，需手动触发）
     if (window.CGO && window.CGO.renderIcons) window.CGO.renderIcons(main);
     initLegacyInteractions(main);
 
     window.scrollTo(0, 0);
 
-    // 更新侧边导航组件的高亮
     const sideNav = document.getElementById('doc-nav');
     if (sideNav && sideNav.selectByTarget) {
         sideNav.selectByTarget(id);
     }
 
-    // 复制按钮
     main.querySelectorAll('[data-copy]').forEach((btn) => {
         btn.addEventListener('click', () => {
-            const code = btn.parentElement.querySelector('code').textContent;
-            navigator.clipboard.writeText(code).then(() => {
-                btn.innerHTML = '已复制 <cgo-icon name="check-circle" size="14"></cgo-icon>';
-                setTimeout(() => (btn.textContent = '复制'), 1500);
-            });
+            const code = btn.parentElement.querySelector('code')?.textContent || '';
+            copyToClipboard(code)
+                .then(() => {
+                    btn.innerHTML = '已复制 <cgo-icon name="check-circle" size="14"></cgo-icon>';
+                    setTimeout(() => (btn.textContent = '复制'), 1500);
+                })
+                .catch(() => {
+                    if (window.CGO) CGO.showToast('当前环境不支持剪贴板写入，请手动复制', 'warning');
+                });
         });
     });
-    // 图标点击复制
     main.querySelectorAll('[data-icon-name]').forEach((cell) => {
         cell.addEventListener('click', () => {
             const code = `<cgo-icon name="${cell.dataset.iconName}"></cgo-icon>`;
-            navigator.clipboard.writeText(code).then(() => {
-                if (window.CGO) CGO.showToast('已复制 ' + cell.dataset.iconName, 'success', 1200);
-            });
+            copyToClipboard(code)
+                .then(() => {
+                    if (window.CGO) CGO.showToast('已复制 ' + cell.dataset.iconName, 'success', 1200);
+                })
+                .catch(() => {});
         });
     });
     main.querySelectorAll('[data-copy-color]').forEach((cell) => {
         cell.addEventListener('click', () => {
             const value = cell.dataset.copyColor;
-            navigator.clipboard.writeText(value).then(() => {
-                if (window.CGO) CGO.showToast('已复制 ' + value, 'success', 1200);
-            });
+            copyToClipboard(value)
+                .then(() => {
+                    if (window.CGO) CGO.showToast('已复制 ' + value, 'success', 1200);
+                })
+                .catch(() => {});
         });
     });
 }
@@ -2766,7 +2792,9 @@ async function route() {
 function start() {
     buildNav();
     window.addEventListener('hashchange', route);
-    if (!location.hash) location.hash = '#/welcome';
+    if (!location.hash) {
+        history.replaceState(null, '', '#/welcome');
+    }
     route();
 }
 

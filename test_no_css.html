@@ -20,7 +20,7 @@
             color: var(--text-main, #00263b);
             padding: 40px 20px;
             margin: 0;
-            min-height: 100vh;
+            min-height: 100dvh;
             box-sizing: border-box;
             transition: background-color 0.3s, color 0.3s;
             display: flex;
@@ -104,12 +104,12 @@
             height: calc(env(safe-area-inset-top, 0px) + 16px);
             background: linear-gradient(
                 to bottom,
-                var(--theme-bg, var(--bg-color, #f8f9fa)) constant(safe-area-inset-top, 0px),
+                var(--bg-color, #f8f9fa) constant(safe-area-inset-top, 0px),
                 transparent calc(constant(safe-area-inset-top, 0px) + 16px)
             );
             background: linear-gradient(
                 to bottom,
-                var(--theme-bg, var(--bg-color, #f8f9fa)) env(safe-area-inset-top, 0px),
+                var(--bg-color, #f8f9fa) env(safe-area-inset-top, 0px),
                 transparent calc(env(safe-area-inset-top, 0px) + 16px)
             );
             z-index: 50001;
@@ -230,6 +230,12 @@
         </div>
     </div>
 
+    <script>
+        window.__CGO_LOCALE__ = new URLSearchParams(location.search).get('locale') || 'zh';
+        window.__CGO_LOCALE_SOURCE__ = location.href;
+        window.__CGO_I18N_SITE_ROOT__ = new URL('./', location.href).href;
+    </script>
+    <script type="module" src="./i18n/runtime.js"></script>
     <!-- 仅引入打包后的核心 JS 文件 -->
     <script type="module" src="./dist/cgo-ui.js"></script>
 </body>

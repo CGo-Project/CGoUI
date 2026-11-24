@@ -21,54 +21,64 @@ function normalizeLocale(value) {
 
 const requestedLocale = window.__CGO_LOCALE__ || new URLSearchParams(location.search).get('locale');
 const locale = normalizeLocale(requestedLocale);
-const localeIndex = SUPPORTED_LOCALES.indexOf(locale);
 const sourceUrl = new URL(window.__CGO_LOCALE_SOURCE__ || location.href, location.href);
 const siteRoot = new URL(window.__CGO_I18N_SITE_ROOT__ || './', sourceUrl);
 const translatedRoots = new WeakSet();
 const translatedTextNodes = new WeakMap();
 const translatedAttributes = new WeakMap();
+const pendingRoots = new Set();
 const switcherId = 'cgo-i18n-language-switcher';
 const HAN_RE = /[\u3400-\u9fff]/;
 
-let entries = [];
 const entriesByInitial = new Map();
 let directTranslationSources = new Set();
+let dictLoaded = locale === 'zh';
 
-async function loadDictionaries() {
-  const [
-    { REPAIR_TRANSLATIONS },
-    { EXTRA_TRANSLATIONS },
-    { GAP_TRANSLATIONS },
-    { EXPANDED_TRANSLATIONS },
-  ] = await Promise.all([
-    import('./catalog-repair.js'),
-    import('./catalog-extra.js'),
-    import('./catalog-gap.js'),
-    import('./catalog-expanded.js'),
-  ]);
-
-  entries = [...REPAIR_TRANSLATIONS, ...EXTRA_TRANSLATIONS, ...GAP_TRANSLATIONS, ...EXPANDED_TRANSLATIONS]
-    .filter((row) => row[0] && row[localeIndex] !== undefined)
-    .sort((a, b) => b[0].length - a[0].length);
-
-  for (const row of entries) {
-    const initial = row[0][0];
-    const bucket = entriesByInitial.get(initial) || [];
-    bucket.push(row);
-    entriesByInitial.set(initial, bucket);
-  }
-
-  directTranslationSources = new Set(
-    EXTRA_TRANSLATIONS
-      .filter((row) => row[0] && !HAN_RE.test(row[0]))
-      .map((row) => row[0]),
-  );
+// 必须在任何 await 之前同步劫持 attachShadow，确保字典加载期间注册的 ShadowRoot 也能被捕获并在就绪后翻译。
+if (locale !== 'zh' && !Element.prototype.__cgoI18nAttachShadowPatched) {
+  const originalAttachShadow = Element.prototype.attachShadow;
+  Object.defineProperty(Element.prototype, '__cgoI18nAttachShadowPatched', {
+    value: true,
+    configurable: true,
+  });
+  Element.prototype.attachShadow = function patchedAttachShadow(init) {
+    const root = originalAttachShadow.call(this, init);
+    queueMicrotask(() => {
+      if (dictLoaded) observeRoot(root);
+      else pendingRoots.add(root);
+    });
+    return root;
+  };
 }
 
-// 仅在非默认中文语言环境（en, ja, ko, zh-HK, zh-TW）时才按需加载 540 KB 的大词典，
-// 默认中文环境下免除 540 KB 网络加载与数万个数组对象解析开销。
-if (locale !== 'zh') {
-  await loadDictionaries();
+async function loadDictionary(targetLocale) {
+  if (targetLocale === 'zh') return;
+  try {
+    const dictUrl = new URL(`./locales/${encodeURIComponent(targetLocale)}.json`, import.meta.url);
+    const res = await fetch(dictUrl);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const dict = await res.json();
+    const sorted = Object.entries(dict)
+      .filter(([src, dst]) => src && typeof dst === 'string')
+      .sort((a, b) => b[0].length - a[0].length);
+
+    for (const row of sorted) {
+      const initial = row[0][0];
+      const bucket = entriesByInitial.get(initial) || [];
+      bucket.push(row);
+      entriesByInitial.set(initial, bucket);
+    }
+
+    directTranslationSources = new Set(
+      sorted
+        .filter(([src]) => !HAN_RE.test(src))
+        .map(([src]) => src),
+    );
+  } catch (err) {
+    console.warn(`[CGoUI i18n] Failed to load locale dictionary (${targetLocale}):`, err);
+  } finally {
+    dictLoaded = true;
+  }
 }
 
 const translatableAttributes = [
@@ -93,21 +103,6 @@ const localizedPagePaths = new Set([
   'test_no_css.html',
   'examples/metro-demo/index.html',
 ]);
-
-// Install before CGoUI registers elements when possible, so future open Shadow Roots are
-// observed from their first render. Existing roots are discovered by scanRoot() below.
-const originalAttachShadow = Element.prototype.attachShadow;
-if (!Element.prototype.__cgoI18nAttachShadowPatched) {
-  Object.defineProperty(Element.prototype, '__cgoI18nAttachShadowPatched', {
-    value: true,
-    configurable: true,
-  });
-  Element.prototype.attachShadow = function patchedAttachShadow(init) {
-    const root = originalAttachShadow.call(this, init);
-    queueMicrotask(() => observeRoot(root));
-    return root;
-  };
-}
 
 function getRelativePath(url) {
   const rootPath = siteRoot.pathname.endsWith('/') ? siteRoot.pathname : `${siteRoot.pathname}/`;
@@ -137,8 +132,6 @@ function protectCodeLiterals(value) {
     });
   };
 
-  // These are behavior-bearing aliases. Translate the visible label, but keep the copied
-  // attribute value exactly as the component expects it.
   protect(/line=(['"])昌平线\1/g);
   protect(/data-line=(['"])(?:2号线|4号线大兴线|10号线|大兴机场线)\1/g);
 
@@ -177,13 +170,6 @@ function applyFallbackPatterns(value) {
       .replace(/(\d+)号线/g, '$1호선')
       .replace(/第(\d+)步/g, '$1단계')
       .replace(/第(\d+)项/g, '$1번 항목');
-  } else if (locale === 'zh-HK') {
-    result = result
-      .replace(/市郊S(\d+)线/g, '市郊S$1線')
-      .replace(/S(\d+)线/g, 'S$1線')
-      .replace(/(\d+)号线/g, '$1號線')
-      .replace(/第(\d+)步/g, '第$1步')
-      .replace(/第(\d+)项/g, '第$1項');
   } else {
     result = result
       .replace(/市郊S(\d+)线/g, '市郊S$1線')
@@ -196,8 +182,7 @@ function applyFallbackPatterns(value) {
 }
 
 function translateString(input, { code = false } = {}) {
-  if (!input || typeof input !== 'string') return input;
-  if (locale === 'zh') return input;
+  if (!input || typeof input !== 'string' || locale === 'zh') return input;
   let original = input;
   let protectedCode = null;
   if (code) {
@@ -205,18 +190,13 @@ function translateString(input, { code = false } = {}) {
     original = protectedCode.value;
   }
 
-  // Match against the original text only. Replacing against the evolving output
-  // recursively used to corrupt translated Japanese (for example, `現在` contains
-  // the Chinese source character `在`, so a later word-level rule changed it to
-  // `現で`). Longest-first matching preserves complete phrases and prevents a
-  // translated target from being processed as a new source string.
   const parts = [];
   let cursor = 0;
   while (cursor < original.length) {
     const candidates = entriesByInitial.get(original[cursor]) || [];
     const match = candidates.find((row) => original.startsWith(row[0], cursor));
     if (match) {
-      parts.push(match[localeIndex]);
+      parts.push(match[1]);
       cursor += match[0].length;
     } else {
       parts.push(original[cursor]);
@@ -239,16 +219,11 @@ function translateTextNode(node) {
   if (locale === 'zh') return;
   const current = node.nodeValue;
   if (!current || (!HAN_RE.test(current) && !directTranslationSources.has(current.trim()))) return;
-  const seen = translatedTextNodes.get(node);
+  if (translatedTextNodes.get(node) === current) return;
   const parent = node.parentElement;
   if (parent && (['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE'].includes(parent.tagName) || parent.closest?.('[data-cgo-i18n-switch]'))) return;
   const code = inCodeContext(node);
   const next = translateString(current, { code });
-  // A node can be observed once before a dynamic route finishes inserting its
-  // translation catalogue. Retry a cached no-op when the current text still
-  // contains a known source fragment; translated Japanese/HK/TW text remains
-  // stable because the second pass returns the same string.
-  if (seen === current && next === current) return;
   translatedTextNodes.set(node, next);
   if (next !== current) node.nodeValue = next;
 }
@@ -328,7 +303,10 @@ function scanRoot(root) {
     return;
   }
 
-  if (root.nodeType === Node.ELEMENT_NODE) translateElementAttributes(root);
+  if (root.nodeType === Node.ELEMENT_NODE) {
+    translateElementAttributes(root);
+    if (root.shadowRoot) observeRoot(root.shadowRoot);
+  }
 
   const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
   let node = walker.nextNode();
@@ -340,16 +318,10 @@ function scanRoot(root) {
     }
     node = walker.nextNode();
   }
-
-  if (root instanceof ShadowRoot) {
-    for (const element of root.querySelectorAll('*')) {
-      if (element.shadowRoot) observeRoot(element.shadowRoot);
-    }
-  }
 }
 
 function observeRoot(root) {
-  if (!root || translatedRoots.has(root)) return;
+  if (locale === 'zh' || !root || translatedRoots.has(root)) return;
   translatedRoots.add(root);
   scanRoot(root);
 
@@ -418,6 +390,7 @@ const LANGUAGE_SWITCHER_LABELS = {
 function installLanguageSwitcher() {
   const existingSelect = document.getElementById('cgo-i18n-language-select');
   if (existingSelect) {
+    if (existingSelect.__cgoI18nBound && existingSelect.value === locale) return;
     if (existingSelect.value !== locale) {
       existingSelect.value = locale;
     }
@@ -435,8 +408,7 @@ function installLanguageSwitcher() {
     return;
   }
 
-  if (document.getElementById(switcherId)) return;
-  if (!document.body) return;
+  if (document.getElementById(switcherId) || !document.body) return;
 
   const wrapper = document.createElement('nav');
   wrapper.id = switcherId;
@@ -462,6 +434,7 @@ function installLanguageSwitcher() {
     option.textContent = LANGUAGE_LABELS[targetLocale];
     select.append(option);
   }
+  select.__cgoI18nBound = true;
   const onChange = (e) => {
     const next = e.detail?.value || select.value;
     if (next && next !== locale) {
@@ -499,13 +472,19 @@ function installLanguageSwitcher() {
 
 function refreshDocumentMetadata() {
   document.documentElement.lang = locale === 'zh' ? 'zh-CN' : locale;
-  if (HAN_RE.test(document.title)) document.title = translateString(document.title);
-  for (const meta of document.querySelectorAll('meta[content]')) translateElementAttributes(meta);
+  if (locale !== 'zh' && HAN_RE.test(document.title)) {
+    document.title = translateString(document.title);
+  }
+  if (locale !== 'zh') {
+    for (const meta of document.querySelectorAll('meta[content]')) {
+      translateElementAttributes(meta);
+    }
+  }
   addAlternateLinks();
 }
 
 function reportUntranslatedEnglish() {
-  if (locale === 'zh') return;
+  if (locale !== 'en' || new URLSearchParams(location.search).get('i18n_debug') !== '1') return;
   const candidates = new Set();
   const walker = document.createTreeWalker(document.body || document.documentElement, NodeFilter.SHOW_TEXT);
   let node = walker.nextNode();
@@ -522,25 +501,33 @@ function reportUntranslatedEnglish() {
   }
 }
 
-refreshDocumentMetadata();
-observeRoot(document.documentElement);
-installLanguageSwitcher();
+if (locale !== 'zh') {
+  await loadDictionary(locale);
+  refreshDocumentMetadata();
+  observeRoot(document.documentElement);
+  for (const root of pendingRoots) observeRoot(root);
+  pendingRoots.clear();
+  installLanguageSwitcher();
 
-window.addEventListener('hashchange', () => {
-  queueMicrotask(() => {
+  window.addEventListener('hashchange', () => {
+    queueMicrotask(() => {
+      scanRoot(document.documentElement);
+      installLanguageSwitcher();
+    });
+  });
+
+  window.addEventListener('load', () => {
+    refreshDocumentMetadata();
     scanRoot(document.documentElement);
     installLanguageSwitcher();
+    setTimeout(reportUntranslatedEnglish, 300);
   });
-});
-
-window.addEventListener('load', () => {
-  refreshDocumentMetadata();
-  scanRoot(document.documentElement);
+} else {
+  addAlternateLinks();
   installLanguageSwitcher();
-  setTimeout(reportUntranslatedEnglish, 300);
-});
+  window.addEventListener('load', installLanguageSwitcher);
+}
 
-// Useful for maintainers when a new Chinese string is added to the canonical docs.
 window.CGO_I18N = Object.freeze({
   locale,
   translate: translateString,

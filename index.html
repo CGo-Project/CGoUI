@@ -14,11 +14,10 @@
     <link rel="apple-touch-icon" href="./design2.png">
     <meta name="apple-mobile-web-app-title" content="CGo前端视觉">
     <link rel="icon" href="./design.png">
-    <title>Central Go 前端视觉库</title>
 
     <!-- CGoUI 核心 Bundle 与文档路由最高优先级预加载 -->
-    <link rel="modulepreload" href="./dist/cgo-ui.js?v=261122.184950">
-    <link rel="modulepreload" href="./docs/docs.js?v=261122.184950">
+    <link rel="modulepreload" href="./dist/cgo-ui.js?v=2.2.2">
+    <link rel="modulepreload" href="./docs/docs.js?v=2.2.2">
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.loli.net">
@@ -60,7 +59,7 @@
         /* ===== 文档站布局 ===== */
         body {
             margin: 0;
-            min-height: 100vh;
+            min-height: 100dvh;
         }
 
         .doc-shell {
@@ -626,8 +625,7 @@
             pointer-events: none;
         }
 
-        [data-theme='dark'] .preview-box::after,
-        :root:not([data-theme='light']) .preview-box::after {
+        [data-theme='dark'] .preview-box::after {
             background: var(--glass-bg, rgba(31, 32, 34, 0.60));
         }
 
@@ -736,13 +734,11 @@
             background: var(--glass-bg-hover, rgba(255, 255, 255, 0.68));
         }
 
-        [data-theme='dark'] .compare-card::after,
-        :root:not([data-theme='light']) .compare-card::after {
+        [data-theme='dark'] .compare-card::after {
             background: var(--glass-bg, rgba(31, 32, 34, 0.60));
         }
 
-        [data-theme='dark'] .compare-card:hover::after,
-        :root:not([data-theme='light']) .compare-card:hover::after {
+        [data-theme='dark'] .compare-card:hover::after {
             background: var(--glass-bg-hover, rgba(38, 40, 44, 0.68));
         }
 
@@ -978,7 +974,7 @@
                     <cgo-icon name="back"></cgo-icon>
                     <span>返回</span>
                 </button>
-                <a href="../index.html" class="btn btn-primary" title="返回主页">
+                <a href="#/welcome" class="btn btn-primary" title="返回主页">
                     <cgo-icon name="home"></cgo-icon>
                     <span>主页</span>
                 </a>
@@ -1022,10 +1018,10 @@
     <script type="module" src="./i18n/runtime.js"></script>
 
     <!-- CGoUI Web Components 统一 bundle -->
-    <script type="module" src="./dist/cgo-ui.js?v=261122.184950"></script>
+    <script type="module" src="./dist/cgo-ui.js?v=2.2.2"></script>
 
     <!-- 文档站数据与路由 -->
-    <script type="module" src="./docs/docs.js?v=261122.184950"></script>
+    <script type="module" src="./docs/docs.js?v=2.2.2"></script>
 </body>
 
 </html>

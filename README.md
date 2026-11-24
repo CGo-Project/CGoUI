@@ -15,7 +15,7 @@
 发布后的 `@centralgo/cgo-ui` 版本消费组件；主项目自己的备案号、应用路由、
 品牌图片和业务兼容逻辑属于宿主应用，不属于通用组件库。
 
-文档示例统一以 `2.1.0` 为版本。若该版本尚未上传公共 NPM，贡献者应先在本
+文档示例统一以 `2.2.2` 为版本。若该版本尚未上传公共 NPM，贡献者应先在本
 仓库执行 `npm run release:check` 和 `npm pack`，使用生成的 tarball 做本地验收；
 **普通贡献者无需、也不应直接向 NPM 发布包**。正式 NPM 发布只在 Pull Request
 完成审核、CI 通过并合并到受保护的 `main` 后，由拥有 `@centralgo/cgo-ui`
@@ -26,7 +26,7 @@
 ### React / Next.js
 
 ```sh
-npm install @centralgo/cgo-ui@2.1.0
+npm install @centralgo/cgo-ui@2.2.2
 ```
 
 ```jsx
@@ -49,11 +49,11 @@ React、React DOM、`@lit/react` 和 Lit 应由宿主应用提供；React 适配
 CDN 地址必须固定版本，避免未审查的 `latest` 在生产环境中漂移：
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.1.0/styles/cgo_clr.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.1.0/styles/cgo_element.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.1.0/styles/cgo_ui.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.1.0/styles/cgo_components.css">
-<script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.1.0/dist/cgo-ui.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.2.2/styles/cgo_clr.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.2.2/styles/cgo_element.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.2.2/styles/cgo_ui.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.2.2/styles/cgo_components.css">
+<script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.2.2/dist/cgo-ui.js"></script>
 ```
 
 如果页面只使用 Shadow DOM 组件，也可以只加载 `dist/cgo-ui.js`；四份 CSS
@@ -77,7 +77,7 @@ CDN 地址必须固定版本，避免未审查的 `latest` 在生产环境中漂
     shouldHideHeader: ({ window }) => Boolean(window.parent?.isEmbeddedHost)
   };
 </script>
-<script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.1.0/dist/cgo-ui.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/npm/@centralgo/cgo-ui@2.2.2/dist/cgo-ui.js"></script>
 ```
 
 也可以在模块中调用 `configureGlobalShim()`，让备案、版权和嵌入式页面判定
@@ -90,7 +90,6 @@ src/             组件、主题、图标和兼容垫片源码
 styles/          可直接被宿主页面引用的公共 CSS
 dist/            由构建脚本生成的 NPM/CDN 产物
 docs/            组件文档站数据与演示
-legacy/          仅用于迁移参考的旧版脚本，不参与发布
 scripts/         构建、检查、烟囱测试和清理脚本
 ```
 
