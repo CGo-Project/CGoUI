@@ -280,11 +280,28 @@ function _repositionAllActiveDropdowns() {
     });
 }
 
+function _isEventInsideActiveDropdown(e) {
+    if (!e) return false;
+    const path = typeof e.composedPath === 'function' ? e.composedPath() : null;
+    for (const content of _activeDropdownPopovers) {
+        if (path && path.includes(content)) return true;
+        if (e.target && typeof Node !== 'undefined' && e.target instanceof Node && (e.target === content || content.contains(e.target))) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function _onWindowScroll(e) {
+    if (_isEventInsideActiveDropdown(e)) return;
+    _repositionAllActiveDropdowns();
+}
+
 function _ensureDropdownOverlaySync() {
     if (_dropdownOverlaySyncBound || typeof window === 'undefined') return;
     _dropdownOverlaySyncBound = true;
     window.addEventListener('resize', _repositionAllActiveDropdowns, { passive: true });
-    window.addEventListener('scroll', _repositionAllActiveDropdowns, { capture: true, passive: true });
+    window.addEventListener('scroll', _onWindowScroll, { capture: true, passive: true });
     if (typeof ResizeObserver !== 'undefined' && !_dropdownResizeObserver) {
         _dropdownResizeObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
@@ -302,7 +319,7 @@ function _detachDropdownOverlaySync() {
     if (!_dropdownOverlaySyncBound || typeof window === 'undefined') return;
     _dropdownOverlaySyncBound = false;
     window.removeEventListener('resize', _repositionAllActiveDropdowns);
-    window.removeEventListener('scroll', _repositionAllActiveDropdowns, true);
+    window.removeEventListener('scroll', _onWindowScroll, true);
     if (_dropdownRepositionRaf) {
         cancelAnimationFrame(_dropdownRepositionRaf);
         _dropdownRepositionRaf = null;

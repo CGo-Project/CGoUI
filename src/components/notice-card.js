@@ -176,6 +176,7 @@ export class CgoNoticeCard extends LitElement {
             color: var(--text-light, #666666);
             margin-top: 6px;
             word-break: break-word;
+            white-space: pre-wrap;
         }
 
         :host([popup]) .content-body {
@@ -186,14 +187,30 @@ export class CgoNoticeCard extends LitElement {
             margin-top: 8px;
             border-radius: var(--radius-xs, 6px);
             overflow: hidden;
-            max-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--cgo-subtle-hover, rgba(0, 0, 0, 0.04));
         }
 
         .image-wrap img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
+            width: auto;
+            max-width: 100%;
+            height: auto;
+            object-fit: contain;
+            border-radius: inherit;
             display: block;
+        }
+
+        :host([popup]) .image-wrap {
+            max-height: 120px;
+        }
+
+        :host([popup]) .image-wrap img {
+            width: 100%;
+            height: auto;
+            max-height: 120px;
+            object-fit: cover;
         }
 
         .actions {

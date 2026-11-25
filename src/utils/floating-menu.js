@@ -89,13 +89,32 @@ function _onKeyDown(e) {
     }
 }
 
+function _isEventInsideOpenMenu(e) {
+    if (!e) return false;
+    const path = typeof e.composedPath === 'function' ? e.composedPath() : null;
+    for (const [host, entry] of _openEntries.entries()) {
+        const menuEl = entry?.menuEl;
+        if (path && (path.includes(host) || (menuEl && path.includes(menuEl)))) return true;
+        if (e.target && typeof Node !== 'undefined' && e.target instanceof Node) {
+            if (e.target === host || host.contains(e.target)) return true;
+            if (menuEl && (e.target === menuEl || menuEl.contains(e.target))) return true;
+        }
+    }
+    return false;
+}
+
+function _onWindowScroll(e) {
+    if (_isEventInsideOpenMenu(e)) return;
+    _repositionAll();
+}
+
 function _bindGlobalListeners() {
     if (_listenersBound || typeof window === 'undefined' || typeof document === 'undefined') return;
     _listenersBound = true;
     document.addEventListener('click', _onOutsideClick);
     document.addEventListener('keydown', _onKeyDown);
     window.addEventListener('resize', _repositionAll, { passive: true });
-    window.addEventListener('scroll', _repositionAll, { capture: true, passive: true });
+    window.addEventListener('scroll', _onWindowScroll, { capture: true, passive: true });
 }
 
 function _unbindGlobalListeners() {
@@ -104,7 +123,7 @@ function _unbindGlobalListeners() {
     document.removeEventListener('click', _onOutsideClick);
     document.removeEventListener('keydown', _onKeyDown);
     window.removeEventListener('resize', _repositionAll);
-    window.removeEventListener('scroll', _repositionAll, true);
+    window.removeEventListener('scroll', _onWindowScroll, true);
     if (_rafId) {
         cancelAnimationFrame(_rafId);
         _rafId = null;

@@ -34,16 +34,23 @@ export class CgoNoticeCenter extends LitElement {
 
     static styles = css`
         :host {
-            display: block;
+            display: flex;
+            flex-direction: column;
             width: 100%;
             max-width: 320px;
+            min-height: 0;
+            max-height: var(--panel-max-height, 480px);
             font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
             box-sizing: border-box;
         }
 
         .center-panel {
             position: relative;
+            display: flex;
+            flex-direction: column;
+            flex: 0 1 auto;
             width: 100%;
+            min-height: 0;
             background: transparent;
             color: var(--text-main, #00263b);
             border: none;
@@ -71,7 +78,9 @@ export class CgoNoticeCenter extends LitElement {
             z-index: 3;
             display: flex;
             flex-direction: column;
-            max-height: inherit;
+            flex: 1 1 auto;
+            min-height: 0;
+            max-height: 100%;
             box-sizing: border-box;
             padding: 12px 0 10px;
         }
@@ -89,33 +98,49 @@ export class CgoNoticeCenter extends LitElement {
         }
 
         .list-container {
-            flex: 1;
+            --scrollbar-thumb: var(--cgo-scrollbar-thumb, rgba(0, 0, 0, 0.22));
+            --scrollbar-track: transparent;
+            flex: 1 1 auto;
+            min-height: 0;
             overflow-y: auto;
+            overflow-x: hidden;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
             display: flex;
             flex-direction: column;
             gap: 8px;
             padding: 10px 12px;
-            min-height: 80px;
             background: var(--cgo-subtle-hover, rgba(0, 0, 0, 0.02));
             scrollbar-width: thin;
+            scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
         }
 
-        .list-container::-webkit-scrollbar {
-            width: 4px;
+        .list-container > cgo-notice-card {
+            flex-shrink: 0;
         }
-        .list-container::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .list-container::-webkit-scrollbar-thumb {
-            background: var(--cgo-scrollbar-thumb, rgba(0, 0, 0, 0.15));
-            border-radius: 4px;
+
+        @supports not (scrollbar-color: auto) {
+            .list-container {
+                scrollbar-width: auto;
+            }
+            .list-container::-webkit-scrollbar {
+                width: 6px;
+                height: 6px;
+            }
+            .list-container::-webkit-scrollbar-track {
+                background: var(--scrollbar-track);
+            }
+            .list-container::-webkit-scrollbar-thumb {
+                background: var(--scrollbar-thumb);
+                border-radius: 4px;
+            }
         }
 
         .empty-tip {
             text-align: center;
             font-size: 12px;
             color: var(--text-light, #888888);
-            padding: 24px 10px;
+            padding: 28px 10px;
         }
 
         .panel-footer {
