@@ -2169,7 +2169,8 @@ cgo-modal .modal-card:hover,
     z-index: 100000;
 }
 
-.dropdown-content::after {
+.dropdown-content::after,
+.dropdown-submenu-surface::after {
     content: '';
     position: absolute;
     inset: 0;
@@ -2180,11 +2181,13 @@ cgo-modal .modal-card:hover,
     transition: background-color 0.25s ease;
 }
 
-[data-theme='dark'] .dropdown-content::after {
+[data-theme='dark'] .dropdown-content::after,
+[data-theme='dark'] .dropdown-submenu-surface::after {
     background: var(--glass-bg-surface, rgba(31, 32, 34, 0.72));
 }
 
-.dropdown-content::before {
+.dropdown-content::before,
+.dropdown-submenu-surface::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -2212,7 +2215,8 @@ cgo-modal .modal-card:hover,
     opacity: 0.8;
 }
 
-[data-theme='dark'] .dropdown-content::before {
+[data-theme='dark'] .dropdown-content::before,
+[data-theme='dark'] .dropdown-submenu-surface::before {
     background:
         linear-gradient(to bottom,
             rgba(255, 255, 255, calc(var(--lg-rim-lit, 0.22) * 1.5)) 0,
@@ -2222,11 +2226,13 @@ cgo-modal .modal-card:hover,
             rgba(255, 255, 255, 0.08) 100%);
 }
 
-[data-theme='dark'] .dropdown-content {
+[data-theme='dark'] .dropdown-content,
+[data-theme='dark'] .dropdown-submenu-surface {
     box-shadow: 0 20px 48px rgba(0, 0, 0, 0.5), 0 4px 14px rgba(0, 0, 0, 0.3);
 }
 
-.dropdown-content > * {
+.dropdown-content > *,
+.dropdown-submenu-surface > * {
     position: relative;
     z-index: 3;
 }
@@ -2249,7 +2255,9 @@ cgo-modal .modal-card:hover,
 
 /* 菜单按钮选项 */
 .dropdown-content a,
-.dropdown-item {
+.dropdown-item,
+.dropdown-submenu-trigger,
+.dropdown-submenu-surface a {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -2266,11 +2274,35 @@ cgo-modal .modal-card:hover,
     width: 100%;
     text-align: left;
     font-family: var(--font-sans);
+    box-sizing: border-box;
 }
 
 .dropdown-content a:hover,
-.dropdown-item:hover {
+.dropdown-item:hover,
+.dropdown-submenu-trigger:hover,
+.dropdown-submenu-trigger[aria-expanded='true'],
+.dropdown-submenu-surface a:hover {
     background-color: var(--btn-info-hover);
+}
+
+.dropdown-submenu-trigger:focus-visible,
+.dropdown-submenu-surface a:focus-visible {
+    outline: 2px solid var(--primary-color, #006098);
+    outline-offset: -2px;
+    background-color: var(--btn-info-hover);
+}
+
+.dropdown-submenu-trigger.permission-disabled,
+.dropdown-submenu-surface a.permission-disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.dropdown-submenu-arrow {
+    margin-inline-start: auto;
+    opacity: 0.65;
+    flex-shrink: 0;
 }
 
 .dropdown-content .btn-icon,
@@ -2285,6 +2317,98 @@ cgo-modal .modal-card:hover,
     height: 1px;
     background-color: var(--border-color);
     margin: 5px 0;
+}
+
+/* 二级弹出菜单壳层、锚点定位与鼠标安全三角遮罩 */
+.dropdown-submenu-flyout {
+    display: none;
+    position: fixed;
+    inset: auto;
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: inherit;
+    overflow: visible;
+    min-width: 170px;
+    z-index: 100002;
+    box-sizing: border-box;
+}
+
+.dropdown-submenu-flyout:is(:popover-open, .show) {
+    display: block;
+}
+
+@supports not selector(:popover-open) {
+    .dropdown-submenu-flyout:not(.show) {
+        display: none;
+    }
+}
+
+@supports (position-area: block-end) {
+    .dropdown-submenu-flyout {
+        position-area: inline-end span-block-end;
+        margin-inline: 8px;
+        position-try-fallbacks: flip-inline, flip-block, --submenu-below;
+    }
+
+    @position-try --submenu-below {
+        position-area: block-end span-inline-end;
+        margin: 4px 0 0 1rem;
+        min-inline-size: 0;
+        max-inline-size: calc(100% - 1rem);
+    }
+}
+
+.dropdown-submenu-flyout[data-bridge]::before {
+    content: '';
+    position: absolute;
+    inset: -100vh -100vw;
+    --bridge-slack: 8px;
+    --bridge-side: sign(var(--pointer-x, 0px));
+    --bridge-edge: calc(50% + var(--bridge-side) * (50% - 100vw));
+    --bridge-apex: calc(100vw + var(--pointer-x, 0px) + var(--bridge-side) * var(--bridge-slack));
+    clip-path: polygon(
+        var(--bridge-apex) calc(100vh + var(--pointer-y, 0px) - var(--bridge-slack)),
+        var(--bridge-edge) 100vh,
+        var(--bridge-edge) calc(100% - 100vh),
+        var(--bridge-apex) calc(100vh + var(--pointer-y, 0px) + var(--bridge-slack))
+    );
+    z-index: 1;
+}
+
+@supports not (width: calc(sign(1px) * 1px)) {
+    .dropdown-submenu-flyout[data-bridge]::before {
+        --bridge-edge: clamp(100vw, 50% + var(--pointer-x, 0px) * 1e6, 100% - 100vw);
+        --bridge-apex: calc(
+            100vw + var(--pointer-x, 0px) +
+                clamp(-1 * var(--bridge-slack), var(--pointer-x, 0px) * 1e6, var(--bridge-slack))
+        );
+    }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .dropdown-submenu-flyout:is(:popover-open, .show) {
+        animation: dropdownIn 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+}
+
+.dropdown-submenu-surface {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px;
+    border-radius: var(--radius-lg, 12px);
+    background: transparent;
+    border: none;
+    overflow: hidden;
+    contain: style;
+    box-sizing: border-box;
+    box-shadow: var(--glass-shadow-surface, 0 16px 36px rgba(0, 38, 59, 0.12), 0 4px 12px rgba(0, 0, 0, 0.04));
+    backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%));
+    -webkit-backdrop-filter: var(--glass-backdrop-filter-surface, blur(14px) saturate(135%));
 }
 
 /* 工具切换下拉（header 中央）*/

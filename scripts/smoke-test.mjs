@@ -95,6 +95,24 @@ assert.ok(id1 && id2 && id1 !== id2, '连续生成的品牌渐变 ID 必须唯�
 assert.ok(reactEntry.buildSvg('bell', { colorMode: 'brand' }).includes('cgo-brand-grad-'), 'bell 应支持品牌渐变');
 
 assert.ok(vanillaBundle.includes('customElements') && vanillaBundle.length >= 10000);
+const elementCssText = readFileSync(resolve(ROOT, 'styles/cgo_element.css'), 'utf8');
+assert.ok(
+    elementCssText.includes('.dropdown-submenu-flyout') && elementCssText.includes('[data-bridge]::before'),
+    'styles/cgo_element.css 应包含二级弹出菜单与安全三角遮罩样式',
+);
+assert.ok(
+    vanillaBundle.includes('dropdown-submenu-flyout') && vanillaBundle.includes('data-bridge'),
+    'dist/cgo-ui.js 应包含二级菜单与安全三角运行时能力',
+);
+const globalShimSrc = readFileSync(resolve(ROOT, 'src/shim/cgo-global.js'), 'utf8');
+const triStart = globalShimSrc.indexOf('function isPointInSafeTriangle(');
+const triEnd = globalShimSrc.indexOf('function isPointerProtectedBySubmenuBridge(', triStart);
+assert.ok(triStart > -1 && triEnd > triStart, 'src/shim/cgo-global.js 应包含 isPointInSafeTriangle 函数');
+const isPointInSafeTriangle = new Function(`${globalShimSrc.slice(triStart, triEnd)}; return isPointInSafeTriangle;`)();
+assert.equal(isPointInSafeTriangle(1020, 225, { x: 1058, y: 200 }, { x: 984, y: 150 }, { x: 984, y: 275 }), true);
+assert.equal(isPointInSafeTriangle(1050, 240, { x: 1058, y: 200 }, { x: 984, y: 150 }, { x: 984, y: 275 }), false);
+assert.equal(isPointInSafeTriangle(180, 230, { x: 140, y: 200 }, { x: 210, y: 150 }, { x: 210, y: 275 }), true);
+assert.equal(isPointInSafeTriangle(145, 240, { x: 140, y: 200 }, { x: 210, y: 150 }, { x: 210, y: 275 }), false);
 
 // 4. Static hygiene: Shadow DOM portability, no unsafeHTML, no host leaks
 const compDir = resolve(ROOT, 'src/components');

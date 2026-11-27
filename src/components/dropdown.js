@@ -264,6 +264,9 @@ export class CgoDropdown extends LitElement {
     close() {
         if (!this.open || this._closing) return;
         this._clearClosePending();
+        if (typeof window !== 'undefined') {
+            window.CGO?.submenu?.closeAllSubmenus?.(this);
+        }
         this._closing = true;
         this.requestUpdate();
         const menu = this.shadowRoot?.querySelector('.menu');
@@ -288,6 +291,7 @@ export class CgoDropdown extends LitElement {
     }
 
     _onMenuClick(e) {
+        if (e.target.closest('.dropdown-submenu-trigger')) return;
         const t = e.target.closest('a, button, .dropdown-item');
         if (t) this.close();
     }
